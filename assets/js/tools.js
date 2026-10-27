@@ -157,22 +157,58 @@
     }
   }
 
+  /* 공학용 계산기: 키패드 + 식 입력. Ans 는 직전 결과 */
+  let lastAns = 0, shift = false, justEvaluated = false;
+  const KEYS = [
+    ["SHIFT", "shift", ""], ["DEG", "deg", ""], ["(", "(", ""], [")", ")", ""], ["DEL", "del", ""], ["AC", "ac", ""],
+    ["sin", "sin(", "sin⁻¹"], ["cos", "cos(", "cos⁻¹"], ["tan", "tan(", "tan⁻¹"], ["log", "log(", "10ˣ"], ["ln", "ln(", "eˣ"], ["xʸ", "^", ""],
+    ["√", "sqrt(", "∛"], ["x²", "^2", "x³"], ["x⁻¹", "^-1", ""], ["π", "π", ""], ["e", "e", ""], ["n!", "!", ""],
+    ["7", "7", ""], ["8", "8", ""], ["9", "9", ""], ["÷", "/", ""], ["EXP", "exp10", ""], ["Ans", "Ans", ""],
+    ["4", "4", ""], ["5", "5", ""], ["6", "6", ""], ["×", "*", ""], ["%", "/100", ""], ["R", "8.314", ""],
+    ["1", "1", ""], ["2", "2", ""], ["3", "3", ""], ["−", "-", ""], ["Nₐ", "6.022e23", ""], ["k", "1.381e-23", ""],
+    ["0", "0", ""], [".", ".", ""], ["±", "neg", ""], ["+", "+", ""], ["h", "6.626e-34", ""], ["=", "eq", ""]
+  ];
+  const SHIFT_INS = { "sin(": "asin(", "cos(": "acos(", "tan(": "atan(", "log(": "10^", "ln(": "exp(", "sqrt(": "cbrt(", "^2": "^3" };
   function renderCalc(body) {
     body.innerHTML = `
       <div class="tl-calc">
-        <div class="tl-row"><input class="tl-expr" id="tlExpr" placeholder="예: 2*8.314*298 / 1000,  log(1.8e-5),  10^-4.74" autocomplete="off" spellcheck="false"><button class="tl-go" id="tlGo">=</button></div>
-        <div class="tl-result" id="tlRes">결과</div>
-        <div class="tl-keys">
-          ${["(", ")", "^", "sqrt(", "log(", "ln(", "exp(", "10^", "sin(", "cos(", "tan(", "!", "π"].map(k => `<button data-k="${esc(k)}">${esc(k)}</button>`).join("")}
-          <button data-k="" id="tlDeg" class="tl-toggle">각도: 도</button>
-        </div>
-        <div class="tl-sub">상수 (누르면 값이 들어갑니다)</div>
-        <div class="tl-keys">
-          ${[["R", "8.314 J/mol·K", "8.314"], ["R", "0.08206 L·atm", "0.08206"], ["Nₐ", "6.022e23", "6.022e23"], ["k", "1.381e-23", "1.381e-23"], ["h", "6.626e-34", "6.626e-34"], ["c", "2.998e8", "2.998e8"], ["F", "96485", "96485"], ["e", "1.602e-19", "1.602e-19"], ["g", "9.8", "9.8"], ["Kw", "1e-14", "1e-14"]].map(([n, t, v]) => `<button data-k="${v}" title="${esc(t)}">${esc(n)}<small>${esc(t)}</small></button>`).join("")}
-        </div>
+        <input class="tl-expr" id="tlExpr" placeholder="식을 입력하거나 아래 키를 누르세요" autocomplete="off" spellcheck="false">
+        <div class="tl-result" id="tlRes"><span class="tl-ans">Ans = ${fmt(lastAns)}</span></div>
+        <div class="tl-pad" id="tlPad">${KEYS.map(([lab, k, sl]) => `<button data-k="${esc(k)}" data-l="${esc(lab)}" data-s="${esc(sl)}" class="${/^[0-9.]$/.test(lab) ? "num" : ""} ${k === "eq" ? "eq" : ""} ${k === "ac" || k === "del" ? "ctl" : ""} ${["8.314", "6.022e23", "1.381e-23", "6.626e-34"].includes(k) ? "const" : ""}">${esc(lab)}</button>`).join("")}</div>
+        <div class="tl-hint" style="margin-top:8px">SHIFT: 역삼각함수·10ˣ·eˣ·∛·x³ · DEG/RAD: 각도 단위 · EXP: ×10ˣ (예 1.8 EXP −5) · 상수 R = 8.314, Nₐ, k, h · 입력줄에 직접 타이핑해도 됩니다 (예: -log(1.8e-5))</div>
         <div class="tl-hist" id="tlHist"></div>
-      </div>
-      <div class="tl-sub" style="margin-top:18px">화학 계산기</div>
+      </div>`;
+    const $ = id => body.querySelector("#" + id);
+    const expr = $("tlExpr"), res = $("tlRes"), hist = $("tlHist"), pad = $("tlPad");
+    const paintShift = () => { pad.querySelectorAll("button").forEach(b => { if (b.dataset.s) b.textContent = shift ? b.dataset.s : b.dataset.l; }); pad.querySelector('[data-k="shift"]').classList.toggle("on", shift); pad.querySelector('[data-k="deg"]').textContent = angleDeg ? "DEG" : "RAD"; };
+    const insert = t => { const st = expr.selectionStart ?? expr.value.length, en = expr.selectionEnd ?? st; expr.value = expr.value.slice(0, st) + t + expr.value.slice(en); expr.focus(); expr.selectionStart = expr.selectionEnd = st + t.length; };
+    const run = () => {
+      const src = expr.value.trim(); if (!src) return;
+      try { CONSTS.Ans = lastAns; const v = evaluate(src); lastAns = v; res.innerHTML = `${fmt(v)}<span class="tl-ans">Ans</span>`; res.classList.remove("err"); justEvaluated = true;
+        const d = document.createElement("div"); d.innerHTML = `<span>${esc(src)}</span><b>${fmt(v)}</b>`; d.addEventListener("click", () => { expr.value = src; expr.focus(); }); hist.prepend(d); while (hist.children.length > 8) hist.lastChild.remove();
+      } catch (e) { res.textContent = "식을 확인하세요"; res.classList.add("err"); }
+    };
+    pad.addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return; let k = b.dataset.k;
+      if (k === "shift") { shift = !shift; paintShift(); return; }
+      if (k === "deg") { angleDeg = !angleDeg; paintShift(); return; }
+      if (k === "ac") { expr.value = ""; res.innerHTML = `<span class="tl-ans">Ans = ${fmt(lastAns)}</span>`; res.classList.remove("err"); justEvaluated = false; expr.focus(); return; }
+      if (k === "del") { const st = expr.selectionStart ?? expr.value.length; if (st > 0) { expr.value = expr.value.slice(0, st - 1) + expr.value.slice(st); expr.focus(); expr.selectionStart = expr.selectionEnd = st - 1; } return; }
+      if (k === "eq") { run(); return; }
+      if (k === "neg") { expr.value = expr.value.startsWith("-") ? expr.value.slice(1) : "-" + expr.value; expr.focus(); return; }
+      if (k === "exp10") k = "e";
+      if (shift && SHIFT_INS[k]) { k = SHIFT_INS[k]; shift = false; paintShift(); }
+      if (justEvaluated) { justEvaluated = false; if (/^[+\-*/^!]|^\/100/.test(k)) expr.value = "Ans"; else expr.value = ""; }
+      insert(k);
+    });
+    expr.addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+    expr.addEventListener("input", () => { justEvaluated = false; });
+    paintShift();
+  }
+
+  /* 화학 계산기 (화학 자료 탭 상단) */
+  function renderChemCalc() {
+    return `<details class="tl-chem" open><summary>화학 계산기</summary>
       <div class="tl-mini">
         <div class="tl-card"><b>몰질량</b><div class="tl-row"><input id="mmF" placeholder="화학식 예: Ca(OH)2, CuSO4·5H2O"><button class="tl-go" id="mmGo">=</button></div><div class="tl-out" id="mmOut"></div></div>
         <div class="tl-card"><b>pH ↔ [H⁺]</b><div class="tl-row"><input id="phIn" placeholder="pH"><span>⇄</span><input id="hIn" placeholder="[H⁺] M"></div><div class="tl-out" id="phOut"></div></div>
@@ -180,34 +216,23 @@
         <div class="tl-card"><b>이상 기체 PV = nRT</b><span class="tl-hint">세 값을 넣으면 나머지를 구합니다 (atm · L · mol · K)</span><div class="tl-row"><input id="gP" placeholder="P atm"><input id="gV" placeholder="V L"><input id="gN" placeholder="n mol"><input id="gT" placeholder="T K"></div><div class="tl-out" id="gOut"></div></div>
         <div class="tl-card"><b>희석 M₁V₁ = M₂V₂</b><span class="tl-hint">세 값을 넣으면 나머지를 구합니다</span><div class="tl-row"><input id="dM1" placeholder="M₁"><input id="dV1" placeholder="V₁"><input id="dM2" placeholder="M₂"><input id="dV2" placeholder="V₂"></div><div class="tl-out" id="dOut"></div></div>
         <div class="tl-card"><b>농도 환산 (몰 농도 · 몰랄 농도 · 질량 %)</b><span class="tl-hint">용질 몰질량과 용액 밀도를 넣고, 셋 중 하나를 입력</span><div class="tl-row"><input id="cMM" placeholder="몰질량 g/mol"><input id="cD" placeholder="밀도 g/mL"></div><div class="tl-row"><input id="cM" placeholder="M (mol/L)"><input id="cm" placeholder="m (mol/kg)"><input id="cW" placeholder="질량 %"></div><div class="tl-out" id="cOut"></div></div>
-      </div>`;
-    const $ = id => body.querySelector("#" + id);
-    const expr = $("tlExpr"), res = $("tlRes"), hist = $("tlHist");
-    const run = () => { const src = expr.value.trim(); if (!src) return; try { const v = evaluate(src); res.textContent = fmt(v); res.classList.remove("err"); const d = document.createElement("div"); d.innerHTML = `<span>${esc(src)}</span><b>${fmt(v)}</b>`; d.addEventListener("click", () => { expr.value = fmt(v); expr.focus(); }); hist.prepend(d); while (hist.children.length > 6) hist.lastChild.remove(); } catch (e) { res.textContent = "식을 확인하세요"; res.classList.add("err"); } };
-    $("tlGo").addEventListener("click", run); expr.addEventListener("keydown", e => { if (e.key === "Enter") run(); });
-    body.querySelectorAll(".tl-keys button[data-k]").forEach(b => b.addEventListener("click", () => {
-      if (b.id === "tlDeg") { angleDeg = !angleDeg; b.textContent = angleDeg ? "각도: 도" : "각도: 라디안"; return; }
-      const k = b.dataset.k, st = expr.selectionStart ?? expr.value.length; expr.value = expr.value.slice(0, st) + k + expr.value.slice(st); expr.focus(); expr.selectionStart = expr.selectionEnd = st + k.length;
-    }));
+      </div></details>`;
+  }
+  function bindChemCalc(body) {
+    const $ = id => body.querySelector("#" + id); if (!$("mmF")) return;
     const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? null : v; };
-    // 몰질량
     const mm = () => { try { const v = molarMass($("mmF").value.trim()); $("mmOut").textContent = $("mmF").value.trim() ? `${fmt(v)} g/mol` : ""; } catch (e) { $("mmOut").textContent = e.message || "화학식을 확인하세요"; } };
     $("mmGo").addEventListener("click", mm); $("mmF").addEventListener("keydown", e => { if (e.key === "Enter") mm(); });
-    // pH
     $("phIn").addEventListener("input", () => { const p = num("phIn"); $("hIn").value = p == null ? "" : fmt(Math.pow(10, -p)); $("phOut").textContent = p == null ? "" : `pOH = ${fmt(14 - p)}, [OH⁻] = ${fmt(Math.pow(10, p - 14))} M (25 °C)`; });
     $("hIn").addEventListener("input", () => { const h = num("hIn"); $("phIn").value = h == null || h <= 0 ? "" : fmt(-Math.log10(h)); $("phOut").textContent = h == null || h <= 0 ? "" : `pH = ${fmt(-Math.log10(h))}, pOH = ${fmt(14 + Math.log10(h))}`; });
-    // 몰 수
     const nCalc = () => { const m = num("nM"), M = num("nMM"); $("nOut").textContent = (m != null && M) ? `n = ${fmt(m / M)} mol = ${fmt(m / M * 6.02214076e23)} 개` : ""; };
     ["nM", "nMM"].forEach(id => $(id).addEventListener("input", nCalc));
-    // 이상 기체
     const gas = () => { const P = num("gP"), V = num("gV"), n = num("gN"), T = num("gT"), R = 0.0820574; const miss = [P, V, n, T].filter(x => x == null).length; if (miss !== 1) { $("gOut").textContent = miss === 0 ? `PV = ${fmt(P * V)}, nRT = ${fmt(n * R * T)}` : ""; return; }
       if (P == null) $("gOut").textContent = `P = nRT/V = ${fmt(n * R * T / V)} atm`; else if (V == null) $("gOut").textContent = `V = nRT/P = ${fmt(n * R * T / P)} L`; else if (n == null) $("gOut").textContent = `n = PV/RT = ${fmt(P * V / (R * T))} mol`; else $("gOut").textContent = `T = PV/nR = ${fmt(P * V / (n * R))} K = ${fmt(P * V / (n * R) - 273.15)} °C`; };
     ["gP", "gV", "gN", "gT"].forEach(id => $(id).addEventListener("input", gas));
-    // 희석
     const dil = () => { const a = num("dM1"), b = num("dV1"), c = num("dM2"), d = num("dV2"); const miss = [a, b, c, d].filter(x => x == null).length; if (miss !== 1) { $("dOut").textContent = ""; return; }
       $("dOut").textContent = a == null ? `M₁ = ${fmt(c * d / b)}` : b == null ? `V₁ = ${fmt(c * d / a)}` : c == null ? `M₂ = ${fmt(a * b / d)}` : `V₂ = ${fmt(a * b / c)}`; };
     ["dM1", "dV1", "dM2", "dV2"].forEach(id => $(id).addEventListener("input", dil));
-    // 농도 환산 (용액 1 L 기준)
     const conc = src => () => { const MM = num("cMM"), D = num("cD"); if (!MM || !D) { $("cOut").textContent = "몰질량과 밀도를 먼저 입력하세요"; return; }
       let M, m, W; const v = num(src); if (v == null) { $("cOut").textContent = ""; return; }
       if (src === "cM") { M = v; const solute = M * MM, solvent = D * 1000 - solute; m = M / (solvent / 1000); W = solute / (D * 1000) * 100; }
@@ -231,7 +256,9 @@
     if (!data) { body.innerHTML = `<div class="tl-empty">자료가 아직 없습니다. data/reference/${esc(key)}.js 에 추가하면 여기에 표시됩니다.</div>`; return; }
     body.innerHTML = `<div class="tl-row"><input class="tl-search" id="tlQ" placeholder="${esc(data.name)} 자료 검색 (예: 아세트산, Ksp, 비열)"></div>
       <div class="tl-toc">${data.sections.map(s => `<a href="#" data-s="${esc(s.id)}">${esc(s.title)}</a>`).join("")}</div>
+      ${key === "chemistry" ? renderChemCalc() : ""}
       <div id="tlSecs">${data.sections.map(sec => renderSection(sec)).join("")}</div>`;
+    bindChemCalc(body);
     body.querySelectorAll(".tl-toc a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = body.querySelector(`[data-sec="${a.dataset.s}"]`); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); }));
     const q = body.querySelector("#tlQ");
     q.addEventListener("input", () => {
