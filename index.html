@@ -17,7 +17,7 @@
 
   <script>
     (function () {
-      const { D, SUBJ, I, esc, items, card, match, recent } = VL;
+      const { D, SUBJ, esc, items, card, match, recent } = VL;
       const view = document.getElementById("view");
       const state = { grade: "", unit: "", sort: "latest", q: "" };
 
@@ -38,15 +38,28 @@
         const q = document.getElementById("q");
         q.value = state.q;
         q.addEventListener("input", () => { state.q = q.value; paint(); });
+        view.dataset.kind = r.kind;
 
-        // 제목 영역
+        /* 홈: 과목별로 묶어서 보여줌 ------------------------------------- */
+        if (r.kind === "all") {
+          const all = items();
+          view.innerHTML = `
+            <div class="hd">
+              <div><div class="eb mono">ALL · ${all.length}</div><h1>실험</h1></div>
+              <p>${esc(D.site.tagline || "")}</p>
+            </div>
+            <div id="sections"></div>`;
+          view._pool = all;
+          paint();
+          return;
+        }
+
+        /* 과목 / 최근: 필터가 있는 단일 그리드 ------------------------------ */
         let title, eyebrow, desc, pool;
         if (r.kind === "subject" && subj) {
           pool = items(subj.id); title = subj.name; eyebrow = `${subj.id.toUpperCase()} · ${pool.length}`; desc = subj.desc;
-        } else if (r.kind === "recent") {
-          pool = recent.list(); title = "최근 본 실험"; eyebrow = `RECENT · ${pool.length}`; desc = "이 브라우저에서 최근에 연 실험입니다.";
         } else {
-          pool = items(); title = "실험"; eyebrow = `ALL · ${pool.length}`; desc = D.site.tagline || "";
+          pool = recent.list(); title = "최근 본 실험"; eyebrow = `RECENT · ${pool.length}`; desc = "이 브라우저에서 최근에 연 실험입니다.";
         }
         const units = [...new Set(pool.map(it => it.unit).filter(Boolean))];
         state.unit = units.includes(state.unit) ? state.unit : "";
@@ -64,19 +77,36 @@
         document.querySelectorAll("#grade button").forEach(b => b.addEventListener("click", () => { state.grade = b.dataset.g; document.querySelectorAll("#grade button").forEach(x => x.classList.toggle("on", x === b)); paint(); }));
         document.getElementById("unit").addEventListener("change", e => { state.unit = e.target.value; paint(); });
         document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; paint(); });
-        view.dataset.kind = r.kind;
         view._pool = pool;
         paint();
       }
 
+      function sortList(list) {
+        if (state.sort === "name") list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+        else if (state.sort === "featured") list.sort((a, b) => (b.featured - a.featured) || b.added.localeCompare(a.added));
+        else list.sort((a, b) => b.added.localeCompare(a.added) || (a.exp ?? 0) - (b.exp ?? 0));
+        return list;
+      }
+
       function paint() {
+        if (view.dataset.kind === "all") {
+          const box = document.getElementById("sections");
+          const hit = view._pool.filter(it => match(it, state.q));
+          const html = D.subjects.map(s => {
+            const list = sortList(hit.filter(it => it.subject === s.id));
+            if (state.q && !list.length) return "";                       // 검색 중에는 결과 없는 과목 숨김
+            const body = list.length ? `<div class="grid">${list.map(card).join("")}</div>`
+              : `<div class="none">아직 등록된 실험이 없습니다. <a href="manage.html" style="color:var(--accent)">실험 등록</a></div>`;
+            return `<section class="sec" data-subject="${esc(s.id)}">
+              <div class="sec-hd"><h2><i></i>${esc(s.name)}</h2><span class="n">${list.length}개</span>${list.length ? `<a class="more" href="#/s/${esc(s.id)}">전체 보기 →</a>` : ""}</div>
+              ${body}</section>`;
+          }).join("");
+          box.innerHTML = html || `<div class="empty"><b>검색 결과가 없습니다</b>다른 키워드로 찾아보세요.</div>`;
+          return;
+        }
         const grid = document.getElementById("grid");
         let list = view._pool.filter(it => (!state.grade || (it.grade || []).includes(state.grade)) && (!state.unit || it.unit === state.unit) && match(it, state.q));
-        if (view.dataset.kind !== "recent") {
-          if (state.sort === "name") list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
-          else if (state.sort === "featured") list.sort((a, b) => (b.featured - a.featured) || b.added.localeCompare(a.added));
-          else list.sort((a, b) => b.added.localeCompare(a.added) || (a.exp ?? 0) - (b.exp ?? 0));
-        }
+        if (view.dataset.kind !== "recent") sortList(list);
         if (!list.length) {
           grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${state.q ? "검색 결과가 없습니다" : "아직 등록된 실험이 없습니다"}</b>${state.q ? "다른 키워드로 찾아보세요." : `<a href="manage.html">실험 등록 도우미</a>에서 첫 실험을 추가해 보세요.`}</div>`;
           return;
