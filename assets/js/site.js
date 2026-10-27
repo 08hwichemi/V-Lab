@@ -74,7 +74,7 @@
     return `<header class="top">
       <a class="wm" href="index.html#/"><i>${I.mark}</i>${esc(D.site.name || "V-Lab")}<span>${esc(D.site.school || "가상 실험실")}</span></a>
       <nav class="tabs">${tabs}</nav>
-      <div class="r">${search}<button class="ic" data-theme-toggle aria-label="테마 전환"></button>${opts.extra || ""}</div>
+      <div class="r">${search}<button class="tb" data-tools-toggle><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0 5 5L13 18l-2 2a2.1 2.1 0 0 1-3-3l2-2 6.7-6.7z"/><path d="M4 20l4-4"/></svg>도구</button><button class="ic" data-theme-toggle aria-label="테마 전환"></button>${opts.extra || ""}</div>
     </header>
     <nav class="mtabs">${tabs}</nav>`;
   }
@@ -86,6 +86,7 @@
   function bindHeader() {
     document.querySelectorAll("[data-theme-toggle]").forEach(b => b.addEventListener("click", theme.toggle));
     theme.paint();
+    if (window.VLTools) VLTools.init();
     const q = document.getElementById("q");
     if (q) {
       window.addEventListener("keydown", e => {

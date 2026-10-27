@@ -13,6 +13,7 @@ V-Lab/
 ├─ index.html              홈 · 과목별 목록 · 검색 (해시 라우팅: #/ , #/s/chemistry , #/recent)
 ├─ lab.html                실험 뷰어 (lab.html?id=실험ID&exp=번호)
 ├─ data/labs.js            ★ 실험 등록부 — 실험을 추가할 때 고치는 유일한 파일
+├─ data/reference/         부록 자료 (chemistry.js · physics.js · biology.js · earth.js)
 ├─ labs/
 │   ├─ physics/            과목별 실험 HTML
 │   ├─ chemistry/chem-smart-lab.html
@@ -22,6 +23,7 @@ V-Lab/
 │   ├─ css/site.css        사이트 스타일
 │   ├─ css/lab-theme.css   ★ 실험 HTML 공용 테마 (글꼴·색·버튼·패널)
 │   ├─ js/site.js          공통 스크립트 (카드·헤더·테마·최근 본 실험)
+│   ├─ js/tools.js         도구 패널 (환산·계산기·부록 자료)
 │   └─ img/thumbs/         실험 썸네일
 ├─ templates/lab-template.html   새 실험을 만들 때 복사해서 쓰는 뼈대
 └─ docs/DESIGN.md          디자인 가이드
@@ -88,6 +90,16 @@ experiments: [
 
 파일을 더블클릭해 `index.html` 을 열어도 동작합니다. (등록부를 `<script>` 로 읽기 때문)
 간단한 서버로 보려면 `python3 -m http.server 8000` 후 `http://localhost:8000/` 을 엽니다.
+
+## 도구 패널
+
+상단 바의 **도구** 버튼을 누르면 오른쪽에 패널이 열립니다. 다시 누르거나 패널 바깥을 누르면 닫힙니다. 실험 뷰어 안에서도 열리므로 실험을 보면서 쓸 수 있습니다.
+
+- **환산** — 압력·온도·에너지·부피·질량·길이·시간·속력·힘·농도·진동수/파장. 한 칸에 값을 넣으면 나머지 단위가 바뀝니다.
+- **계산** — 공학용 계산기(log, ln, 지수, 삼각함수, 상수 버튼)와 화학 계산기(몰질량, pH ↔ [H⁺], 몰 수, PV = nRT, 희석, 농도 환산).
+- **화학 · 물리 · 생명 · 지구** — 과목별 부록 자료. 주기율표(원소 클릭 시 상세), Ka/Kb/Ksp, 표준 환원 전위, 물 증기압, 지시약, 물리 상수, 유전 암호표, 아미노산, 지질 시대, 행성 자료 등. 검색창으로 표 안을 찾을 수 있습니다.
+
+자료는 `data/reference/<과목>.js` 에 있습니다. 표를 추가하려면 해당 파일의 `sections` 배열에 `{ id, title, type: "table", cols: [...], rows: [[...], ...] }` 항목을 넣으면 됩니다. `type: "list"` 는 글머리 목록입니다.
 
 ## 화면 구성
 
