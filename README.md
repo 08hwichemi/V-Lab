@@ -3,7 +3,7 @@
 물리·화학·생명과학·지구과학 가상 실험(HTML 시뮬레이션)을 한곳에 모아 브라우저에서 바로 실행하는 정적 사이트입니다.
 빌드 도구나 서버 없이 HTML·CSS·JS 파일만으로 동작하며 GitHub Pages에 그대로 올립니다.
 
-- 사이트: `https://<계정>.github.io/V-Lab/`  (GitHub Pages 설정 후)
+- 사이트: `https://08hwichemi.github.io/v-lab/`
 - 운영: 휘쌤
 
 ## 폴더 구조
@@ -82,7 +82,7 @@ experiments: [
 
 1. GitHub 저장소 → **Settings → Pages**
 2. **Source: Deploy from a branch**, Branch: `main` (또는 사용하는 브랜치), 폴더 `/ (root)` → Save
-3. 1~2분 뒤 `https://<계정>.github.io/V-Lab/` 에서 확인
+3. 1~2분 뒤 `https://08hwichemi.github.io/v-lab/` 에서 확인
 
 `.nojekyll` 파일이 있어 Jekyll 처리 없이 그대로 서비스됩니다.
 
