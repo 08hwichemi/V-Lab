@@ -1,0 +1,35 @@
+# GitHub Pages 자동 배포
+# - 이 브랜치(또는 main)에 푸시될 때마다 저장소 전체를 그대로 Pages 에 올립니다.
+# - 첫 실행 때 Pages 를 자동으로 켭니다 (enablement: true).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [claude/awesome-johnson-vp7823, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
