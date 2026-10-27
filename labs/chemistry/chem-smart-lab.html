@@ -53,6 +53,17 @@
         .e5-result { text-align: center; padding: 8px; margin-top: 10px; border-radius: var(--radius-sm); background: var(--panel-2); font-size: 13px; color: var(--text-2); }
         .e5-result b { font-family: var(--mono); color: var(--accent); font-size: 15px; }
 
+        .is-off { opacity: .35; pointer-events: none; }
+        .vp-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .bp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 12px; margin-bottom: 12px; }
+        .vp-grid .canvas-wrap, .bp-grid .canvas-wrap { margin-bottom: 0; }
+        @media (max-width: 900px) { .vp-grid, .bp-grid { grid-template-columns: 1fr; } }
+        .e5-trials table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 8px; }
+        .e5-trials th, .e5-trials td { padding: 5px 6px; border-bottom: 1px solid var(--line-2); text-align: left; font-weight: 500; }
+        .e5-trials th { color: var(--muted); font-size: 12px; }
+        .e5-trials .x { color: var(--muted); cursor: pointer; text-align: right; }
+        .e5-trials .x:hover { color: var(--err); }
+
         /* 르샤틀리에 */
         .e6-panel { display: none; position: relative; }
         .e6-panel.active { display: flex; flex-direction: column; gap: 12px; animation: lab-fade .25s; }
@@ -109,7 +120,7 @@
                 <div>단위세포 원자 <b id="d4-n">1개</b></div>
                 <div>충전율 <b id="d4-pack">52 %</b></div>
             </div>
-            <div class="status"><div>확인된 원자 <b id="d4-coord">-</b></div><div class="msg" id="d4-msg">화면을 드래그하면 3D로 회전합니다.</div></div>
+            <div class="status"><div>확인된 원자 <b id="d4-coord">-</b></div><div>단위세포 몫 세기 <b id="d4-count">-</b></div><div class="msg" id="d4-msg">드래그: 회전 · 휠: 확대</div></div>
             <div class="canvas-wrap grab" style="background:#fff;">
                 <canvas id="cvs4" height="520"></canvas>
             </div>
@@ -137,11 +148,11 @@
                         <button class="selected" onclick="highlightNeighbors(0, this)">끄기</button>
                     </div>
                 </div>
-                <div class="control" id="guide-options" style="display:none;">
+                <div class="control is-off" id="guide-options">
                     <label>분석 가이드</label>
                     <div class="row" id="grp-guide">
                         <button id="btn-guide-all" class="btn btn-sm" onclick="toggleGuide(this)">가이드 라인</button>
-                        <div class="seg" id="fcc-planes" style="display:none;">
+                        <div class="seg is-off" id="fcc-planes">
                             <button onclick="setFCCPlane('xy', this)">XY</button>
                             <button onclick="setFCCPlane('yz', this)">YZ</button>
                             <button onclick="setFCCPlane('zx', this)">ZX</button>
@@ -154,7 +165,7 @@
                 <h3>이 실험에서</h3>
                 <p>단순 입방(SC)·체심 입방(BCC)·면심 입방(FCC) 구조의 단위세포를 3D로 돌려 보며 배위수와 단위세포당 원자 수를 확인합니다.</p>
                 <h4>탐구 과제</h4>
-                <ol><li>2×2×2 격자에서 <b>최근접</b>을 켜고 SC·BCC·FCC의 배위수(6·8·12)를 세어 보세요.</li><li>단위세포당 원자 수를 계산해 보세요. 꼭짓점 8 × 1/8, 면 6 × 1/2, 체심 1.</li><li>FCC에서 <b>가이드 라인</b>을 켜고 XY·YZ·ZX 평면에 최근접 원자가 4개씩 있음을 확인하세요.</li></ol>
+                <ol><li>2×2×2 격자에서 <b>최근접</b>을 켜고 SC·BCC·FCC의 배위수(6·8·12)를 세어 보세요.</li><li>1×1×1 격자에서 원자를 하나씩 클릭해 몫(꼭짓점 ⅛, 면 ½, 체심 1)을 더해 보고, 합이 SC 1 · BCC 2 · FCC 4 가 되는지 확인하세요.</li><li>FCC에서 <b>가이드 라인</b>을 켜고 XY·YZ·ZX 평면에 최근접 원자가 4개씩 있음을 확인하세요.</li></ol>
                 <h4>단위세포 계산</h4><div class="formula">SC: 8 × ⅛ = <b>1</b><br>BCC: 8 × ⅛ + 1 = <b>2</b><br>FCC: 8 × ⅛ + 6 × ½ = <b>4</b></div>
             </div></aside></div></section>
 
@@ -165,7 +176,10 @@
                 <div>용액 증기압 P<sub>용액</sub> <b id="d0-ps">760 mmHg</b></div>
                 <div>증기압력 내림 ΔP <b id="d0-dp" style="color:#E5484D;">0 mmHg</b></div>
             </div>
-            <div class="canvas-wrap"><canvas id="cvs0" height="420"></canvas></div>
+            <div class="vp-grid">
+                <div class="canvas-wrap"><canvas id="cvs0p" height="380"></canvas></div>
+                <div class="canvas-wrap"><canvas id="cvs0" height="380"></canvas></div>
+            </div>
             <div class="controls">
                 <div class="control">
                     <label>용매 증기압 P° (mmHg)</label>
@@ -203,7 +217,10 @@
                 <div>용액의 끓는점 <b id="d1-tb">100.00 °C</b></div>
                 <div class="msg" id="d1-status">가열 중</div>
             </div>
-            <div class="canvas-wrap"><canvas id="cvs1" height="420"></canvas></div>
+            <div class="bp-grid">
+                <div class="canvas-wrap"><canvas id="cvs1" height="420"></canvas></div>
+                <div class="canvas-wrap"><canvas id="cvs1b" height="420"></canvas></div>
+            </div>
             <div class="controls">
                 <div class="control">
                     <label>몰랄 농도 m (mol/kg)</label>
@@ -227,18 +244,19 @@
                     <label>온도 (°C)</label>
                     <div class="slider">
                         <button class="btn btn-icon" onclick="adjustSlider('c1-t', -1)">−</button>
-                        <input type="range" id="c1-t" min="88" max="112" step="0.1" value="95">
+                        <input type="range" id="c1-t" min="88" max="112" step="0.01" data-step="0.1" value="95">
                         <button class="btn btn-icon" onclick="adjustSlider('c1-t', 1)">+</button>
                     </div>
                     <div class="value" id="c1-t-val">95.0</div>
                 </div>
-                <div class="control"><label>&nbsp;</label><button class="btn btn-sm" onclick="resetSliders(['c1-m','c1-pe','c1-t'])">초기화</button></div>
+                <div class="control"><label>가열</label><button class="btn btn-sm btn-accent" id="btn-heat" onclick="toggleHeat1()">가열 시작</button></div>
+                <div class="control"><label>&nbsp;</label><button class="btn btn-sm" onclick="resetExp1()">초기화</button></div>
             </div>
         </div><aside class="lab-side"><div class="guide">
                 <h3>이 실험에서</h3>
                 <p>용액은 순수 용매보다 증기압이 낮아 더 높은 온도에서 끓습니다. ΔTb = Kb·m 관계와 증기압 곡선의 이동을 함께 봅니다. (물 Kb = 0.52 °C/m)</p>
                 <h4>탐구 과제</h4>
-                <ol><li>몰랄 농도 1.0 m에서 끓는점이 몇 °C인지 확인하세요.</li><li>외부 압력을 0.7 atm으로 낮추면 끓는점이 어떻게 바뀌나요? (높은 산에서 밥이 설익는 이유)</li><li>그래프의 ΔP(세로 화살표)와 ΔTb(가로 화살표)가 왜 함께 나타나는지 설명해 보세요.</li></ol>
+                <ol><li><b>가열 시작</b>을 눌러 온도가 끓는점에 닿으면 더 올라가지 않는 것을 보고, 몰랄 농도 1.0 m에서 끓는점이 몇 °C인지 읽으세요.</li><li>외부 압력을 0.7 atm으로 낮추면 끓는점이 어떻게 바뀌나요? (높은 산에서 밥이 설익는 이유)</li><li>그래프의 ΔP(세로 화살표)와 ΔTb(가로 화살표)가 왜 함께 나타나는지 설명해 보세요.</li></ol>
                 <h4>현재 값으로 계산</h4><div class="formula" id="f1">—</div>
             </div></aside></div></section>
 
@@ -249,14 +267,18 @@
                 <div>어는점 T<sub>f</sub> <b id="d2-tf">0.00 °C</b></div>
                 <div class="msg" id="d2-msg">액체 상태</div>
             </div>
-            <div class="canvas-wrap stack-top"><canvas id="cvs2-top" height="150"></canvas></div>
+            <div class="row spread" style="margin-bottom:8px;">
+                <div class="seg" id="fp-mode"><button class="selected" onclick="setFpMode('vp', this)">증기압 곡선</button><button onclick="setFpMode('cool', this)">냉각 곡선 (온도–시간)</button></div>
+                <button class="btn btn-sm btn-accent" id="btn-cool" onclick="toggleCool2()">냉각 시작</button>
+            </div>
+            <div class="canvas-wrap stack-top"><canvas id="cvs2-top" height="190"></canvas></div>
             <div class="canvas-wrap stack-bot"><canvas id="cvs2-bot" height="260"></canvas></div>
             <div class="controls">
                 <div class="control">
                     <label>온도 (°C)</label>
                     <div class="slider">
                         <button class="btn btn-icon" onclick="adjustSlider('c2-t', -1)">−</button>
-                        <input type="range" id="c2-t" min="-15" max="10" step="0.5" value="5">
+                        <input type="range" id="c2-t" min="-15" max="10" step="0.01" data-step="0.5" value="5">
                         <button class="btn btn-icon" onclick="adjustSlider('c2-t', 1)">+</button>
                     </div>
                     <div class="value" id="c2-t-val">5.0</div>
@@ -270,13 +292,13 @@
                     </div>
                     <div class="value" id="c2-c-val">0.0</div>
                 </div>
-                <div class="control"><label>&nbsp;</label><button class="btn btn-sm" onclick="resetSliders(['c2-t','c2-c'])">초기화</button></div>
+                <div class="control"><label>&nbsp;</label><button class="btn btn-sm" onclick="resetExp2()">초기화</button></div>
             </div>
         </div><aside class="lab-side"><div class="guide">
                 <h3>이 실험에서</h3>
                 <p>용질이 녹으면 액체의 증기압이 낮아져 고체 곡선과 더 낮은 온도에서 만납니다. ΔTf = Kf·m 과 결정 형성 과정을 봅니다. (물 Kf = 1.86 °C/m)</p>
                 <h4>탐구 과제</h4>
-                <ol><li>농도 1.0 m 용액의 어는점을 예측한 뒤 온도를 내려 결빙되는 순간을 확인하세요.</li><li>눈 온 도로에 염화칼슘을 뿌리는 이유를 이 실험으로 설명해 보세요.</li><li>얼음 상태에서 주황색 용질 입자 주변이 왜 격자를 이루지 못하는지 관찰하세요.</li></ol>
+                <ol><li>농도 1.0 m 에서 <b>냉각 시작</b>을 누르고, 냉각 곡선에서 순수 물(0 °C)과 용액(T<sub>f</sub>)의 수평 구간(응고 중)을 비교하세요.</li><li>눈 온 도로에 염화칼슘을 뿌리는 이유를 이 실험으로 설명해 보세요.</li><li>얼음 상태에서 주황색 용질 입자 주변이 왜 격자를 이루지 못하는지 관찰하세요.</li></ol>
                 <h4>현재 값으로 계산</h4><div class="formula" id="f2">—</div>
             </div></aside></div></section>
 
@@ -354,6 +376,7 @@
                             <button class="btn e5-drip" onpointerdown="startDrip5('fast')" onpointerup="stopDrip5()" onpointerleave="stopDrip5()" onpointercancel="stopDrip5()"><span class="dot"></span>일반 투입</button>
                             <button class="btn e5-drip slow" onpointerdown="startDrip5('slow')" onpointerup="stopDrip5()" onpointerleave="stopDrip5()" onpointercancel="stopDrip5()"><span class="dot"></span>미세 투입</button>
                         </div>
+                        <button class="btn btn-block" style="margin-top:8px;" onclick="dropOnce5()">한 방울 (0.05 mL)</button>
                         <div class="muted" style="font-size:12.5px;margin-top:6px;">버튼을 누르고 있는 동안 떨어집니다.</div>
                         <div style="text-align:center;margin-top:14px;">
                             <div class="muted" style="font-size:12.5px;">현재 투입량</div>
@@ -362,7 +385,8 @@
                         </div>
                         <label class="radio" style="margin-top:8px;"><input type="checkbox" id="e5_phToggle" onchange="updateVisuals5()"> pH 미터 표시</label>
                         <div class="kv" id="e5_phRow" style="display:none;"><span>현재 pH</span><b id="e5_ph">-</b></div>
-                        <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="recordResult5()">현재 부피 기록 → V₁</button>
+                        <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="recordResult5()">중화점 부피 기록 (회차 추가)</button>
+                        <button class="btn btn-block" style="margin-top:8px;" onclick="nextTrial5()">다음 회차 · 뷰렛 다시 채우기</button>
                     </div>
                 </div>
 
@@ -384,7 +408,8 @@
                     <div class="panel">
                         <h3>3. 농도 계산 (M₁V₁ = M₂V₂)</h3>
                         <div class="field"><label>표준 농도 M₁ (M)</label><input type="number" class="narrow" id="e5_calc_m1" value="1.0" readonly></div>
-                        <div class="field"><label>투입 부피 V₁ (mL)</label><input type="number" class="narrow" id="e5_calc_v1" placeholder="기록"></div>
+                        <div class="e5-trials" id="e5_trials"></div>
+                        <div class="field"><label>평균 부피 V₁ (mL)</label><input type="number" class="narrow" id="e5_calc_v1" readonly placeholder="-"></div>
                         <div class="field"><label>미지 부피 V₂ (mL)</label><input type="number" class="narrow" id="e5_calc_v2" value="20.0" readonly></div>
                         <button class="btn btn-block" style="margin-top:12px;" onclick="calcConc5()">M₂ 계산</button>
                         <div class="e5-result">미지 시료 농도 M₂ = <b id="e5_calc_result">-</b> M</div>
@@ -405,7 +430,7 @@
                     <h4>탐구 과제</h4>
                     <ol>
                         <li>색이 변하기 시작하면 <b>미세 투입</b>으로 바꿔 한 방울 단위로 중화점을 찾고, 그 부피를 기록하세요.</li>
-                        <li>M₁V₁ = M₂V₂ 로 미지 농도를 계산해 결과 확인에 입력하세요. (허용 오차 ±0.1 M)</li>
+                        <li><b>다음 회차</b>로 뷰렛을 다시 채워 3회 반복하고, 평균 부피로 M₁V₁ = M₂V₂ 를 계산해 결과 확인에 입력하세요. (허용 오차 ±0.1 M)</li>
                         <li>지시약을 다른 것으로 바꿔 같은 적정을 해 보고, 오차가 왜 커지는지 안내문과 적정 곡선으로 설명하세요.</li>
                         <li><b>pH 미터 표시</b>를 켜고 중화점 근처에서 pH가 급격히 변하는 구간을 관찰하세요.</li>
                     </ol>
@@ -428,6 +453,7 @@
             <div id="e6-mode1" class="e6-panel active">
                 <div class="status" style="margin-bottom:0;">
                     <div>반응 <b style="color:#E8590C;">2NO₂ (적갈색)</b> ⇌ <b style="color:#8A8F98;">N₂O₄ (무색)</b> + 열</div>
+                    <div>K <b id="e6-k1">0.25</b></div><div>Q <b id="e6-q1">0.25</b></div>
                     <div class="msg" id="e6-m1-status">평형 상태</div>
                 </div>
                 <div class="e6-count" id="e6-molecule-count"><span>현재 분자 수</span><b style="color:#E8590C">NO₂ 0개</b><b style="color:#8A8F98">N₂O₄ 0개</b></div>
@@ -458,7 +484,8 @@
 
             <div id="e6-mode2" class="e6-panel">
                 <div class="status" style="margin-bottom:0;">
-                    <div>반응 <b style="color:#3182F6;">N₂</b> + <b style="color:#F5A623;">3H₂</b> ⇌ <b style="color:#12A66B;">2NH₃</b> + 열 (정반응 발열, 기체 4 → 2 몰)</div>
+                    <div>반응 <b style="color:#3182F6;">N₂</b> + <b style="color:#F5A623;">3H₂</b> ⇌ <b style="color:#12A66B;">2NH₃</b> + 열 (발열, 기체 4 → 2 몰)</div>
+                    <div>K<sub>c</sub> <b id="e6-k2">2.31×10⁻³</b></div><div>Q <b id="e6-q2">2.31×10⁻³</b></div>
                     <button id="e6-analysis-btn" class="btn btn-sm" style="margin-left:auto;display:none;" onclick="toggleE6Analysis()">변화량 1 : 3 : 2 분석</button>
                 </div>
                 <div class="panel">
@@ -491,7 +518,8 @@
                 <h3>이 실험에서</h3>
                 <p>평형 상태의 반응에 농도·압력·온도 변화를 주면 그 변화를 줄이는 방향으로 평형이 이동합니다. 색 변화와 농도 그래프로 확인합니다.</p>
                 <h4>탐구 과제</h4>
-                <ol><li>주사기 모델에서 피스톤을 누르면 색이 어떻게 변하는지, 그 이유를 기체 몰수로 설명하세요.</li><li>뜨거운 물에 넣으면 NO₂가 늘어납니다. 정반응이 발열인지 흡열인지 판단해 보세요.</li><li>그래프 모드에서 N₂를 첨가한 뒤 <b>변화량 분석</b>으로 N₂:H₂:NH₃ 변화량이 1:3:2 인지 확인하세요.</li><li>압력 ↑, 온도 ↓ 버튼을 눌러 암모니아 수득률을 높이는 조건을 찾아보세요.</li></ol>
+                <ol><li>주사기 모델에서 피스톤을 누르면 색이 어떻게 변하는지, 그 이유를 기체 몰수로 설명하세요.</li><li>뜨거운 물에 넣으면 NO₂가 늘어납니다. 정반응이 발열인지 흡열인지 판단해 보세요.</li><li>그래프 모드에서 N₂를 첨가한 뒤 <b>변화량 분석</b>으로 N₂:H₂:NH₃ 변화량이 1:3:2 인지 확인하세요.</li><li>압력 ↑, 온도 ↓ 버튼을 눌러 암모니아 수득률을 높이는 조건을 찾아보세요.</li>
+                    <li>농도·압력을 바꿔도 새 평형에서 K는 같고, 온도를 바꿀 때만 K가 변하는 것을 확인하세요. (Q가 K와 다르면 평형이 이동합니다)</li></ol>
                 
             </div></aside></div></section>
     </main>
@@ -528,8 +556,9 @@
 
         function adjustSlider(id, direction) {       // [-] [+] 버튼
             const slider = document.getElementById(id);
-            const step = parseFloat(slider.step) || 1;
-            let val = Math.round((parseFloat(slider.value) + direction * step) * 10000) / 10000;
+            const step = parseFloat(slider.dataset.step || slider.step) || 1;
+            let val = Math.round((parseFloat(slider.value) + direction * step) / step) * step;   // 버튼 증감은 깔끔한 눈금으로
+            val = Math.round(val * 10000) / 10000;
             val = Math.min(parseFloat(slider.max), Math.max(parseFloat(slider.min), val));
             slider.value = val;
             slider.dispatchEvent(new Event('input'));
@@ -556,15 +585,62 @@
         }
 
         // -----------------------------------------------------
-        // 실험 2: 증기압력 내림 (라울 법칙, 막대그래프)
+        // 실험 2: 증기압력 내림 (라울 법칙) — 막대그래프 + 분자 모형
         // -----------------------------------------------------
-        const cvs0 = document.getElementById('cvs0');
-        const ctx0 = cvs0.getContext('2d');
+        const cvs0 = document.getElementById('cvs0'), ctx0 = cvs0.getContext('2d');
+        const cvs0p = document.getElementById('cvs0p'), ctx0p = cvs0p.getContext('2d');
         const c0_xs = document.getElementById('c0-xs');
         const c0_p0 = document.getElementById('c0-p0');
+        const vapor0 = { pure: [], sol: [] };
+
+        function syncVapor(arr, n, box) {                 // 기체 분자 수를 n 으로 맞추고 상자 안에서 움직임
+            while (arr.length < n) arr.push({ x: box.x + Math.random() * box.w, y: box.y + Math.random() * box.h, vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2 });
+            while (arr.length > n) arr.pop();
+            arr.forEach(m => {
+                m.x += m.vx; m.y += m.vy;
+                if (m.x < box.x + 5) { m.x = box.x + 5; m.vx *= -1; } if (m.x > box.x + box.w - 5) { m.x = box.x + box.w - 5; m.vx *= -1; }
+                if (m.y < box.y + 5) { m.y = box.y + 5; m.vy *= -1; } if (m.y > box.y + box.h - 5) { m.y = box.y + box.h - 5; m.vy *= -1; }
+            });
+        }
+        function drawBeaker0(x, y, bw, bh, title, xs, P, arr, isSol) {
+            const liqH = bh * 0.42, liqY = y + bh - liqH;
+            ctx0p.fillStyle = "#fff"; ctx0p.fillRect(x, y, bw, bh);
+            ctx0p.fillStyle = "rgba(49,130,246,0.10)"; ctx0p.fillRect(x, liqY, bw, liqH);
+            ctx0p.strokeStyle = "#8A8F98"; ctx0p.lineWidth = 2;
+            ctx0p.beginPath(); ctx0p.moveTo(x, y); ctx0p.lineTo(x, y + bh); ctx0p.lineTo(x + bw, y + bh); ctx0p.lineTo(x + bw, y); ctx0p.closePath(); ctx0p.stroke();
+            // 액체 내부 분자 (연하게)
+            for (let r = 1; r <= 3; r++) for (let i = 0; i < 12; i++) {
+                const px = x + (bw / 12) * (i + 0.5) + (r % 2 ? 6 : -6), py = liqY + 26 + r * 22; if (py > y + bh - 8) continue;
+                ctx0p.fillStyle = "rgba(49,130,246,0.35)"; ctx0p.beginPath(); ctx0p.arc(px, py, 5, 0, Math.PI * 2); ctx0p.fill();
+            }
+            // 표면 입자: 용질이 표면 일부를 차지 → 증발 가능한 용매 자리가 줄어듦
+            const N = 12, step = bw / N, nSol = isSol ? Math.round(xs * N) : 0;
+            for (let i = 0; i < N; i++) {
+                const px = x + step * (i + 0.5), py = liqY + 8;
+                const solute = Math.floor((i + 1) * nSol / N) > Math.floor(i * nSol / N);
+                if (solute) { ctx0p.fillStyle = "#F5A623"; ctx0p.beginPath(); ctx0p.roundRect(px - 7, py - 7, 14, 14, 3); ctx0p.fill(); }
+                else {
+                    ctx0p.fillStyle = "#3182F6"; ctx0p.beginPath(); ctx0p.arc(px, py, 6, 0, Math.PI * 2); ctx0p.fill();
+                    if (i % 3 === 1) {                                // 증발 화살표 (용매 자리에서만)
+                        ctx0p.strokeStyle = "rgba(49,130,246,0.6)"; ctx0p.lineWidth = 1.5; ctx0p.beginPath(); ctx0p.moveTo(px, py - 12); ctx0p.lineTo(px, py - 26); ctx0p.stroke();
+                        ctx0p.beginPath(); ctx0p.moveTo(px, py - 29); ctx0p.lineTo(px - 4, py - 23); ctx0p.lineTo(px + 4, py - 23); ctx0p.closePath(); ctx0p.fillStyle = "rgba(49,130,246,0.6)"; ctx0p.fill();
+                    }
+                }
+            }
+            // 기체 분자: 개수 ∝ 증기압
+            const gas = { x: x + 4, y: y + 4, w: bw - 8, h: bh - liqH - 36 };
+            syncVapor(arr, Math.round(P / 760 * 22), gas);
+            arr.forEach(m => { ctx0p.fillStyle = "rgba(49,130,246,0.85)"; ctx0p.beginPath(); ctx0p.arc(m.x, m.y, 4.5, 0, Math.PI * 2); ctx0p.fill(); });
+            // 라벨
+            ctx0p.fillStyle = "#111111"; ctx0p.font = `600 14px ${FONT}`; ctx0p.textAlign = "center"; ctx0p.fillText(title, x + bw / 2, y - 12);
+            ctx0p.fillStyle = "#3F4652"; ctx0p.font = `12.5px ${FONT}`;
+            ctx0p.fillText(`기체 분자 ${arr.length}개 · P = ${P.toFixed(0)} mmHg`, x + bw / 2, y + bh + 20);
+            ctx0p.fillText(isSol ? `표면의 용매 비율 ${((1 - xs) * 100).toFixed(0)} %` : "표면의 용매 비율 100 %", x + bw / 2, y + bh + 38);
+        }
 
         function drawExp0() {
             cvs0.width = cvs0.parentElement.clientWidth;
+            cvs0p.width = cvs0p.parentElement.clientWidth;
             const xs = parseFloat(c0_xs.value), p0 = parseFloat(c0_p0.value);
             const ps = p0 * (1 - xs), dp = p0 - ps;
 
@@ -575,57 +651,76 @@
             document.getElementById('d0-dp').innerText = dp.toFixed(0) + " mmHg";
             setFormula('f0', `ΔP = P°·x<sub>용질</sub> = ${p0.toFixed(0)} × ${xs.toFixed(2)} = <b>${dp.toFixed(0)} mmHg</b><br>P<sub>용액</sub> = P°(1 − x<sub>용질</sub>) = <b>${ps.toFixed(0)} mmHg</b>`);
 
+            // --- 분자 모형 ---
+            const wp = cvs0p.width, hp = cvs0p.height;
+            ctx0p.clearRect(0, 0, wp, hp);
+            const bw = Math.min(250, (wp - 70) / 2), bh = 250, y = 44;
+            drawBeaker0(wp / 2 - bw - 18, y, bw, bh, "순수 용매", 0, p0, vapor0.pure, false);
+            drawBeaker0(wp / 2 + 18, y, bw, bh, "용액 (비휘발성 용질)", xs, ps, vapor0.sol, true);
+            ctx0p.fillStyle = "#6B7280"; ctx0p.font = `12px ${FONT}`; ctx0p.textAlign = "left";
+            ctx0p.fillText("주황: 용질 입자가 표면을 차지해 증발이 줄어듦 → 평형 기체 분자 수(증기압) 감소", 12, hp - 10);
+
+            // --- 막대그래프 ---
             const w = cvs0.width, h = cvs0.height;
             ctx0.clearRect(0, 0, w, h);
-            const cx = w / 2, baseY = h - 60, barW = 110, maxH = 250, scale = maxH / 760;
-            const sc0 = Math.min(1, (w - 16) / 560); ctx0.save(); ctx0.translate(cx, 0); ctx0.scale(sc0, sc0); ctx0.translate(-cx, 0);
-            // 기준선·축
+            const cx = w / 2, baseY = h - 60, barW = 100, maxH = 230, scale = maxH / 760;
+            const sc0 = Math.min(1, (w - 16) / 520); ctx0.save(); ctx0.translate(cx, 0); ctx0.scale(sc0, sc0); ctx0.translate(-cx, 0);
             ctx0.strokeStyle = "#C9CED6"; ctx0.lineWidth = 1.5;
-            ctx0.beginPath(); ctx0.moveTo(cx - 260, baseY); ctx0.lineTo(cx + 260, baseY); ctx0.stroke();
-            ctx0.fillStyle = "#3F4652"; ctx0.font = `600 12.5px ${FONT}`; ctx0.textAlign = "left";
-            ctx0.fillText("증기압 (mmHg)", cx - 260, 24);
-            // 순수 용매 막대
+            ctx0.beginPath(); ctx0.moveTo(cx - 240, baseY); ctx0.lineTo(cx + 240, baseY); ctx0.stroke();
+            ctx0.fillStyle = "#3F4652"; ctx0.font = `600 12.5px ${FONT}`; ctx0.textAlign = "left"; ctx0.fillText("증기압 (mmHg)", cx - 240, 24);
             const pureH = p0 * scale, solH = ps * scale, dpH = pureH - solH;
-            ctx0.fillStyle = "#D5DAE1"; ctx0.fillRect(cx - 165, baseY - pureH, barW, pureH);
-            ctx0.fillStyle = "#3182F6"; ctx0.fillRect(cx + 55, baseY - solH, barW, solH);
-            ctx0.fillStyle = "#E5484D"; ctx0.fillRect(cx + 55, baseY - pureH, barW, dpH);
-            // 라벨
+            ctx0.fillStyle = "#D5DAE1"; ctx0.fillRect(cx - 150, baseY - pureH, barW, pureH);
+            ctx0.fillStyle = "#3182F6"; ctx0.fillRect(cx + 50, baseY - solH, barW, solH);
+            ctx0.fillStyle = "#E5484D"; ctx0.fillRect(cx + 50, baseY - pureH, barW, dpH);
             ctx0.textAlign = "center"; ctx0.font = `600 14px ${FONT}`; ctx0.fillStyle = "#3F4652";
-            ctx0.fillText("순수 용매", cx - 110, baseY + 24); ctx0.fillText("용액", cx + 110, baseY + 24);
+            ctx0.fillText("순수 용매", cx - 100, baseY + 24); ctx0.fillText("용액", cx + 100, baseY + 24);
             ctx0.font = `500 13px ${MONO}`; ctx0.fillStyle = "#111111";
-            ctx0.fillText(`P° = ${p0.toFixed(0)}`, cx - 110, baseY - pureH - 10);
-            ctx0.fillText(`P = ${ps.toFixed(0)}`, cx + 110, baseY - pureH - 10);
-            ctx0.fillStyle = "#4B5563"; ctx0.font = `600 13px ${FONT}`;
-            ctx0.fillText("P°용매", cx - 110, baseY - pureH / 2 + 5);
-            if (solH > 24) { ctx0.fillStyle = "#fff"; ctx0.fillText("P 용액", cx + 110, baseY - solH / 2 + 5); }
-            if (dpH > 24) { ctx0.fillStyle = "#fff"; ctx0.fillText(`ΔP = ${dp.toFixed(0)}`, cx + 110, baseY - pureH + dpH / 2 + 5); }
-            // 지시선
+            ctx0.fillText(`P° = ${p0.toFixed(0)}`, cx - 100, baseY - pureH - 10);
+            ctx0.fillText(`P = ${ps.toFixed(0)}`, cx + 100, baseY - pureH - 10);
+            ctx0.fillStyle = "#4B5563"; ctx0.font = `600 13px ${FONT}`; ctx0.fillText("P°용매", cx - 100, baseY - pureH / 2 + 5);
+            if (solH > 24) { ctx0.fillStyle = "#fff"; ctx0.fillText("P 용액", cx + 100, baseY - solH / 2 + 5); }
+            if (dpH > 24) { ctx0.fillStyle = "#fff"; ctx0.fillText(`ΔP = ${dp.toFixed(0)}`, cx + 100, baseY - pureH + dpH / 2 + 5); }
             ctx0.setLineDash([5, 5]); ctx0.strokeStyle = "#8A8F98"; ctx0.lineWidth = 1;
-            ctx0.beginPath(); ctx0.moveTo(cx - 55, baseY - pureH); ctx0.lineTo(cx + 55, baseY - pureH); ctx0.stroke();
-            ctx0.beginPath(); ctx0.moveTo(cx - 55, baseY - solH); ctx0.lineTo(cx + 55, baseY - solH); ctx0.stroke();
-            ctx0.setLineDash([]);
-            ctx0.restore();
+            ctx0.beginPath(); ctx0.moveTo(cx - 50, baseY - pureH); ctx0.lineTo(cx + 50, baseY - pureH); ctx0.stroke();
+            ctx0.beginPath(); ctx0.moveTo(cx - 50, baseY - solH); ctx0.lineTo(cx + 50, baseY - solH); ctx0.stroke();
+            ctx0.setLineDash([]); ctx0.restore();
         }
         drawers[1] = drawExp0;
 
         // -----------------------------------------------------
-        // 실험 3: 끓는점 오름 (ΔTb = Kb·m, 증기압 곡선)
+        // 실험 3: 끓는점 오름 (ΔTb = Kb·m) — 가열하면 온도가 오르다가 끓는점에서 멈춤
         // -----------------------------------------------------
-        const cvs1 = document.getElementById('cvs1');
-        const ctx1 = cvs1.getContext('2d');
+        const cvs1 = document.getElementById('cvs1'), ctx1 = cvs1.getContext('2d');
+        const cvs1b = document.getElementById('cvs1b'), ctx1b = cvs1b.getContext('2d');
         const c1_m = document.getElementById('c1-m');
         const c1_t = document.getElementById('c1-t');
         const c1_pe = document.getElementById('c1-pe');
         const KB_WATER = 0.52;
-        const VP_BASE = 1.036;   // 100 °C 부근 물의 증기압 변화율 (약 3.6 %/°C, 클라우지우스-클라페이롱). 0.7 atm → 약 90 °C
+        const VP_BASE = 1.036;   // 100 °C 부근 물의 증기압 변화율 (약 3.6 %/°C). 0.7 atm → 약 90 °C
+        let heating1 = false, bubbles1 = [];
+        function toggleHeat1() {
+            heating1 = !heating1;
+            const b = document.getElementById('btn-heat'); b.textContent = heating1 ? '가열 정지' : '가열 시작'; b.classList.toggle('btn-accent', !heating1);
+        }
+        function resetExp1() { heating1 = false; const b = document.getElementById('btn-heat'); b.textContent = '가열 시작'; b.classList.add('btn-accent'); bubbles1 = []; resetSliders(['c1-m', 'c1-pe', 'c1-t']); }
 
         function drawExp1() {
             cvs1.width = cvs1.parentElement.clientWidth;
+            cvs1b.width = cvs1b.parentElement.clientWidth;
             const w = cvs1.width, h = cvs1.height;
-            const m = parseFloat(c1_m.value), currentT = parseFloat(c1_t.value), pe = parseFloat(c1_pe.value);
+            const m = parseFloat(c1_m.value), pe = parseFloat(c1_pe.value);
             const bp_pure = 100, dTb = KB_WATER * m, bp_sol = bp_pure + dTb;
-            const shift = Math.log(pe) / Math.log(VP_BASE);             // 외부 압력에 따른 끓는점 이동 (모형: P = VP_BASE^(t − Tb))
+            const shift = Math.log(pe) / Math.log(VP_BASE);
             const actual_bp_pure = bp_pure + shift, actual_bp_sol = bp_sol + shift;
+
+            // 가열: 끓는점에 닿으면 온도가 더 오르지 않음 (가한 열은 기화에 쓰임)
+            if (heating1) {
+                let T = parseFloat(c1_t.value) + 0.05;
+                if (T >= actual_bp_sol) T = actual_bp_sol;
+                c1_t.value = Math.min(parseFloat(c1_t.max), T).toFixed(2);
+            }
+            const currentT = parseFloat(c1_t.value);
+            const boiling = currentT >= actual_bp_sol - 0.005;
 
             document.getElementById('c1-m-val').innerText = m.toFixed(1);
             document.getElementById('c1-pe-val').innerText = pe.toFixed(2);
@@ -634,23 +729,21 @@
             document.getElementById('d1-pe').innerText = pe.toFixed(2) + " atm";
             document.getElementById('d1-tb').innerText = actual_bp_sol.toFixed(2) + " °C";
             const statusEl = document.getElementById('d1-status');
-            if (currentT >= actual_bp_sol) { statusEl.innerText = "끓는 중 (용액의 증기압 = 외부 압력)"; statusEl.className = "msg err"; }
-            else { statusEl.innerText = `가열 중 · 끓는점까지 ${(actual_bp_sol - currentT).toFixed(1)} °C`; statusEl.className = "msg"; }
+            if (boiling) { statusEl.innerText = heating1 ? "끓는 중 · 열을 가해도 온도가 더 오르지 않음" : "끓는 중 (용액의 증기압 = 외부 압력)"; statusEl.className = "msg err"; }
+            else { statusEl.innerText = `${heating1 ? "가열 중" : "대기"} · 끓는점까지 ${(actual_bp_sol - currentT).toFixed(1)} °C`; statusEl.className = "msg"; }
             setFormula('f1', `ΔT<sub>b</sub> = K<sub>b</sub>·m = 0.52 × ${m.toFixed(1)} = <b>${dTb.toFixed(2)} °C</b><br>T<sub>b</sub> = 100 + ${dTb.toFixed(2)} = <b>${bp_sol.toFixed(2)} °C</b> (1 atm)${pe !== 1 ? `<br>외부 압력 ${pe.toFixed(2)} atm → <b>${actual_bp_sol.toFixed(2)} °C</b>` : ""}`);
 
+            // --- 증기압 곡선 ---
             ctx1.clearRect(0, 0, w, h);
             const box = { L: 70, R: w - 30, T: 28, B: h - 48 };
             const tMin = 88, tMax = 112, pMax = 1.6;
             const mapT = t => box.L + (t - tMin) / (tMax - tMin) * (box.R - box.L);
             const mapP = p => box.B - (p / pMax) * (box.B - box.T);
             drawAxes(ctx1, box, { ticks: [90, 95, 100, 105, 110], map: mapT }, { ticks: [0.5, 1, 1.5], map: mapP, fmt: v => v.toFixed(1) }, "온도 (°C)", "증기압 (atm)");
-
-            // 외부 압력선
             const patmY = mapP(pe);
             ctx1.strokeStyle = "#E5484D"; ctx1.lineWidth = 1.5; ctx1.setLineDash([5, 4]);
             ctx1.beginPath(); ctx1.moveTo(box.L, patmY); ctx1.lineTo(box.R, patmY); ctx1.stroke(); ctx1.setLineDash([]);
             ctx1.fillStyle = "#E5484D"; ctx1.font = `600 12px ${FONT}`; ctx1.textAlign = "right"; ctx1.fillText(`외부 압력 ${pe.toFixed(2)} atm`, box.R - 8, patmY - 8);
-
             const drawCurve = (bp, color, label, above) => {
                 ctx1.strokeStyle = color; ctx1.lineWidth = 2.5; ctx1.beginPath(); let started = false;
                 for (let t = tMin; t <= tMax; t += 0.25) {
@@ -666,14 +759,12 @@
             };
             const xPure = drawCurve(bp_pure, "#8A8F98", "T°b", true);
             const xSol = drawCurve(bp_sol, "#3182F6", "Tb", false);
-
             if (m > 0) {
-                const arrowY = box.B - 14;                                   // ΔTb 화살표 (x축 바로 위)
+                const arrowY = box.B - 14;
                 ctx1.strokeStyle = "#E5484D"; ctx1.lineWidth = 2; ctx1.beginPath(); ctx1.moveTo(xPure, arrowY); ctx1.lineTo(xSol, arrowY); ctx1.stroke();
                 ctx1.fillStyle = "#E5484D"; ctx1.beginPath(); ctx1.moveTo(xSol, arrowY); ctx1.lineTo(xSol - 6, arrowY - 4); ctx1.lineTo(xSol - 6, arrowY + 4); ctx1.fill();
                 ctx1.font = `600 12px ${FONT}`; ctx1.textAlign = "center"; ctx1.fillText(`ΔTb = ${dTb.toFixed(2)} °C`, (xPure + xSol) / 2, arrowY - 8);
-                const pSolAtPureBP = Math.pow(VP_BASE, actual_bp_pure - bp_sol);   // ΔP 화살표 (순수 용매 끓는점에서)
-                const ySol = mapP(pSolAtPureBP);
+                const pSolAtPureBP = Math.pow(VP_BASE, actual_bp_pure - bp_sol), ySol = mapP(pSolAtPureBP);
                 ctx1.strokeStyle = "#3182F6"; ctx1.beginPath(); ctx1.moveTo(xPure, patmY); ctx1.lineTo(xPure, ySol); ctx1.stroke();
                 ctx1.fillStyle = "#3182F6"; ctx1.beginPath(); ctx1.moveTo(xPure, ySol); ctx1.lineTo(xPure - 4, ySol - 6); ctx1.lineTo(xPure + 4, ySol - 6); ctx1.fill();
                 ctx1.textAlign = "right"; ctx1.fillText("ΔP", xPure - 8, (patmY + ySol) / 2 + 4);
@@ -683,6 +774,37 @@
                 ctx1.fillStyle = "rgba(229, 72, 77, 0.22)"; ctx1.fillRect(curX - 2, box.T, 4, box.B - box.T);
                 ctx1.fillStyle = "#E5484D"; ctx1.font = `500 11.5px ${MONO}`; ctx1.textAlign = "center"; ctx1.fillText(`${currentT.toFixed(1)} °C`, curX, box.T - 8);
             }
+
+            // --- 비커: 가열·기포·온도계 ---
+            const wb = cvs1b.width, hb = cvs1b.height;
+            ctx1b.clearRect(0, 0, wb, hb);
+            const bx = wb / 2 - 70, by = 60, bwid = 140, bhei = 230, liqY = by + 60;
+            ctx1b.fillStyle = "#fff"; ctx1b.fillRect(bx, by, bwid, bhei);
+            ctx1b.fillStyle = m > 0 ? "rgba(49,130,246,0.22)" : "rgba(49,130,246,0.12)"; ctx1b.fillRect(bx, liqY, bwid, bhei - 60);
+            ctx1b.strokeStyle = "#8A8F98"; ctx1b.lineWidth = 2.5; ctx1b.beginPath(); ctx1b.moveTo(bx, by); ctx1b.lineTo(bx, by + bhei); ctx1b.lineTo(bx + bwid, by + bhei); ctx1b.lineTo(bx + bwid, by); ctx1b.stroke();
+            if (m > 0) for (let i = 0; i < Math.round(m * 6); i++) { ctx1b.fillStyle = "#F5A623"; ctx1b.beginPath(); ctx1b.arc(bx + 14 + ((i * 37) % (bwid - 28)), liqY + 20 + ((i * 53) % (bhei - 90)), 4.5, 0, Math.PI * 2); ctx1b.fill(); }
+            if (boiling) {                                      // 기포 생성·상승
+                if (Math.random() < 0.35) bubbles1.push({ x: bx + 10 + Math.random() * (bwid - 20), y: by + bhei - 8, r: 2 + Math.random() * 4, v: 0.8 + Math.random() * 1.2 });
+                bubbles1.forEach(bb => { bb.y -= bb.v; });
+                bubbles1 = bubbles1.filter(bb => bb.y > liqY + 4);
+                ctx1b.strokeStyle = "rgba(255,255,255,0.95)"; ctx1b.fillStyle = "rgba(255,255,255,0.75)"; ctx1b.lineWidth = 1.5;
+                bubbles1.forEach(bb => { ctx1b.beginPath(); ctx1b.arc(bb.x, bb.y, bb.r, 0, Math.PI * 2); ctx1b.fill(); ctx1b.stroke(); });
+                ctx1b.fillStyle = "rgba(49,130,246,0.5)"; ctx1b.font = `600 12px ${FONT}`; ctx1b.textAlign = "center";
+                for (let k = 0; k < 3; k++) ctx1b.fillText("~", bx + 35 + k * 35, liqY - 14 - ((Date.now() / 40 + k * 15) % 30));
+            } else bubbles1 = [];
+            if (heating1) {                                     // 불꽃
+                const fy = by + bhei + 8;
+                for (let k = -2; k <= 2; k++) { const fx = wb / 2 + k * 18, fh = 18 + 6 * Math.sin(Date.now() / 90 + k); ctx1b.fillStyle = k % 2 ? "#F5A623" : "#E8590C"; ctx1b.beginPath(); ctx1b.moveTo(fx - 6, fy + 22); ctx1b.quadraticCurveTo(fx, fy + 22 - fh * 2, fx + 6, fy + 22); ctx1b.fill(); }
+                ctx1b.fillStyle = "#3B4048"; ctx1b.fillRect(wb / 2 - 55, fy + 22, 110, 6);
+            }
+            // 온도계
+            const tx = bx + bwid - 22, tTop = by - 20, tBot = liqY + 70;
+            ctx1b.strokeStyle = "#8A8F98"; ctx1b.lineWidth = 6; ctx1b.lineCap = "round"; ctx1b.beginPath(); ctx1b.moveTo(tx, tTop); ctx1b.lineTo(tx, tBot); ctx1b.stroke();
+            const frac = Math.min(1, Math.max(0, (currentT - 88) / 24));
+            ctx1b.strokeStyle = "#E5484D"; ctx1b.lineWidth = 3; ctx1b.beginPath(); ctx1b.moveTo(tx, tBot); ctx1b.lineTo(tx, tBot - frac * (tBot - tTop)); ctx1b.stroke(); ctx1b.lineCap = "butt";
+            ctx1b.fillStyle = "#E5484D"; ctx1b.beginPath(); ctx1b.arc(tx, tBot + 4, 7, 0, Math.PI * 2); ctx1b.fill();
+            ctx1b.fillStyle = "#111111"; ctx1b.font = `600 15px ${MONO}`; ctx1b.textAlign = "center"; ctx1b.fillText(`${currentT.toFixed(1)} °C`, wb / 2, 30);
+            ctx1b.fillStyle = "#6B7280"; ctx1b.font = `12px ${FONT}`; ctx1b.fillText(boiling ? "끓음" : heating1 ? "가열 중" : "", wb / 2, by + bhei + (heating1 ? 50 : 24));
         }
         drawers[2] = drawExp1;
 
@@ -699,6 +821,29 @@
 
         const R = 22, dx = R * Math.sqrt(3), dy = R * 1.5;
         let waterParticles = [], soluteParticles = [], lastW2 = 0;
+        let fpMode = 'vp';
+        const cool2 = { on: false, t: 0, data: [], phase: 'liquid', plateau: 0, T0: 5 };
+        function setFpMode(mode, btn) { fpMode = mode; document.querySelectorAll('#fp-mode button').forEach((b, i) => b.classList.toggle('selected', btn ? b === btn : i === (mode === 'vp' ? 0 : 1))); }
+        function toggleCool2() {
+            const b = document.getElementById('btn-cool');
+            if (!cool2.on) {
+                if (parseFloat(c2_t.value) <= 0) c2_t.value = 5;
+                Object.assign(cool2, { on: true, t: 0, data: [], phase: 'liquid', plateau: 0, T0: parseFloat(c2_t.value) });
+                setFpMode('cool'); b.textContent = '냉각 정지'; b.classList.remove('btn-accent');
+            } else { cool2.on = false; b.textContent = '냉각 시작'; b.classList.add('btn-accent'); }
+        }
+        function resetExp2() { cool2.on = false; cool2.data = []; const b = document.getElementById('btn-cool'); b.textContent = '냉각 시작'; b.classList.add('btn-accent'); setFpMode('vp'); resetSliders(['c2-t', 'c2-c']); }
+        // 같은 냉각 속도로 순수 물이 식을 때의 기준 곡선 (0 °C 에서 응고 정체)
+        function pureCoolingCurve(T0, tEnd) {
+            const pts = []; let T = T0, phase = 'liquid', plateau = 0;
+            for (let f = 0; f * (1 / 60) <= tEnd; f++) {
+                if (phase === 'liquid') { T -= 0.03; if (T <= 0) { T = 0; phase = 'freezing'; plateau = 240; } }
+                else if (phase === 'freezing') { if (--plateau <= 0) phase = 'solid'; }
+                else { T -= 0.024; if (T < -15) T = -15; }
+                pts.push({ t: f / 60, T });
+            }
+            return pts;
+        }
         function buildParticles2(w, h) {            // 캔버스 폭에 맞춰 육각 격자점과 입자를 다시 만듦
             const cols = Math.max(6, Math.floor((w - 40) / dx)), rows = Math.max(3, Math.min(7, Math.floor((h - 30) / dy)));
             waterParticles = [];
@@ -715,7 +860,16 @@
             cvs2t.width = cvs2t.parentElement.clientWidth;
             cvs2b.width = cvs2b.parentElement.clientWidth;
             if (cvs2b.width !== lastW2) buildParticles2(cvs2b.width, cvs2b.height);
-            const tc = parseFloat(c2_t.value), conc = parseFloat(c2_c.value);
+            const conc = parseFloat(c2_c.value);
+            // 냉각 과정: 어는점에 닿으면 응고가 끝날 때까지 온도가 머무름 (응고열)
+            if (cool2.on) {
+                let T = parseFloat(c2_t.value); const tfNow = -KF_WATER * conc;
+                if (cool2.phase === 'liquid') { T -= 0.03; if (T <= tfNow) { T = tfNow; cool2.phase = 'freezing'; cool2.plateau = 240; } }
+                else if (cool2.phase === 'freezing') { T = Math.min(T, tfNow); if (--cool2.plateau <= 0) cool2.phase = 'solid'; }
+                else { T -= 0.024; if (T <= -15) { T = -15; cool2.on = false; const b = document.getElementById('btn-cool'); b.textContent = '냉각 시작'; b.classList.add('btn-accent'); } }
+                c2_t.value = T.toFixed(2); cool2.t += 1 / 60; cool2.data.push({ t: cool2.t, T });
+            }
+            const tc = parseFloat(c2_t.value);
             const dTf = KF_WATER * conc, tf = -dTf, isFrozen = tc <= tf;
 
             document.getElementById('c2-t-val').innerText = tc.toFixed(1);
@@ -727,9 +881,27 @@
             else { msg.innerText = "액체 상태: 물 분자가 자유롭게 운동"; msg.className = "msg warn"; }
             setFormula('f2', `ΔT<sub>f</sub> = K<sub>f</sub>·m = 1.86 × ${conc.toFixed(1)} = <b>${dTf.toFixed(2)} °C</b><br>T<sub>f</sub> = 0 − ${dTf.toFixed(2)} = <b>${tf.toFixed(2)} °C</b>`);
 
-            // --- 상단: 증기압 곡선(고체·액체) 모식도 ---
+            // --- 상단: 증기압 곡선 모식도 또는 냉각 곡선 ---
             const w = cvs2t.width, h = cvs2t.height;
             ctx2t.clearRect(0, 0, w, h);
+            if (fpMode === 'cool') {
+                const box = { L: 56, R: w - 24, T: 18, B: h - 34 };
+                const tEnd = Math.max(30, cool2.t + 2);
+                const mapX = t => box.L + (t / tEnd) * (box.R - box.L), mapY = T => box.B - ((T + 15) / 25) * (box.B - box.T);
+                const xt = []; for (let t = 0; t <= tEnd; t += tEnd > 60 ? 20 : 10) xt.push(t);
+                drawAxes(ctx2t, box, { ticks: xt, map: mapX, fmt: v => v + "s" }, { ticks: [-15, -10, -5, 0, 5, 10], map: mapY }, "시간 (s)", "온도 (°C)");
+                if (cool2.data.length) {
+                    const ref = pureCoolingCurve(cool2.T0, cool2.t);
+                    ctx2t.setLineDash([4, 4]); ctx2t.strokeStyle = "#8A8F98"; ctx2t.lineWidth = 2; ctx2t.beginPath();
+                    ref.forEach((p, i) => { const x = mapX(p.t), y = mapY(p.T); i ? ctx2t.lineTo(x, y) : ctx2t.moveTo(x, y); }); ctx2t.stroke(); ctx2t.setLineDash([]);
+                    ctx2t.strokeStyle = "#3182F6"; ctx2t.lineWidth = 2.5; ctx2t.beginPath();
+                    cool2.data.forEach((p, i) => { const x = mapX(p.t), y = mapY(p.T); i ? ctx2t.lineTo(x, y) : ctx2t.moveTo(x, y); }); ctx2t.stroke();
+                    ctx2t.font = `600 12px ${FONT}`; ctx2t.textAlign = "left";
+                    ctx2t.fillStyle = "#8A8F98"; ctx2t.fillText("순수 물 (0 °C 에서 정체)", box.L + 8, mapY(0) - 6);
+                    ctx2t.fillStyle = "#3182F6"; ctx2t.fillText(`용액 (Tf = ${tf.toFixed(2)} °C 에서 정체)`, box.L + 8, mapY(tf) + 15);
+                } else { ctx2t.fillStyle = "#6B7280"; ctx2t.font = `12.5px ${FONT}`; ctx2t.textAlign = "center"; ctx2t.fillText("'냉각 시작'을 누르면 온도–시간 곡선이 그려집니다.", w / 2, h / 2); }
+            } else {
+            ctx2t.save(); ctx2t.translate(0, 18);
             const K = Math.min(40, (w / 2 - 60) / 15);                    // px / °C
             const mapTx = t => w / 2 + t * K;
             ctx2t.strokeStyle = "#E6E8EC"; ctx2t.lineWidth = 1; ctx2t.fillStyle = "#6B7280"; ctx2t.font = `11.5px ${MONO}`; ctx2t.textAlign = "center";
@@ -755,6 +927,8 @@
             const curX = mapTx(tc);
             ctx2t.strokeStyle = "rgba(229, 72, 77, 0.6)"; ctx2t.setLineDash([4, 4]); ctx2t.beginPath(); ctx2t.moveTo(curX, 18); ctx2t.lineTo(curX, 124); ctx2t.stroke(); ctx2t.setLineDash([]);
             ctx2t.fillStyle = "#E5484D"; ctx2t.font = `500 11px ${MONO}`; ctx2t.fillText(`현재 ${tc.toFixed(1)} °C`, curX, 12);
+            ctx2t.restore();
+            }
 
             // --- 하단: 분자 운동·결빙 ---
             ctx2b.clearRect(0, 0, cvs2b.width, cvs2b.height);
@@ -967,29 +1141,27 @@
         }
 
         function setCrystalSize(s, btn) {
-            cSize = s; cMode = 0;
+            cSize = s; cMode = 0; counted4.clear();
             updateBtnUI('grp-size', btn);
+            updateBtnUI('grp-mode', document.querySelectorAll('#grp-mode button')[2]);
+            document.getElementById('guide-options').classList.add('is-off');
             buildCrystal();
         }
 
         function setCrystalType(t, btn) {
             cType = t; cMode = 0;
             updateBtnUI('grp-type', btn);
-            // FCC일 때만 평면 쪼개기 메뉴 보이기
-            const fccDiv = document.getElementById('fcc-planes');
-            if(fccDiv) fccDiv.style.display = (t === 'fcc') ? 'flex' : 'none';
-            // 구조가 바뀌면 가이드 메뉴 숨기기
-            const guideDiv = document.getElementById('guide-options');
-            if(guideDiv) guideDiv.style.display = 'none';
+            counted4.clear();
+            document.getElementById('fcc-planes').classList.toggle('is-off', t !== 'fcc');   // FCC 일 때만 평면 선택
+            document.getElementById('guide-options').classList.add('is-off');                   // 구조가 바뀌면 가이드 끔
+            updateBtnUI('grp-mode', document.querySelectorAll('#grp-mode button')[2]);
             buildCrystal();
         }
 
         function highlightNeighbors(m, btn) {
             cMode = m;
             updateBtnUI('grp-mode', btn);
-            // '최근접' 모드일 때만 분석 가이드 메뉴 보이기
-            const guideDiv = document.getElementById('guide-options');
-            if(guideDiv) guideDiv.style.display = (m === 1) ? 'flex' : 'none';
+            document.getElementById('guide-options').classList.toggle('is-off', m !== 1);   // 최근접 모드에서만 가이드 사용 (자리는 그대로 두어 버튼이 밀리지 않음)
         }
 
         // --- 가이드 제어 함수 추가 ---
@@ -1045,8 +1217,21 @@
 
         // 회전 이벤트 (기존과 동일)
         // 마우스·터치·펜 모두 지원 (pointer events)
-        cvs4.addEventListener('pointerdown', e => { isDragging = true; lastMx = e.clientX; lastMy = e.clientY; cvs4.setPointerCapture(e.pointerId); });
-        cvs4.addEventListener('pointerup', () => isDragging = false);
+        let counted4 = new Set(), lastProj4 = [], zoom4 = 1, downX4 = 0, downY4 = 0;
+        const shareOf4 = a => { const half = [a.x, a.y, a.z].filter(v => Math.abs(v - 0.5) < 1e-6).length; return half === 0 ? 0.125 : half === 2 ? 0.5 : half === 3 ? 1 : 0.25; };
+        const keyOf4 = a => `${a.x},${a.y},${a.z}`;
+        function clickAtom4(e) {                          // 1×1×1 에서 원자를 클릭하면 단위세포 몫을 셈
+            if (cSize !== 1) return;
+            const r = cvs4.getBoundingClientRect();
+            const mx = (e.clientX - r.left) * (cvs4.width / r.width), my = (e.clientY - r.top) * (cvs4.height / r.height);
+            let best = null, bd = 20;
+            for (const p of lastProj4) { const d = Math.hypot(p.px - mx, p.py - my); if (d < bd) { bd = d; best = p; } }
+            if (!best) return;
+            const k = keyOf4(best); counted4.has(k) ? counted4.delete(k) : counted4.add(k);
+        }
+        cvs4.addEventListener('pointerdown', e => { isDragging = true; lastMx = downX4 = e.clientX; lastMy = downY4 = e.clientY; cvs4.setPointerCapture(e.pointerId); });
+        cvs4.addEventListener('pointerup', e => { isDragging = false; if (Math.hypot(e.clientX - downX4, e.clientY - downY4) < 4) clickAtom4(e); });
+        cvs4.addEventListener('wheel', e => { e.preventDefault(); zoom4 = Math.min(1.8, Math.max(0.6, zoom4 * (e.deltaY > 0 ? 0.92 : 1.08))); }, { passive: false });
         cvs4.addEventListener('pointercancel', () => isDragging = false);
         cvs4.addEventListener('pointermove', e => {
             if(isDragging) {
@@ -1062,17 +1247,25 @@
             
             let count = cAtoms.filter(a => Number(Math.hypot(a.x, a.y, a.z).toFixed(3)) === (cMode===1?cD1:cD2)).length;
             document.getElementById('d4-coord').innerText = cMode === 0 ? "-" : (cSize === 1 ? "2×2×2 격자에서 확인하세요 (1×1×1은 기준 원자가 모서리라 일부만 보입니다)" : cMode === 1 ? `최근접 원자 ${count}개 (배위수)` : `두 번째로 가까운 원자 ${count}개`);
+            if (cSize === 1) {
+                let nc = 0, nf = 0, nb = 0, total = 0;
+                cAtoms.forEach(a => { if (counted4.has(keyOf4(a))) { const sh = shareOf4(a); total += sh; if (sh === 1) nb++; else if (sh === 0.5) nf++; else nc++; } });
+                document.getElementById('d4-count').innerText = counted4.size ? `꼭짓점 ${nc}×⅛ + 면 ${nf}×½ + 체심 ${nb}×1 = ${total.toFixed(3)}개` : "원자를 클릭해 세어 보세요";
+                document.getElementById('d4-msg').innerText = "클릭: 몫 세기 · 드래그: 회전 · 휠: 확대";
+            } else { document.getElementById('d4-count').innerText = "1×1×1 에서 사용"; document.getElementById('d4-msg').innerText = "드래그: 회전 · 휠: 확대"; }
 
             ctx4.clearRect(0, 0, cvs4.width, cvs4.height);
-            const cx = cvs4.width / 2, cy = cvs4.height / 2, scale = Math.min(120, cvs4.width / 5.6);
+            const cx = cvs4.width / 2, cy = cvs4.height / 2, scale = Math.min(120, cvs4.width / 5.6) * zoom4 * (cSize === 1 ? 1.7 : 1);   // 1×1×1 은 크게
 
+            const o4 = cSize === 1 ? 0.5 : 0;                       // 1×1×1 은 정육면체 중심을 화면 중앙에
             let proj = cAtoms.map(pt => {
-                let x1 = pt.x * Math.cos(rotY) - pt.z * Math.sin(rotY);
-                let z1 = pt.x * Math.sin(rotY) + pt.z * Math.cos(rotY);
-                let y2 = pt.y * Math.cos(rotX) - z1 * Math.sin(rotX);
-                let z2 = pt.y * Math.sin(rotX) + z1 * Math.cos(rotX);
+                let x1 = (pt.x - o4) * Math.cos(rotY) - (pt.z - o4) * Math.sin(rotY);
+                let z1 = (pt.x - o4) * Math.sin(rotY) + (pt.z - o4) * Math.cos(rotY);
+                let y2 = (pt.y - o4) * Math.cos(rotX) - z1 * Math.sin(rotX);
+                let z2 = (pt.y - o4) * Math.sin(rotX) + z1 * Math.cos(rotX);
                 return { px: cx + x1 * scale, py: cy + y2 * scale, pz: z2, d: Number(Math.hypot(pt.x, pt.y, pt.z).toFixed(3)), ...pt };
             });
+            lastProj4 = proj;
 
             // 1. 뼈대 선 그리기
             ctx4.strokeStyle = "rgba(0, 0, 0, 0.1)";
@@ -1180,17 +1373,22 @@
                     ctx4.beginPath(); ctx4.arc(pt.px-r*0.3, pt.py-r*0.3, r*0.2, 0, Math.PI*2);
                     ctx4.fillStyle = "rgba(255,255,255,0.3)"; ctx4.fill();
                 }
+                if (cSize === 1 && counted4.has(keyOf4(pt))) {       // 센 원자: 빨간 고리 + 몫 표시
+                    ctx4.beginPath(); ctx4.arc(pt.px, pt.py, r + 5, 0, Math.PI * 2); ctx4.strokeStyle = "#E5484D"; ctx4.lineWidth = 3; ctx4.stroke();
+                    const sh = shareOf4(pt); ctx4.fillStyle = "#E5484D"; ctx4.font = `700 13px ${FONT}`; ctx4.textAlign = "left";
+                    ctx4.fillText(sh === 1 ? "1" : sh === 0.5 ? "½" : "⅛", pt.px + r + 8, pt.py + 5);
+                }
             });
             
         }
         buildCrystal();
         function resetExp4() {
-            cType = 'sc'; cSize = 2; cMode = 0; rotX = 0.45; rotY = -0.6; showGuide = false; fccPlaneMode = 'all';
+            cType = 'sc'; cSize = 2; cMode = 0; rotX = 0.45; rotY = -0.6; showGuide = false; fccPlaneMode = 'all'; zoom4 = 1; counted4.clear();
             const pick = (sel, i) => document.querySelectorAll(sel).forEach((b, k) => b.classList.toggle('selected', k === i));
             pick('#grp-size button', 1); pick('#grp-type button', 0); pick('#grp-mode button', 2); pick('#fcc-planes button', -1);
             document.getElementById('btn-guide-all').classList.remove('selected');
-            document.getElementById('guide-options').style.display = 'none';
-            document.getElementById('fcc-planes').style.display = 'none';
+            document.getElementById('guide-options').classList.add('is-off');
+            document.getElementById('fcc-planes').classList.add('is-off');
             buildCrystal();
         }
         drawers[0] = drawExp4;
@@ -1204,13 +1402,34 @@
         let t5_addedVol = 0.0;
         let t5_dripInterval = null;
         let t5_attempts = 0;
+        let t5_trials = [];                                  // 회차별 중화점 부피
+        function renderTrials5() {
+            const el = document.getElementById('e5_trials'), v1 = document.getElementById('e5_calc_v1');
+            if (!t5_trials.length) { el.innerHTML = '<div class="muted" style="font-size:13px;margin-bottom:8px;">기록된 회차가 없습니다. 중화점에서 <b>기록</b>을 누르세요.</div>'; v1.value = ''; return; }
+            const avg = t5_trials.reduce((a, b) => a + b, 0) / t5_trials.length;
+            el.innerHTML = '<table><tr><th>회차</th><th>중화점 부피 (mL)</th><th></th></tr>' +
+                t5_trials.map((v, i) => `<tr><td>${i + 1}회</td><td class="mono">${v.toFixed(2)}</td><td class="x" onclick="removeTrial5(${i})">삭제</td></tr>`).join('') +
+                `<tr><th>평균 (${t5_trials.length}회)</th><th class="mono" style="color:var(--text)">${avg.toFixed(2)}</th><th></th></tr></table>`;
+            v1.value = avg.toFixed(2);
+        }
+        function removeTrial5(i) { t5_trials.splice(i, 1); renderTrials5(); }
+        function nextTrial5() {
+            stopDrip5(); t5_addedVol = 0; updateVisuals5();
+            setNote5("뷰렛을 다시 채우고 새 시료 20.0 mL 를 준비했습니다. 미지 농도는 같습니다. 같은 방법으로 다시 적정하세요.");
+        }
+        function dropOnce5() {                               // 한 방울: 중화점 근처 정밀 조작
+            if (t5_addedVol >= 50) return;
+            t5_addedVol = Math.min(50, t5_addedVol + 0.05);
+            const drop = document.getElementById('e5_drop'); drop.style.animationDuration = "0.3s"; drop.classList.add('falling');
+            setTimeout(() => { if (!t5_dripInterval) drop.classList.remove('falling'); }, 320);
+            updateVisuals5();
+        }
 
         function initExp5() {
             t5_unknownConc = parseFloat(((Math.random() * 1.3) + 0.4).toFixed(2));
-            t5_addedVol = 0.0; t5_attempts = 0;
+            t5_addedVol = 0.0; t5_attempts = 0; t5_trials = []; renderTrials5();
             document.getElementById('e5_volDisplay').innerText = "0.00 mL";
             document.getElementById('e5_finalAnswer').value = "";
-            document.getElementById('e5_calc_v1').value = "";
             document.getElementById('e5_calc_result').innerText = "-";
             drawGraph5Placeholder();
             setNote5("");
@@ -1288,14 +1507,15 @@
             const m1 = parseFloat(document.getElementById('e5_calc_m1').value);
             const v1 = parseFloat(document.getElementById('e5_calc_v1').value);
             const v2 = parseFloat(document.getElementById('e5_calc_v2').value);
-            if (isNaN(v1) || v1 <= 0) { setNote5("투입 부피(V₁)를 입력하세요. '현재 부피 기록' 버튼으로 가져올 수 있습니다.", "err"); return; }
+            if (isNaN(v1) || v1 <= 0) { setNote5("기록된 회차가 없습니다. 중화점에서 '중화점 부피 기록'을 누르세요.", "err"); return; }
             document.getElementById('e5_calc_result').innerText = ((m1 * v1) / v2).toFixed(3);
-            setNote5(`M₂ = M₁V₁ / V₂ = ${m1.toFixed(1)} × ${v1.toFixed(2)} / ${v2.toFixed(1)} = ${((m1 * v1) / v2).toFixed(3)} M. 아래 '결과 확인'에 입력해 보세요.`);
+            setNote5(`M₂ = M₁V̄₁ / V₂ = ${m1.toFixed(1)} × ${v1.toFixed(2)} / ${v2.toFixed(1)} = ${((m1 * v1) / v2).toFixed(3)} M (${t5_trials.length}회 평균). 아래 '결과 확인'에 입력해 보세요.`);
         }
         function recordResult5() {
             if (t5_addedVol === 0) { setNote5("아직 투입한 용액이 없습니다.", "err"); return; }
-            document.getElementById('e5_calc_v1').value = t5_addedVol.toFixed(2);
-            setNote5(`V₁ = ${t5_addedVol.toFixed(2)} mL 기록. 'M₂ 계산'을 누르세요.`);
+            if (t5_trials.length >= 3) { setNote5("3회까지 기록할 수 있습니다. 표에서 삭제한 뒤 다시 기록하세요.", "err"); return; }
+            t5_trials.push(t5_addedVol); renderTrials5();
+            setNote5(`${t5_trials.length}회차 중화점 부피 ${t5_addedVol.toFixed(2)} mL 기록. '다음 회차'로 뷰렛을 다시 채워 반복하면 평균이 정확해집니다.`);
         }
         function checkAnswer5() {
             const userVal = parseFloat(document.getElementById('e5_finalAnswer').value);
@@ -1341,31 +1561,45 @@
         setTimeout(initExp5, 200);
 
         // -----------------------------------------------------
-        // 실험 7: 르샤틀리에 원리
+        // 실험 7: 르샤틀리에 원리 — 평형 상수 K 로 새 평형을 계산 (이동 방향이 K 에서 자연히 나옴)
         // -----------------------------------------------------
         const cvs6_1 = document.getElementById('cvs6-1'), ctx6_1 = cvs6_1.getContext('2d');
         const cvs6_syr = document.getElementById('cvs6-syringe'), ctx6_syr = cvs6_syr.getContext('2d');
         const cvs6_2 = document.getElementById('cvs6-2'), ctx6_2 = cvs6_2.getContext('2d');
         let e6_currentMode = 1;
+        const fmtK = k => k >= 0.01 ? k.toFixed(3) : (k * 1000).toFixed(2) + "×10⁻³";
 
-        // [모드 1] 주사기: 2NO₂(적갈색) ⇌ N₂O₄(무색) + 열
-        let m1_vol = 1.0, m1_piston_dir = 0, m1_temp = 1.0;
-        let m1_n_no2 = 2.0, m1_n_n2o4 = 1.0, m1_target_no2 = 2.0;
-        let m1_history = [];
-        let syrParticles = [];
+        // [모드 1] 2NO₂ ⇌ N₂O₄ + 열.  K = [N₂O₄]/[NO₂]²,  NO₂ 단위 총량 n(NO₂) + 2n(N₂O₄) = 4 로 보존
+        const M1_TOTAL = 4;
+        let m1_vol = 1.0, m1_piston_dir = 0, m1_K = 0.25, m1_n_no2 = 2.0, m1_n_n2o4 = 1.0, syrParticles = [], m1_history = [];
+        function m1Equilibrium(V, K) {                      // 2K x² + V x − 4V = 0 의 양근 (x = 평형 NO₂ 몰수)
+            const x = (-V + Math.sqrt(V * V + 8 * M1_TOTAL * K * V)) / (4 * K);
+            return { no2: x, n2o4: (M1_TOTAL - x) / 2 };
+        }
         function initM1() {
-            m1_vol = 1.0; m1_piston_dir = 0; m1_temp = 1.0; m1_n_no2 = 2.0; m1_n_n2o4 = 1.0; m1_target_no2 = 2.0;
-            m1_history = []; for (let i = 0; i < 160; i++) m1_history.push({ no2: 2.0, n2o4: 1.0 });   // 처음부터 평형선을 그림
+            m1_vol = 1.0; m1_piston_dir = 0; m1_K = 0.25;
+            const eq = m1Equilibrium(m1_vol, m1_K); m1_n_no2 = eq.no2; m1_n_n2o4 = eq.n2o4;
+            m1_history = []; for (let i = 0; i < 160; i++) m1_history.push({ no2: m1_n_no2 / m1_vol, n2o4: m1_n_n2o4 / m1_vol });
             syrParticles = [];
             for (let i = 0; i < 25; i++) syrParticles.push({ x: Math.random() * 400, y: Math.random() * 70 + 5, vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2, type: Math.random() > 0.3 ? 'no2' : 'n2o4', flash: 0 });
             document.querySelectorAll('.temp-btn').forEach((b, i) => b.classList.toggle('selected', i === 1));
         }
         initM1();
 
-        // [모드 2] N₂ + 3H₂ ⇌ 2NH₃ + 열  (수능형 농도 그래프)
-        let m2_state, m2_target, m2_prev_state, m2_history, m2_shockTime = 0, e6_showAnalysis = false;
+        // [모드 2] N₂ + 3H₂ ⇌ 2NH₃ + 열.  Kc = [NH₃]²/([N₂][H₂]³)
+        const K2_ROOM = 16 / (4 * 1728);
+        let m2_K = K2_ROOM, m2_state, m2_target, m2_prev_state, m2_history, m2_shockTime = 0, e6_showAnalysis = false;
+        function m2Q(st) { return (st.n2 > 0 && st.h2 > 0) ? st.nh3 * st.nh3 / (st.n2 * Math.pow(st.h2, 3)) : Infinity; }
+        function m2Equilibrium(st, K) {                     // 반응 진행도 ξ 를 이분법으로 풀어 새 평형 농도 계산
+            const Q = xi => Math.pow(st.nh3 + 2 * xi, 2) / ((st.n2 - xi) * Math.pow(st.h2 - 3 * xi, 3));
+            let lo = -st.nh3 / 2 + 1e-6, hi = Math.min(st.n2, st.h2 / 3) - 1e-6;
+            if (hi <= lo) return { ...st };
+            for (let i = 0; i < 80; i++) { const mid = (lo + hi) / 2; if (Q(mid) < K) lo = mid; else hi = mid; }
+            const xi = (lo + hi) / 2;
+            return { n2: st.n2 - xi, h2: st.h2 - 3 * xi, nh3: st.nh3 + 2 * xi };
+        }
         function initM2() {
-            m2_state = { n2: 4, h2: 12, nh3: 4 }; m2_target = { ...m2_state }; m2_prev_state = { ...m2_state };
+            m2_K = K2_ROOM; m2_state = { n2: 4, h2: 12, nh3: 4 }; m2_target = { ...m2_state }; m2_prev_state = { ...m2_state };
             m2_history = []; for (let i = 0; i < 400; i++) m2_history.push({ ...m2_state });
             m2_shockTime = 0; e6_showAnalysis = false;
         }
@@ -1379,53 +1613,43 @@
         function resetExp6() { if (e6_currentMode === 1) initM1(); else initM2(); showE6Toast("초기 평형 상태로 되돌렸습니다."); }
         function setE6Piston(dir) { m1_piston_dir = dir; }
         function setE6Temp(t, btn) {
-            m1_temp = (t === 'cold') ? 0.5 : (t === 'hot' ? 1.5 : 1.0);
-            m1_target_no2 = 2.0 * m1_temp;
+            m1_K = (t === 'cold') ? 1.0 : (t === 'hot' ? 0.0625 : 0.25);           // 발열 반응: 온도 ↑ → K ↓
             if (btn) { document.querySelectorAll('.temp-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
-            showE6Toast(t === 'hot' ? "온도 ↑: 열을 흡수하는 역반응(NO₂ 생성) 쪽으로 이동 → 색이 진해짐" : t === 'cold' ? "온도 ↓: 열을 내놓는 정반응(N₂O₄ 생성) 쪽으로 이동 → 색이 옅어짐" : "실온으로 복귀");
+            showE6Toast(t === 'hot' ? "온도 ↑ → K 감소: 열을 흡수하는 역반응(NO₂ 생성) 쪽으로 이동, 색이 진해짐" : t === 'cold' ? "온도 ↓ → K 증가: 열을 내놓는 정반응(N₂O₄ 생성) 쪽으로 이동, 색이 옅어짐" : "실온으로 복귀 (K = 0.25)");
         }
         let e6_toastTimer = null;
         function showE6Toast(msg) {
             const toast = document.getElementById('e6-toast');
             toast.innerText = msg; toast.style.opacity = '1';
-            clearTimeout(e6_toastTimer); e6_toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+            clearTimeout(e6_toastTimer); e6_toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 4500);
         }
         function toggleE6Analysis() { e6_showAnalysis = !e6_showAnalysis; }
 
-        // 평형 교란: 농도(첨가/제거), 압력(부피), 온도
+        // 평형 교란: 농도·압력은 농도만 바꾸고, 온도는 K 만 바꾼다. 새 평형은 K 로 계산.
         function e6Shock(type) {
-            e6_showAnalysis = false;
-            let shift = 0; m2_shockTime = 20;
+            e6_showAnalysis = false; m2_shockTime = 20;
             const names = { n2: 'N₂', h2: 'H₂', nh3: 'NH₃' };
             if (type === 'P_up' || type === 'P_down') {
                 const f = type === 'P_up' ? 1.3 : 0.77;
                 ['n2', 'h2', 'nh3'].forEach(k => m2_state[k] *= f);
-                shift = type === 'P_up' ? 1.2 : -0.9;
-                showE6Toast(type === 'P_up' ? "압력 ↑ (부피 ↓): 모든 농도가 커진 뒤, 기체 몰수가 줄어드는 정반응(4 → 2) 쪽으로 이동" : "압력 ↓ (부피 ↑): 모든 농도가 작아진 뒤, 기체 몰수가 늘어나는 역반응(2 → 4) 쪽으로 이동");
+                showE6Toast(type === 'P_up' ? "압력 ↑ (부피 ↓): 모든 농도가 커져 Q < K → 기체 몰수가 줄어드는 정반응(4 → 2) 쪽으로 이동" : "압력 ↓ (부피 ↑): 모든 농도가 작아져 Q > K → 기체 몰수가 늘어나는 역반응(2 → 4) 쪽으로 이동");
             } else if (type === 'T_up' || type === 'T_down') {
-                shift = type === 'T_up' ? -0.9 : 0.9;
-                showE6Toast(type === 'T_up' ? "온도 ↑: 열을 흡수하는 역반응 쪽으로 이동 → NH₃ 감소" : "온도 ↓: 열을 내놓는 정반응 쪽으로 이동 → NH₃ 증가");
+                m2_K *= (type === 'T_up') ? 0.25 : 4;
+                showE6Toast(type === 'T_up' ? "온도 ↑ → K 감소 (발열 반응): 열을 흡수하는 역반응 쪽으로 이동, NH₃ 감소" : "온도 ↓ → K 증가 (발열 반응): 열을 내놓는 정반응 쪽으로 이동, NH₃ 증가");
             } else {
                 const key = type.split('_')[0].toLowerCase();
                 if (type.includes('add')) {
-                    if (m2_state[key] > 20) { showE6Toast(`${names[key]} 농도가 너무 높습니다.`); return; }
+                    if (m2_state[key] > 20) { showE6Toast(`${names[key]} 농도가 너무 높습니다.`); m2_shockTime = 0; return; }
                     m2_state[key] += 4;
-                    shift = (key === 'nh3') ? -1.5 : (key === 'n2' ? 1 : 1.5);
-                    showE6Toast(key === 'nh3' ? "NH₃ 첨가: 첨가한 NH₃를 줄이는 역반응 쪽으로 이동" : `${names[key]} 첨가: 첨가한 ${names[key]}를 줄이는 정반응 쪽으로 이동`);
+                    showE6Toast(key === 'nh3' ? "NH₃ 첨가 → Q > K: 첨가한 NH₃를 줄이는 역반응 쪽으로 이동" : `${names[key]} 첨가 → Q < K: 첨가한 ${names[key]}를 줄이는 정반응 쪽으로 이동`);
                 } else {
-                    if (m2_state[key] < 1) { showE6Toast(`${names[key]}가 거의 없어 더 제거할 수 없습니다.`); return; }
-                    m2_state[key] -= 3; if (m2_state[key] < 0) m2_state[key] = 0;
-                    shift = (key === 'nh3') ? 1 : (key === 'n2' ? -0.5 : -1);
-                    showE6Toast(key === 'nh3' ? "NH₃ 제거: 제거한 NH₃를 보충하는 정반응 쪽으로 이동" : `${names[key]} 제거: 제거한 ${names[key]}를 보충하는 역반응 쪽으로 이동`);
+                    if (m2_state[key] < 1) { showE6Toast(`${names[key]}가 거의 없어 더 제거할 수 없습니다.`); m2_shockTime = 0; return; }
+                    m2_state[key] = Math.max(0.2, m2_state[key] - 3);
+                    showE6Toast(key === 'nh3' ? "NH₃ 제거 → Q < K: 제거한 NH₃를 보충하는 정반응 쪽으로 이동" : `${names[key]} 제거 → Q > K: 제거한 ${names[key]}를 보충하는 역반응 쪽으로 이동`);
                 }
             }
             m2_prev_state = { ...m2_state };
-            if (shift > 0) shift = Math.min(shift, m2_state.n2 / 1.0, m2_state.h2 / 3.0);     // 한계 반응물 (1:3:2 유지)
-            else if (shift < 0) shift = Math.max(shift, -m2_state.nh3 / 2.0);
-            m2_target.n2 = m2_state.n2 - shift;
-            m2_target.h2 = m2_state.h2 - shift * 3;
-            m2_target.nh3 = m2_state.nh3 + shift * 2;
-            ['n2', 'h2', 'nh3'].forEach(k => { if (m2_target[k] < 0.01) m2_target[k] = 0; });
+            m2_target = m2Equilibrium(m2_state, m2_K);
         }
 
         function drawExp6() {
@@ -1435,17 +1659,18 @@
                 else if (m1_piston_dir === 1 && m1_vol < 1.0) m1_vol += 0.0025;
                 const pX = m1_vol * 450;
                 document.getElementById('e6-plunger-visual').style.transform = `translateX(${(m1_vol * 100).toFixed(2)}%)`;
-                const vEffect = (1.0 - m1_vol) * 1.5;
-                let curTargetNo2 = m1_target_no2 - vEffect; if (curTargetNo2 < 0.2) curTargetNo2 = 0.2;
-                m1_n_no2 += (curTargetNo2 - m1_n_no2) * 0.03;
-                m1_n_n2o4 += ((3.0 - curTargetNo2) - m1_n_n2o4) * 0.03;
+                const eq = m1Equilibrium(m1_vol, m1_K);                 // 현재 부피·온도에서의 평형 몰수
+                m1_n_no2 += (eq.no2 - m1_n_no2) * 0.03;
+                m1_n_n2o4 += (eq.n2o4 - m1_n_n2o4) * 0.03;
                 const c_no2 = m1_n_no2 / m1_vol, c_n2o4 = m1_n_n2o4 / m1_vol;
-                const isM1Equil = (m1_piston_dir === 0) && (Math.abs(curTargetNo2 - m1_n_no2) < 0.005);
+                const Q1 = c_n2o4 / (c_no2 * c_no2);
+                const isM1Equil = (m1_piston_dir === 0) && (Math.abs(eq.no2 - m1_n_no2) < 0.005);
                 const st = document.getElementById('e6-m1-status');
-                st.innerText = isM1Equil ? "평형 상태 (그래프 정지)" : "평형 이동 중"; st.className = isM1Equil ? "msg ok" : "msg warn";
+                st.innerText = isM1Equil ? "평형 상태 (Q = K)" : (Q1 < m1_K ? "정반응 진행 중 (Q < K)" : "역반응 진행 중 (Q > K)"); st.className = isM1Equil ? "msg ok" : "msg warn";
+                document.getElementById('e6-k1').innerText = m1_K.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+                document.getElementById('e6-q1').innerText = Q1.toFixed(3);
                 if (!isM1Equil) { m1_history.push({ no2: c_no2, n2o4: c_n2o4 }); if (m1_history.length > cvs6_1.width - 50) m1_history.shift(); }
 
-                // 농도 그래프
                 const w = cvs6_1.width, h = cvs6_1.height;
                 ctx6_1.clearRect(0, 0, w, h);
                 const maxC = Math.max(4, ...m1_history.map(hh => Math.max(hh.no2, hh.n2o4))) * 1.15;
@@ -1459,11 +1684,12 @@
                 ctx6_1.fillStyle = "#E8590C"; ctx6_1.fillText(`[NO₂] ${c_no2.toFixed(2)}`, box.L + 8, box.T + 14);
                 ctx6_1.fillStyle = "#8A8F98"; ctx6_1.fillText(`[N₂O₄] ${c_n2o4.toFixed(2)}`, box.L + 110, box.T + 14);
 
-                // 주사기 분자
                 const countNO2 = syrParticles.filter(p => p.type === 'no2').length, countN2O4 = syrParticles.length - countNO2;
                 document.getElementById('e6-molecule-count').innerHTML = `<span>현재 분자 수</span><b style="color:#E8590C">NO₂ ${countNO2}개</b><b style="color:#8A8F98">N₂O₄ ${countN2O4}개</b><span>부피 ${(m1_vol * 100).toFixed(0)} %</span>`;
                 ctx6_syr.clearRect(0, 0, 450, 80);
-                const tNo2 = Math.floor(m1_n_no2 * 8);
+                ctx6_syr.fillStyle = `rgba(232, 89, 12, ${Math.min(0.5, c_no2 / 14).toFixed(3)})`;      // 기체 색: NO₂ 농도가 높을수록 적갈색
+                ctx6_syr.fillRect(0, 0, pX, 80);
+                const tNo2 = Math.round(syrParticles.length * m1_n_no2 / (m1_n_no2 + m1_n_n2o4));
                 if (countNO2 < tNo2) { const p = syrParticles.find(p => p.type === 'n2o4' && p.flash <= 0); if (p) { p.type = 'no2'; p.flash = 15; } }
                 else if (countNO2 > tNo2) { const p = syrParticles.find(p => p.type === 'no2' && p.flash <= 0); if (p) { p.type = 'n2o4'; p.flash = 15; } }
                 syrParticles.forEach(pt => {
@@ -1486,10 +1712,13 @@
                     m2_state.n2 += (m2_target.n2 - m2_state.n2) * 0.03; m2_state.h2 += (m2_target.h2 - m2_state.h2) * 0.03; m2_state.nh3 += (m2_target.nh3 - m2_state.nh3) * 0.03;
                     m2_history.push({ ...m2_state }); m2_history.shift();
                 }
+                document.getElementById('e6-k2').innerText = fmtK(m2_K);
+                document.getElementById('e6-q2').innerText = fmtK(m2Q(m2_state));
+
                 const w = cvs6_2.width, h = cvs6_2.height;
                 ctx6_2.clearRect(0, 0, w, h);
                 const box = { L: 50, R: w - 10, T: 20, B: h - 40 };
-                const maxC = 26, mapY = c => box.B - (c / maxC) * (box.B - box.T);
+                const maxC = 26, mapY = c => box.B - (Math.min(c, maxC) / maxC) * (box.B - box.T);
                 drawAxes(ctx6_2, box, { ticks: [], map: x => x }, { ticks: [0, 5, 10, 15, 20, 25], map: mapY }, "시간 →", "농도 (상대값)");
                 const xStep = (box.R - box.L - 60) / m2_history.length;
                 const drawM2Line = (k, col, lab, xOffset) => {
@@ -1515,7 +1744,7 @@
                 drawM2Line('h2', '#F5A623', '[H₂]', 100);
                 drawM2Line('nh3', '#12A66B', '[NH₃]', 50);
                 ctx6_2.fillStyle = "#6B7280"; ctx6_2.font = `12.5px ${FONT}`; ctx6_2.textAlign = "center";
-                ctx6_2.fillText(isEquil ? "평형 도달 · 버튼으로 평형을 교란해 보세요" : "평형 이동 중…", w / 2, box.T + 4);
+                ctx6_2.fillText(isEquil ? "평형 도달 (Q = K) · 버튼으로 평형을 교란해 보세요" : (m2Q(m2_state) < m2_K ? "정반응 진행 중 (Q < K)" : "역반응 진행 중 (Q > K)"), w / 2, box.T + 4);
             }
         }
         drawers[6] = drawExp6;
