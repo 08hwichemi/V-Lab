@@ -221,7 +221,7 @@
 
   /* 화학 계산기 (화학 자료 탭 상단) */
   function renderChemCalc() {
-    return `<details class="tl-chem" open><summary>화학 계산기</summary>
+    return `<details class="tl-chem"><summary>화학 계산기</summary>
       <div class="tl-mini">
         <div class="tl-card"><b>몰질량</b><div class="tl-row"><input id="mmF" placeholder="화학식 예: Ca(OH)2, CuSO4·5H2O"><button class="tl-go" id="mmGo">=</button></div><div class="tl-out" id="mmOut"></div></div>
         <div class="tl-card"><b>pH ↔ [H⁺]</b><div class="tl-row"><input id="phIn" placeholder="pH"><span>⇄</span><input id="hIn" placeholder="[H⁺] M"></div><div class="tl-out" id="phOut"></div></div>
@@ -268,18 +268,18 @@
     const data = REF[key];
     if (!data) { body.innerHTML = `<div class="tl-empty">자료가 아직 없습니다. data/reference/${esc(key)}.js 에 추가하면 여기에 표시됩니다.</div>`; return; }
     body.innerHTML = `<div class="tl-row"><input class="tl-search" id="tlQ" placeholder="${esc(data.name)} 자료 검색 (예: 아세트산, Ksp, 비열)"></div>
-      <div class="tl-toc">${data.sections.map((s, i) => `<a href="#" data-s="${esc(s.id)}" style="--sc:${SEC_COLORS[i % SEC_COLORS.length]}"><i></i>${esc(s.title)}</a>`).join("")}</div>
       ${key === "chemistry" ? renderChemCalc() : ""}
       <div id="tlSecs">${data.sections.map((sec, i) => renderSection(sec, SEC_COLORS[i % SEC_COLORS.length])).join("")}</div>`;
     bindChemCalc(body);
-    body.querySelectorAll(".tl-toc a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = body.querySelector(`[data-sec="${a.dataset.s}"]`); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); }));
     const q = body.querySelector("#tlQ");
     q.addEventListener("input", () => {
       const v = q.value.trim().toLowerCase();
       body.querySelectorAll("[data-sec]").forEach(sec => {
-        let any = false;
-        sec.querySelectorAll("tr[data-row], li[data-row], .pt-el").forEach(r => { const hit = !v || r.textContent.toLowerCase().includes(v) || (r.dataset.key || "").toLowerCase().includes(v); r.classList.toggle("tl-hide", !hit && !r.classList.contains("pt-el")); r.classList.toggle("pt-dim", !!v && !hit && r.classList.contains("pt-el")); if (hit) any = true; });
+        let any = false, n = 0;
+        sec.querySelectorAll("tr[data-row], li[data-row], .pt-el").forEach(r => { const hit = !v || r.textContent.toLowerCase().includes(v) || (r.dataset.key || "").toLowerCase().includes(v); r.classList.toggle("tl-hide", !hit && !r.classList.contains("pt-el")); r.classList.toggle("pt-dim", !!v && !hit && r.classList.contains("pt-el")); if (hit) { any = true; n++; } });
         sec.classList.toggle("tl-hide", !!v && !any);
+        sec.open = !!v && any;                       // 검색 중에는 일치하는 항목만 펼침, 지우면 모두 접음
+        const cnt = sec.querySelector(".tl-cnt"); if (cnt) cnt.textContent = v && any ? `${n}건` : "";
       });
     });
     bindPeriodic(body);
@@ -291,7 +291,7 @@
     else if (sec.type === "list") inner = `<ul class="tl-list">${sec.rows.map(r => `<li data-row>${esc(r)}</li>`).join("")}</ul>`;
     else if (sec.type === "codon") inner = renderCodon();
     else if (sec.type === "periodic") inner = renderPeriodic();
-    return `<section class="tl-sec" data-sec="${esc(sec.id)}" style="--sc:${color || "var(--accent)"}"><h4><i></i>${esc(sec.title)}</h4>${sec.note ? `<p class="tl-note">${esc(sec.note)}</p>` : ""}${inner}</section>`;
+    return `<details class="tl-sec" data-sec="${esc(sec.id)}" style="--sc:${color || "var(--accent)"}"><summary><i></i><span>${esc(sec.title)}</span><em class="tl-cnt"></em></summary><div class="tl-sec-body">${sec.note ? `<p class="tl-note">${esc(sec.note)}</p>` : ""}${inner}</div></details>`;
   }
   function renderCodon() {
     const B = ["U", "C", "A", "G"];

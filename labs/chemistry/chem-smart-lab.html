@@ -278,7 +278,7 @@
                     <label>온도 (°C)</label>
                     <div class="slider">
                         <button class="btn btn-icon" onclick="adjustSlider('c2-t', -1)">−</button>
-                        <input type="range" id="c2-t" min="-15" max="10" step="0.01" data-step="0.5" value="5">
+                        <input type="range" id="c2-t" min="-15" max="10" step="0.01" data-step="0.1" value="5">
                         <button class="btn btn-icon" onclick="adjustSlider('c2-t', 1)">+</button>
                     </div>
                     <div class="value" id="c2-t-val">5.0</div>
@@ -819,6 +819,7 @@
         const c2_t = document.getElementById('c2-t');
         const c2_c = document.getElementById('c2-c');
         const KF_WATER = 1.86;
+        const COOL_RATE = 0.015, PLATEAU_FR = 480;   // 프레임당 냉각 °C, 응고 정체 프레임 수 (60 fps 기준 약 8 s)
 
         const R = 22, dx = R * Math.sqrt(3), dy = R * 1.5;
         let waterParticles = [], soluteParticles = [], lastW2 = 0;
@@ -838,9 +839,9 @@
         function pureCoolingCurve(T0, tEnd) {
             const pts = []; let T = T0, phase = 'liquid', plateau = 0;
             for (let f = 0; f * (1 / 60) <= tEnd; f++) {
-                if (phase === 'liquid') { T -= 0.03; if (T <= 0) { T = 0; phase = 'freezing'; plateau = 240; } }
+                if (phase === 'liquid') { T -= COOL_RATE; if (T <= 0) { T = 0; phase = 'freezing'; plateau = PLATEAU_FR; } }
                 else if (phase === 'freezing') { if (--plateau <= 0) phase = 'solid'; }
-                else { T -= 0.024; if (T < -15) T = -15; }
+                else { T -= COOL_RATE * 0.8; if (T < -15) T = -15; }
                 pts.push({ t: f / 60, T });
             }
             return pts;
@@ -865,9 +866,9 @@
             // 냉각 과정: 어는점에 닿으면 응고가 끝날 때까지 온도가 머무름 (응고열)
             if (cool2.on) {
                 let T = parseFloat(c2_t.value); const tfNow = -KF_WATER * conc;
-                if (cool2.phase === 'liquid') { T -= 0.03; if (T <= tfNow) { T = tfNow; cool2.phase = 'freezing'; cool2.plateau = 240; } }
+                if (cool2.phase === 'liquid') { T -= COOL_RATE; if (T <= tfNow) { T = tfNow; cool2.phase = 'freezing'; cool2.plateau = PLATEAU_FR; } }
                 else if (cool2.phase === 'freezing') { T = Math.min(T, tfNow); if (--cool2.plateau <= 0) cool2.phase = 'solid'; }
-                else { T -= 0.024; if (T <= -15) { T = -15; cool2.on = false; const b = document.getElementById('btn-cool'); b.textContent = '냉각 시작'; b.classList.add('btn-accent'); } }
+                else { T -= COOL_RATE * 0.8; if (T <= -15) { T = -15; cool2.on = false; const b = document.getElementById('btn-cool'); b.textContent = '냉각 시작'; b.classList.add('btn-accent'); } }
                 c2_t.value = T.toFixed(2); cool2.t += 1 / 60; cool2.data.push({ t: cool2.t, T });
             }
             const tc = parseFloat(c2_t.value);
@@ -943,7 +944,7 @@
             let speedMultiplier = Math.min(1, Math.max(0.02, (tc - tf) / (5 - tf)));
             ctx2b.fillStyle = "#3182F6";
             waterParticles.forEach(p => {
-                if (isFrozen) { p.x += (p.targetX - p.x) * 0.02; p.y += (p.targetY - p.y) * 0.02; }
+                if (isFrozen) { p.x += (p.targetX - p.x) * 0.01; p.y += (p.targetY - p.y) * 0.01; }
                 else {
                     p.x += p.vx * speedMultiplier; p.y += p.vy * speedMultiplier;
                     if (p.x < 10) { p.x = 10; p.vx *= -1; } else if (p.x > cvs2b.width - 10) { p.x = cvs2b.width - 10; p.vx *= -1; }
