@@ -24,7 +24,7 @@
   /* 카드 단위(item): 파일 하나에 실험이 여럿이면 실험마다 카드 하나 */
   function items(subject) {
     const out = [];
-    D.labs.forEach(lab => {
+    D.labs.forEach((lab, order) => {
       if (subject && lab.subject !== subject) return;
       const exps = lab.experiments;
       if (exps && exps.length) {
@@ -32,13 +32,13 @@
           key: lab.id + ":" + i, lab, exp: i, title: e.title, summary: e.summary || lab.summary,
           thumb: e.thumb || null, unit: e.unit || lab.unit, grade: lab.grade || [], subject: lab.subject,
           author: lab.author, tags: [...(lab.tags || []), ...(e.tags || [])], added: lab.added || "",
-          count: (i + 1) + "/" + exps.length, featured: !!lab.featured
+          count: (i + 1) + "/" + exps.length, featured: !!lab.featured, order
         }));
       } else {
         out.push({
           key: lab.id, lab, exp: null, title: lab.title, summary: lab.summary, thumb: lab.thumbnail || null,
           unit: lab.unit, grade: lab.grade || [], subject: lab.subject, author: lab.author, tags: lab.tags || [],
-          added: lab.added || "", count: "", featured: !!lab.featured
+          added: lab.added || "", count: "", featured: !!lab.featured, order
         });
       }
     });

@@ -69,6 +69,25 @@ window.VLAB = {
       ],
       added: "2026-10-27",
       featured: true
+    },
+    {
+      id: "organic-structure",
+      subject: "chemistry",
+      title: "탄소 화합물 구조 실험실",
+      summary: "분자 편집기로 구조식을 직접 그리고, 골격 구조식과 모든 원자를 표시한 구조식을 비교합니다. 이성질체를 모두 찾는 과제, 두 구조가 같은 물질인지 판정하기, 작용기 찾기와 그리기 퀴즈가 들어 있습니다.",
+      file: "labs/chemistry/organic-structure.html",
+      author: "휘쌤",
+      grade: ["고1", "고2"],
+      unit: "화학Ⅰ · 탄소 화합물",
+      tags: ["구조식", "이성질체", "작용기", "분자 편집기", "탄화수소"],
+      experiments: [
+        { title: "구조식 그리기",   hash: "exp=0", thumb: "assets/img/thumbs/organic-structure/0.png", unit: "화학Ⅰ · 탄소 화합물", tags: ["골격 구조식", "분자식", "불포화도"] },
+        { title: "이성질체 찾기",   hash: "exp=1", thumb: "assets/img/thumbs/organic-structure/1.png", unit: "화학Ⅰ · 탄소 화합물", tags: ["구조 이성질체", "알케인", "알코올·에터"] },
+        { title: "같은 물질일까?",  hash: "exp=2", thumb: "assets/img/thumbs/organic-structure/2.png", unit: "화학Ⅰ · 탄소 화합물", tags: ["사슬·위치·작용기 이성질체", "시스·트랜스", "광학 이성질체"] },
+        { title: "작용기 찾기",     hash: "exp=3", thumb: "assets/img/thumbs/organic-structure/3.png", unit: "화학Ⅰ · 탄소 화합물", tags: ["하이드록시기", "카복실기", "에스터", "그리기 퀴즈"] }
+      ],
+      added: "2026-10-27",
+      featured: true
     }
   ]
 };

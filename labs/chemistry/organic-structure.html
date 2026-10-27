@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>탄소 화합물 구조 실험실 · V-Lab</title>
+    <link rel="stylesheet" href="../../assets/css/lab-theme.css">
+    <style>
+        /* ---------- 이 실험 전용 ---------- */
+        .oc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 14px; align-items: start; }
+        .oc-grid.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 360px; }
+        .oc-editor { height: 470px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; position: relative; }
+        .oc-editor.sm { height: 400px; }
+        .oc-editor .ocl-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13.5px; }
+        .oc-view { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); min-height: 190px; display: grid; place-items: center; padding: 6px; overflow: hidden; }
+        .oc-view svg { max-width: 100%; height: auto; }
+        .oc-view.empty { color: var(--muted); font-size: 13px; }
+        .oc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 13.5px; margin-top: 10px; }
+        .oc-stats div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--line-2); padding: 4px 0; color: var(--muted); }
+        .oc-stats b { color: var(--text); font-weight: 600; font-family: var(--mono); }
+        .oc-formula { font-family: var(--mono); font-size: 24px; font-weight: 500; color: var(--accent); margin: 6px 0 2px; }
+        .oc-tips { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+        .oc-tips li + li { margin-top: 4px; }
+        .oc-tips kbd { font-family: var(--font); background: var(--line-2); border-radius: 4px; padding: 0 5px; font-size: 12px; font-weight: 600; }
+        .oc-found { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 10px; }
+        .oc-found .card { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); padding: 6px; text-align: center; font-size: 12.5px; font-weight: 600; }
+        .oc-found .card svg { width: 100%; height: 70px; }
+        .oc-found .card.todo { color: var(--muted); font-weight: 500; border-style: dashed; display: grid; place-items: center; min-height: 96px; }
+        .oc-progress { height: 8px; background: var(--line-2); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+        .oc-progress i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .3s; }
+        .oc-groups { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+        .oc-groups li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 13.5px; background: var(--panel); }
+        .oc-groups li i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+        .oc-groups li b { font-weight: 600; }
+        .oc-groups li span { color: var(--muted); font-size: 12.5px; margin-left: auto; font-family: var(--mono); }
+        .oc-rel { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .oc-rel.ok { color: var(--ok); } .oc-rel.warn { color: var(--warn); } .oc-rel.err { color: var(--err); }
+        .oc-task { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .oc-task select { flex: 1; min-width: 180px; }
+        .panel h3 .mono { font-weight: 500; color: var(--accent); }
+        .note-ok { border-color: #BFE8D2; background: #EDFAF3; color: #0B7A4B; }
+        .note-err { border-color: #F5C2C4; background: #FDEEEE; color: #B42318; }
+        .note-warn { border-color: #F7DFA8; background: #FFF8E6; color: #9A6200; }
+        .oc-quiz b.target { font-size: 16px; color: var(--text); }
+        @media (max-width: 1100px) { .oc-grid, .oc-grid.two { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="lab-header">
+        <div class="inner">
+            <div class="lab-brand">탄소 화합물 구조 실험실<small>휘쌤 · 화학Ⅰ 탄소 화합물</small></div>
+            <nav class="lab-tabs">
+                <button class="active" onclick="switchTab(0)">1. 구조식 그리기</button>
+                <button onclick="switchTab(1)">2. 이성질체 찾기</button>
+                <button onclick="switchTab(2)">3. 같은 물질일까?</button>
+                <button onclick="switchTab(3)">4. 작용기 찾기</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="lab-main">
+        <h1 class="lab-title" id="main-title">1. 구조식 그리기 <small>Drawing Structures</small></h1>
+
+        <!-- 1. 구조식 그리기 -->
+        <section class="lab-page active" id="exp0">
+            <div class="oc-grid">
+                <div>
+                    <div class="status">
+                        <div>분자식 <b id="s0-formula">—</b></div>
+                        <div>분자량 <b id="s0-mw">—</b></div>
+                        <div class="msg" id="s0-msg">빈 곳을 드래그해 탄소 사슬을 그려 보세요.</div>
+                    </div>
+                    <div class="oc-editor" id="ed0"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
+                    <div class="controls" style="margin-top:12px; justify-content: space-between;">
+                        <div class="control row">
+                            <label>예시 분자</label>
+                            <select id="ex0">
+                                <option value="">불러오기…</option>
+                                <option value="CC">에테인 C₂H₆</option><option value="C=C">에텐 C₂H₄</option><option value="C#C">에타인 C₂H₂</option>
+                                <option value="CCCC">뷰테인</option><option value="CC(C)C">2-메틸프로페인</option><option value="C1CCCCC1">사이클로헥세인</option>
+                                <option value="c1ccccc1">벤젠</option><option value="Cc1ccccc1">톨루엔</option>
+                                <option value="CO">메탄올</option><option value="CCO">에탄올</option><option value="COC">다이메틸 에터</option>
+                                <option value="CC=O">아세트알데하이드</option><option value="CC(C)=O">아세톤</option><option value="CC(=O)O">아세트산</option>
+                                <option value="CC(=O)OCC">아세트산 에틸</option><option value="CN">메틸아민</option><option value="CC(N)=O">아세트아마이드</option>
+                                <option value="Oc1ccccc1">페놀</option><option value="OC(=O)c1ccccc1">벤조산</option><option value="C(Cl)(Cl)(Cl)Cl">사염화탄소</option>
+                            </select>
+                        </div>
+                        <div class="control row">
+                            <label class="radio"><input type="checkbox" id="showC0"> 편집기에 탄소 글자 표시</label>
+                            <button class="btn btn-sm" id="clear0">모두 지우기</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="stack">
+                    <div class="panel">
+                        <h3>구조식 보기</h3>
+                        <div class="seg" id="view0" style="margin-bottom:10px;">
+                            <button class="selected" data-v="skel">골격 구조식</button>
+                            <button data-v="carbon">탄소·수소 표시</button>
+                            <button data-v="full">모든 원자 표시</button>
+                        </div>
+                        <div class="oc-view empty" id="v0">그린 구조가 여기에 표시됩니다.</div>
+                        <div class="oc-formula" id="f0">—</div>
+                        <div class="oc-stats">
+                            <div><span>분자량</span><b id="st0-mw">—</b></div>
+                            <div><span>불포화도</span><b id="st0-dbe">—</b></div>
+                            <div><span>탄소 C</span><b id="st0-C">—</b></div>
+                            <div><span>수소 H</span><b id="st0-H">—</b></div>
+                            <div><span>산소 O</span><b id="st0-O">—</b></div>
+                            <div><span>질소 N</span><b id="st0-N">—</b></div>
+                            <div><span>고리 수</span><b id="st0-ring">—</b></div>
+                            <div><span>이중·삼중 결합</span><b id="st0-multi">—</b></div>
+                        </div>
+                        <div class="kv" style="margin-top:8px;"><span>SMILES</span><b class="mono" id="smi0" style="font-weight:500;">—</b></div>
+                    </div>
+                    <div class="panel">
+                        <h3>그리는 방법</h3>
+                        <ul class="oc-tips">
+                            <li><kbd>결합</kbd> 도구(왼쪽 도구 모음의 사선)를 고르고 빈 곳을 <b>드래그</b>하면 탄소–탄소 결합이 생깁니다. 끝 원자에서 다시 드래그하면 사슬이 이어집니다.</li>
+                            <li>결합을 <b>다시 클릭</b>하면 단일 → 이중 → 삼중 결합으로 바뀝니다.</li>
+                            <li><kbd>O</kbd> <kbd>N</kbd> 같은 원소 버튼을 누른 뒤 원자를 클릭하면 그 원소로 바뀝니다. 빈 곳을 클릭하면 새 원자가 생깁니다.</li>
+                            <li>고리는 <kbd>육각형</kbd> 등 고리 도구를 누르고 빈 곳을 클릭합니다. 지우개로 원자·결합을 지우고, 화살표로 되돌립니다.</li>
+                            <li>골격 구조식에서는 탄소와 그에 붙은 수소를 생략합니다. 잘 모르겠으면 <b>'편집기에 탄소 글자 표시'</b>를 켜고 오른쪽 <b>'모든 원자 표시'</b>와 비교해 보세요.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 이성질체 찾기 -->
+        <section class="lab-page" id="exp1">
+            <div class="oc-grid">
+                <div>
+                    <div class="status">
+                        <div>과제 <b id="s1-task">—</b></div>
+                        <div>그린 구조 <b id="s1-formula">—</b></div>
+                        <div class="msg" id="s1-msg">이성질체를 하나 그리고 '제출'을 누르세요.</div>
+                    </div>
+                    <div class="oc-editor" id="ed1"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
+                    <div class="controls" style="margin-top:12px; justify-content: space-between;">
+                        <div class="control row oc-task">
+                            <label>과제</label>
+                            <select id="task1"></select>
+                            <button class="btn btn-sm" id="reset1">처음부터</button>
+                        </div>
+                        <div class="control row">
+                            <button class="btn btn-sm" id="clear1">지우기</button>
+                            <button class="btn btn-sm btn-primary" id="submit1">제출</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="stack">
+                    <div class="panel">
+                        <h3 id="h1-title">찾은 이성질체</h3>
+                        <div class="kv"><span>진행</span><b id="p1-text">0 / 0</b></div>
+                        <div class="oc-progress"><i id="p1-bar"></i></div>
+                        <div class="note" id="n1"></div>
+                        <div class="oc-found" id="found1"></div>
+                        <div class="row" style="margin-top:10px; gap:8px;">
+                            <button class="btn btn-sm" id="hint1">남은 이름 힌트</button>
+                            <button class="btn btn-sm" id="reveal1">정답 보기</button>
+                        </div>
+                    </div>
+                    <div class="guide">
+                        <h3>이 실험에서</h3>
+                        <p>분자식은 같지만 원자의 연결 방식이 다른 물질이 <b>구조 이성질체</b>입니다. 그린 구조는 원자 연결을 표준 코드로 바꿔 비교하므로, 모양이나 그린 방향이 달라도 연결이 같으면 같은 물질로 판정됩니다.</p>
+                        <h4>탐구 과제</h4>
+                        <ol>
+                            <li>C₄H₁₀ 부터 시작해 모든 이성질체를 찾고, C₅H₁₂, C₆H₁₄ 로 늘려 보세요. 탄소 수가 늘면 이성질체 수가 얼마나 빨리 늘어나나요?</li>
+                            <li>C₂H₆O 의 두 이성질체는 작용기가 다릅니다. 끓는점이 크게 다른 이유를 구조에서 찾아보세요.</li>
+                            <li>C₄H₈ 에서는 이중 결합 양쪽의 배치(시스·트랜스)만 다른 쌍이 있습니다. 어떤 조건에서 이런 이성질체가 생길까요?</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 같은 물질일까? -->
+        <section class="lab-page" id="exp2">
+            <div class="oc-grid two">
+                <div>
+                    <div class="status"><div>A <b id="s2a">—</b></div><div class="msg" id="s2a-msg"></div></div>
+                    <div class="oc-editor sm" id="ed2a"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
+                </div>
+                <div>
+                    <div class="status"><div>B <b id="s2b">—</b></div><div class="msg" id="s2b-msg"></div></div>
+                    <div class="oc-editor sm" id="ed2b"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
+                </div>
+                <div class="stack">
+                    <div class="panel">
+                        <h3>두 구조 비교</h3>
+                        <div class="field"><label>예시 쌍</label>
+                            <select id="pair2">
+                                <option value="">직접 그리기</option>
+                                <option value="CCCC|C(C)CC">같은 분자, 다른 모양</option>
+                                <option value="CCCC|CC(C)C">뷰테인 · 2-메틸프로페인</option>
+                                <option value="CCO|COC">에탄올 · 다이메틸 에터</option>
+                                <option value="CCCO|CC(C)O">1-프로판올 · 2-프로판올</option>
+                                <option value="C/C=C\C|C/C=C/C">시스 · 트랜스-2-뷰텐</option>
+                                <option value="C[C@@H](O)CC|C[C@H](O)CC">(R) · (S)-2-뷰탄올</option>
+                                <option value="CC=O|C=CO">아세트알데하이드 · 바이닐 알코올</option>
+                                <option value="CCC|CCCC">프로페인 · 뷰테인</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-block" style="margin-top:12px;" id="compare2">비교하기</button>
+                        <div style="margin-top:14px;">
+                            <div class="oc-rel" id="rel2">—</div>
+                            <div class="note" id="n2">두 구조를 그리고 '비교하기'를 누르세요.</div>
+                        </div>
+                        <div class="oc-stats" style="margin-top:12px;">
+                            <div><span>A 분자식</span><b id="c2-fa">—</b></div>
+                            <div><span>B 분자식</span><b id="c2-fb">—</b></div>
+                            <div><span>A 표준 코드</span><b id="c2-ia" style="font-size:11px;">—</b></div>
+                            <div><span>B 표준 코드</span><b id="c2-ib" style="font-size:11px;">—</b></div>
+                        </div>
+                    </div>
+                    <div class="guide">
+                        <h3>판정 기준</h3>
+                        <ol>
+                            <li><b>분자식</b>이 다르면 이성질체가 아닙니다.</li>
+                            <li>분자식이 같고 <b>원자 연결</b>까지 같으면 같은 물질입니다. 연결이 다르면 구조 이성질체(사슬·위치·작용기)입니다.</li>
+                            <li>연결은 같은데 공간 배치만 다르면 입체 이성질체입니다. 이중 결합의 시스·트랜스는 <b>기하 이성질체</b>, 거울상 관계는 <b>광학 이성질체</b>입니다.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 작용기 찾기 -->
+        <section class="lab-page" id="exp3">
+            <div class="oc-grid">
+                <div>
+                    <div class="status">
+                        <div>분자식 <b id="s3-formula">—</b></div>
+                        <div>작용기 <b id="s3-count">—</b></div>
+                        <div class="msg" id="s3-msg">구조를 그리면 작용기를 찾아 표시합니다.</div>
+                    </div>
+                    <div class="oc-editor" id="ed3"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
+                    <div class="controls" style="margin-top:12px; justify-content: space-between;">
+                        <div class="control row">
+                            <label>예시 분자</label>
+                            <select id="ex3">
+                                <option value="">불러오기…</option>
+                                <option value="CCO">에탄올</option><option value="Oc1ccccc1">페놀</option><option value="CC=O">아세트알데하이드</option><option value="CC(C)=O">아세톤</option>
+                                <option value="CC(=O)O">아세트산</option><option value="CC(=O)OCC">아세트산 에틸</option><option value="CCOCC">다이에틸 에터</option>
+                                <option value="CCN">에틸아민</option><option value="CC(N)=O">아세트아마이드</option><option value="C=CC">프로펜</option><option value="C#CC">프로파인</option>
+                                <option value="Cc1ccccc1">톨루엔</option><option value="CCCl">클로로에테인</option><option value="OCC(O)CO">글리세롤</option>
+                                <option value="OC(=O)C(O)C">젖산</option><option value="NCC(=O)O">글리신</option><option value="CC(=O)Oc1ccccc1C(=O)O">아스피린</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm" id="clear3">모두 지우기</button>
+                    </div>
+                </div>
+                <div class="stack">
+                    <div class="panel">
+                        <h3>찾은 작용기</h3>
+                        <div class="oc-view empty" id="v3">작용기가 색으로 표시됩니다.</div>
+                        <ul class="oc-groups" id="g3"></ul>
+                    </div>
+                    <div class="panel oc-quiz">
+                        <h3>그리기 과제</h3>
+                        <div class="kv"><span>다음 분자를 그리세요</span><b class="target" id="q3-name">—</b></div>
+                        <div class="kv" style="margin-top:4px;"><span>분자식</span><b class="mono" id="q3-formula">—</b></div>
+                        <div class="kv" style="margin-top:4px;"><span>힌트</span><b id="q3-hint" style="font-weight:500; text-align:right;">—</b></div>
+                        <div class="row" style="margin-top:10px; gap:8px;">
+                            <button class="btn btn-sm btn-primary" id="q3-check" style="flex:1;">정답 확인</button>
+                            <button class="btn btn-sm" id="q3-next">다음 문제</button>
+                        </div>
+                        <div class="note" id="q3-note" style="margin-top:10px;"></div>
+                        <div class="kv" style="margin-top:8px;"><span>맞힌 문제</span><b id="q3-score">0</b></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import OCL from '../../assets/vendor/openchemlib/openchemlib.js';
+
+        /* =====================================================================
+         *  공통: 탭 전환 · 해시 연동
+         * ===================================================================== */
+        let ready = false;                      // 라이브러리 자료 로딩 완료 여부
+        const editors = {};                     // 탭별 편집기 (처음 열 때 생성)
+        const titles = [["구조식 그리기", "Drawing Structures"], ["이성질체 찾기", "Finding Isomers"], ["같은 물질일까?", "Same or Different?"], ["작용기 찾기", "Functional Groups"]];
+        let activeTab = 0;
+        function switchTab(index) {
+            activeTab = index;
+            document.querySelectorAll('.lab-tabs button').forEach((btn, i) => btn.classList.toggle('active', i === index));
+            document.querySelectorAll('.lab-page').forEach((page, i) => page.classList.toggle('active', i === index));
+            document.getElementById('main-title').innerHTML = `${index + 1}. ${titles[index][0]} <small>${titles[index][1]}</small>`;
+            if (ready) initTab(index);
+        }
+        window.switchTab = switchTab;
+        window.__oc = { editors, OCL, loadSmiles: (...a) => loadSmiles(...a), submit1: () => submit1(), compare2: () => compare2(), analyze: m => analyze(m), findGroups: m => findGroups(m) };   // 점검용
+        function applyHashTab() {
+            if (/embed/.test(location.hash)) document.body.classList.add('vlab-embed');
+            const m = location.hash.match(/exp=(\d+)/);
+            if (!m) return;
+            const i = parseInt(m[1], 10);
+            if (i >= 0 && i < titles.length) switchTab(i);
+        }
+        window.addEventListener('hashchange', applyHashTab);
+        applyHashTab();
+
+        /* =====================================================================
+         *  OpenChemLib 준비 (아이콘 자료는 같은 폴더의 resources.json)
+         * ===================================================================== */
+        const $ = id => document.getElementById(id);
+        const SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉' };
+        const sub = s => s.replace(/\d/g, d => SUB[d]);
+        const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+
+        function makeEditor(id, onChange) {
+            const host = $(id); host.innerHTML = '';
+            const ed = new OCL.CanvasEditor(host);
+            ed.setOnChangeListener(() => onChange(ed));
+            return ed;
+        }
+        function initTab(i) {
+            if (i === 0 && !editors.e0) { editors.e0 = makeEditor('ed0', update0); update0(editors.e0); }
+            if (i === 1 && !editors.e1) { editors.e1 = makeEditor('ed1', update1); buildTasks1(); }
+            if (i === 2 && !editors.a) { editors.a = makeEditor('ed2a', e => quick2(e, 'a')); editors.b = makeEditor('ed2b', e => quick2(e, 'b')); }
+            if (i === 3 && !editors.e3) { editors.e3 = makeEditor('ed3', update3); nextQuiz3(); update3(editors.e3); }
+        }
+        function loadSmiles(ed, smi) {
+            const m = OCL.Molecule.fromSmiles(smi); m.inventCoordinates();
+            ed.setMolecule(m); ed.moleculeChanged();
+        }
+
+        /* =====================================================================
+         *  분석 도우미
+         * ===================================================================== */
+        function analyze(mol) {
+            const m = mol.getCompactCopy(); m.ensureHelperArrays(OCL.Molecule.cHelperRings);
+            const mf = m.getMolecularFormula();
+            const counts = { C: 0, H: 0, O: 0, N: 0, X: 0 };
+            for (let a = 0; a < m.getAllAtoms(); a++) {
+                const z = m.getAtomicNo(a);
+                if (z === 6) counts.C++; else if (z === 8) counts.O++; else if (z === 7) counts.N++; else if (z === 1) counts.H++; else if ([9, 17, 35, 53].includes(z)) counts.X++;
+                counts.H += m.getImplicitHydrogens(a);
+            }
+            let multi = 0;
+            for (let b = 0; b < m.getAllBonds(); b++) { const o = m.getBondOrder(b); if (o >= 2) multi++; }
+            const rings = m.getRingSet().getSize();
+            const dbe = counts.C ? (2 * counts.C + 2 + counts.N - counts.H - counts.X) / 2 : 0;
+            return { formula: mf.formula, formulaSub: sub(mf.formula), mw: mf.relativeWeight, counts, multi, rings, dbe, atoms: m.getAllAtoms(), idcode: m.getIDCode(), smiles: m.getAllAtoms() ? m.toIsomericSmiles() : '' };
+        }
+        function strippedCode(mol) { const m = mol.getCompactCopy(); m.stripStereoInformation(); return m.getIDCode(); }
+        function carbonLabelCopy(mol) {                    // 탄소마다 CH₃·CH₂·CH·C 글자를 붙인 복사본
+            const c = mol.getCompactCopy(); c.ensureHelperArrays(OCL.Molecule.cHelperNeighbours);
+            for (let a = 0; a < c.getAllAtoms(); a++) if (c.getAtomicNo(a) === 6) { const h = c.getImplicitHydrogens(a); c.setAtomCustomLabel(a, h ? 'CH' + (h > 1 ? SUB[h] : '') : 'C'); }
+            return c;
+        }
+        function explicitHCopy(mol) {                      // 수소까지 모두 원자로 그린 복사본
+            const e = mol.getCompactCopy(); e.addImplicitHydrogens(); e.inventCoordinates({ keepHydrogens: true }); return e;
+        }
+        function svgOf(mol, w, h, opt) { return mol.getAllAtoms() ? mol.toSVG(w, h, 'm' + Math.random().toString(36).slice(2, 8), Object.assign({ autoCrop: false, strokeWidth: 1.6, fontWeight: 600, suppressChiralText: true, suppressCIPParity: true }, opt || {})) : ''; }
+        function setView(el, svg, emptyText) { if (svg) { el.classList.remove('empty'); el.innerHTML = svg; } else { el.classList.add('empty'); el.textContent = emptyText; } }
+        function setNote(el, text, kind) { el.className = 'note' + (kind ? ' note-' + kind : ''); el.innerHTML = text; }
+
+        /* 작용기 탐지: 원자 연결을 직접 읽어 판정 (고등학교 범위) */
+        const GROUP_COLORS = { '하이드록시기 (알코올)': '#2F6BFF', '하이드록시기 (페놀)': '#2F6BFF', '포밀기 (알데하이드)': '#E5484D', '카보닐기 (케톤)': '#E5484D', '카복실기': '#C62828', '에스터 결합': '#F0640A', '에터 결합': '#7A5AF8', '아미노기 (1차 아민)': '#12A66B', '2차 아민': '#12A66B', '3차 아민': '#12A66B', '아마이드 결합': '#0E8F8F', '탄소-탄소 이중 결합 (알켄)': '#9A6200', '탄소-탄소 삼중 결합 (알카인)': '#9A6200', '벤젠 고리': '#555', '할로젠 (−F, −Cl, −Br, −I)': '#8B5CF6' };
+        const OCL_COLORS = ['cAtomColorBlue', 'cAtomColorRed', 'cAtomColorDarkRed', 'cAtomColorOrange', 'cAtomColorMagenta', 'cAtomColorGreen', 'cAtomColorDarkGreen'];
+        function findGroups(mol) {
+            const m = mol.getCompactCopy(); m.ensureHelperArrays(OCL.Molecule.cHelperRings);
+            const n = m.getAllAtoms(), Z = a => m.getAtomicNo(a), H = a => m.getImplicitHydrogens(a);
+            const nb = a => { const r = []; for (let i = 0; i < m.getConnAtoms(a); i++) r.push({ a: m.getConnAtom(a, i), o: m.getBondOrder(m.getConnBond(a, i)), b: m.getConnBond(a, i) }); return r; };
+            const groups = []; const add = (name, atoms) => groups.push({ name, atoms });
+            const carbonylC = new Set();
+            for (let a = 0; a < n; a++) if (Z(a) === 6) { if (nb(a).some(x => Z(x.a) === 8 && x.o === 2)) carbonylC.add(a); }
+            // 카보닐 계열
+            for (const c of carbonylC) {
+                const ns = nb(c), o2 = ns.find(x => Z(x.a) === 8 && x.o === 2).a;
+                const oh = ns.find(x => Z(x.a) === 8 && x.o === 1 && H(x.a) === 1);
+                const or = ns.find(x => Z(x.a) === 8 && x.o === 1 && H(x.a) === 0 && m.getConnAtoms(x.a) === 2);
+                const nn = ns.find(x => Z(x.a) === 7 && x.o === 1);
+                if (oh) add('카복실기', [c, o2, oh.a]);
+                else if (or) { const other = nb(or.a).find(x => x.a !== c); add('에스터 결합', [c, o2, or.a, other ? other.a : c]); }
+                else if (nn) add('아마이드 결합', [c, o2, nn.a]);
+                else if (H(c) >= 1 || ns.filter(x => Z(x.a) !== 1).length === 1) add('포밀기 (알데하이드)', [c, o2]);
+                else add('카보닐기 (케톤)', [c, o2]);
+            }
+            for (let a = 0; a < n; a++) {
+                const z = Z(a), ns = nb(a);
+                if (z === 8 && ns.length === 1 && H(a) === 1 && Z(ns[0].a) === 6 && !carbonylC.has(ns[0].a)) add(m.isAromaticAtom(ns[0].a) ? '하이드록시기 (페놀)' : '하이드록시기 (알코올)', [a, ns[0].a]);
+                if (z === 8 && ns.length === 2 && H(a) === 0 && ns.every(x => Z(x.a) === 6 && !carbonylC.has(x.a))) add('에터 결합', [ns[0].a, a, ns[1].a]);
+                if (z === 7 && !ns.some(x => carbonylC.has(x.a)) && ns.every(x => x.o === 1) && ns.length >= 1) {
+                    const h = H(a); add(h === 2 ? '아미노기 (1차 아민)' : h === 1 ? '2차 아민' : '3차 아민', [a, ...ns.map(x => x.a)]);
+                }
+                if ([9, 17, 35, 53].includes(z) && ns.length === 1 && Z(ns[0].a) === 6) add('할로젠 (−F, −Cl, −Br, −I)', [a, ns[0].a]);
+            }
+            for (let b = 0; b < m.getAllBonds(); b++) {
+                const a1 = m.getBondAtom(0, b), a2 = m.getBondAtom(1, b), o = m.getBondOrder(b);
+                if (Z(a1) === 6 && Z(a2) === 6 && !m.isAromaticBond(b)) { if (o === 2) add('탄소-탄소 이중 결합 (알켄)', [a1, a2]); else if (o === 3) add('탄소-탄소 삼중 결합 (알카인)', [a1, a2]); }
+            }
+            const rs = m.getRingSet();
+            for (let r = 0; r < rs.getSize(); r++) { const atoms = rs.getRingAtoms(r); if (atoms.length === 6 && atoms.every(a => Z(a) === 6 && m.isAromaticAtom(a))) add('벤젠 고리', atoms); }
+            return groups;
+        }
+        function highlightSvg(mol, groups, w, h) {
+            const c = mol.getCompactCopy(); c.ensureHelperArrays(OCL.Molecule.cHelperNeighbours);
+            const names = [...new Set(groups.map(g => g.name))];
+            groups.forEach(g => {
+                const col = OCL.Molecule[OCL_COLORS[names.indexOf(g.name) % OCL_COLORS.length]];
+                g.atoms.forEach(a => { c.setAtomColor(a, col); if (c.getAtomicNo(a) === 6) { const hh = c.getImplicitHydrogens(a); c.setAtomCustomLabel(a, hh ? 'CH' + (hh > 1 ? SUB[hh] : '') : 'C'); } });
+            });
+            return svgOf(c, w, h);
+        }
+
+        /* =====================================================================
+         *  1. 구조식 그리기
+         * ===================================================================== */
+        let view0 = 'skel', relabelling = false;
+        function update0(ed) {
+            if (relabelling) return;
+            const mol = ed.getMolecule();
+            if ($('showC0').checked) {                       // 편집기 안에서도 탄소 글자가 보이게 (연결·판정에는 영향 없음)
+                const c = mol; c.ensureHelperArrays(OCL.Molecule.cHelperNeighbours); let changed = false;
+                for (let a = 0; a < c.getAllAtoms(); a++) if (c.getAtomicNo(a) === 6) { const h = c.getImplicitHydrogens(a); const lab = h ? 'CH' + (h > 1 ? SUB[h] : '') : 'C'; if (c.getAtomCustomLabel(a) !== lab) { c.setAtomCustomLabel(a, lab); changed = true; } }
+                if (changed) { relabelling = true; ed.moleculeChanged(); relabelling = false; }
+            }
+            const an = analyze(mol);
+            $('s0-formula').textContent = an.atoms ? an.formulaSub : '—'; $('s0-mw').textContent = an.atoms ? an.mw.toFixed(2) : '—';
+            $('f0').textContent = an.atoms ? an.formulaSub : '—';
+            $('st0-mw').textContent = an.atoms ? an.mw.toFixed(2) + ' g/mol' : '—'; $('st0-dbe').textContent = an.atoms ? an.dbe : '—';
+            ['C', 'H', 'O', 'N'].forEach(k => $('st0-' + k).textContent = an.atoms ? an.counts[k] : '—');
+            $('st0-ring').textContent = an.atoms ? an.rings : '—'; $('st0-multi').textContent = an.atoms ? an.multi : '—';
+            $('smi0').textContent = an.smiles || '—';
+            $('s0-msg').textContent = !an.atoms ? '빈 곳을 드래그해 탄소 사슬을 그려 보세요.' : an.dbe < 0 ? '원자가를 확인하세요 (수소가 너무 많습니다).' : an.dbe === 0 ? '포화 화합물 (이중 결합·고리 없음)' : `불포화도 ${an.dbe}: 이중 결합 또는 고리가 ${an.dbe}개`;
+            renderView0(mol);
+        }
+        function renderView0(mol) {
+            if (!mol) mol = editors.e0.getMolecule();
+            let svg = '';
+            if (mol.getAllAtoms()) {
+                const clean = mol.getCompactCopy(); for (let a = 0; a < clean.getAllAtoms(); a++) clean.setAtomCustomLabel(a, null);
+                svg = view0 === 'skel' ? svgOf(clean, 370, 190) : view0 === 'carbon' ? svgOf(carbonLabelCopy(clean), 370, 190) : svgOf(explicitHCopy(clean), 370, 190);
+            }
+            setView($('v0'), svg, '그린 구조가 여기에 표시됩니다.');
+        }
+        $('view0').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; view0 = b.dataset.v; $('view0').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x === b)); renderView0(); });
+        $('ex0').addEventListener('change', () => { if ($('ex0').value) loadSmiles(editors.e0, $('ex0').value); $('ex0').value = ''; });
+        $('clear0').addEventListener('click', () => editors.e0.clearAll());
+        $('showC0').addEventListener('change', () => {
+            const mol = editors.e0.getMolecule();
+            if (!$('showC0').checked) for (let a = 0; a < mol.getAllAtoms(); a++) mol.setAtomCustomLabel(a, null);
+            relabelling = true; editors.e0.moleculeChanged(); relabelling = false; update0(editors.e0);
+        });
+
+        /* =====================================================================
+         *  2. 이성질체 찾기
+         * ===================================================================== */
+        const TASKS = [
+            { formula: 'C4H10', label: 'C₄H₁₀ 알케인 (2개)', stereo: false, answers: [['뷰테인', 'CCCC'], ['2-메틸프로페인', 'CC(C)C']] },
+            { formula: 'C5H12', label: 'C₅H₁₂ 알케인 (3개)', stereo: false, answers: [['펜테인', 'CCCCC'], ['2-메틸뷰테인', 'CCC(C)C'], ['2,2-다이메틸프로페인', 'CC(C)(C)C']] },
+            { formula: 'C6H14', label: 'C₆H₁₄ 알케인 (5개)', stereo: false, answers: [['헥세인', 'CCCCCC'], ['2-메틸펜테인', 'CCCC(C)C'], ['3-메틸펜테인', 'CCC(C)CC'], ['2,2-다이메틸뷰테인', 'CCC(C)(C)C'], ['2,3-다이메틸뷰테인', 'CC(C)C(C)C']] },
+            { formula: 'C2H6O', label: 'C₂H₆O (2개)', stereo: false, answers: [['에탄올', 'CCO'], ['다이메틸 에터', 'COC']] },
+            { formula: 'C3H8O', label: 'C₃H₈O (3개)', stereo: false, answers: [['1-프로판올', 'CCCO'], ['2-프로판올', 'CC(C)O'], ['에틸 메틸 에터', 'CCOC']] },
+            { formula: 'C4H10O', label: 'C₄H₁₀O 알코올·에터 (7개)', stereo: false, answers: [['1-뷰탄올', 'CCCCO'], ['2-뷰탄올', 'CCC(C)O'], ['2-메틸-1-프로판올', 'CC(C)CO'], ['2-메틸-2-프로판올', 'CC(C)(C)O'], ['다이에틸 에터', 'CCOCC'], ['메틸 프로필 에터', 'CCCOC'], ['아이소프로필 메틸 에터', 'CC(C)OC']] },
+            { formula: 'C4H8', label: 'C₄H₈ 알켄·사이클로알케인 (6개, 시스·트랜스 포함)', stereo: true, answers: [['1-뷰텐', 'C=CCC'], ['시스-2-뷰텐', 'C/C=C\\C'], ['트랜스-2-뷰텐', 'C/C=C/C'], ['2-메틸프로펜', 'C=C(C)C'], ['사이클로뷰테인', 'C1CCC1'], ['메틸사이클로프로페인', 'CC1CC1']] },
+            { formula: 'C8H10', label: 'C₈H₁₀ 벤젠 유도체 (4개)', stereo: false, benzene: true, answers: [['에틸벤젠', 'CCc1ccccc1'], ['o-자일렌', 'Cc1ccccc1C'], ['m-자일렌', 'Cc1cccc(C)c1'], ['p-자일렌', 'Cc1ccc(C)cc1']] }
+        ];
+        let task1 = null, found1 = [], tries1 = 0;
+        function buildTasks1() {
+            TASKS.forEach(t => { t.codes = t.answers.map(([name, smi]) => { const m = OCL.Molecule.fromSmiles(smi); return { name, smi, code: t.stereo ? m.getIDCode() : strippedCode(m), strip: strippedCode(m) }; }); });
+            $('task1').innerHTML = TASKS.map((t, i) => `<option value="${i}">${t.label}</option>`).join('');
+            $('task1').addEventListener('change', () => startTask1(parseInt($('task1').value, 10)));
+            $('reset1').addEventListener('click', () => startTask1(TASKS.indexOf(task1)));
+            $('clear1').addEventListener('click', () => editors.e1.clearAll());
+            $('submit1').addEventListener('click', submit1);
+            $('hint1').addEventListener('click', () => { const left = task1.codes.filter(c => !found1.includes(c.code)).map(c => c.name); setNote($('n1'), left.length ? `아직 못 찾은 이성질체: <b>${left.join(', ')}</b>` : '모두 찾았습니다.', 'warn'); });
+            $('reveal1').addEventListener('click', () => { if (tries1 < 2 && found1.length < task1.codes.length) { setNote($('n1'), '두 번 이상 제출한 뒤에 볼 수 있습니다.', 'warn'); return; } found1 = task1.codes.map(c => c.code); renderFound1(); setNote($('n1'), '정답을 모두 표시했습니다. 각 구조를 직접 그려 보며 확인하세요.', 'warn'); });
+            startTask1(0);
+        }
+        function startTask1(i) {
+            task1 = TASKS[i]; found1 = []; tries1 = 0; $('task1').value = i;
+            $('s1-task').textContent = sub(task1.formula); $('h1-title').innerHTML = `찾은 이성질체 <span class="mono">${sub(task1.formula)}</span>`;
+            setNote($('n1'), `${sub(task1.formula)} 의 이성질체를 하나씩 그려 제출하세요.${task1.benzene ? ' (벤젠 고리를 포함하는 것만)' : ''}${task1.stereo ? ' 이중 결합의 시스·트랜스는 그린 모양(같은 쪽·반대쪽)으로 정해집니다.' : ''}`);
+            editors.e1.clearAll(); renderFound1();
+        }
+        function update1(ed) { const an = analyze(ed.getMolecule()); $('s1-formula').textContent = an.atoms ? an.formulaSub : '—'; }
+        function submit1() {
+            const mol = editors.e1.getMolecule(); const an = analyze(mol);
+            if (!an.atoms) { setNote($('n1'), '먼저 구조를 그리세요.', 'err'); return; }
+            tries1++;
+            if (an.formula !== task1.formula) { setNote($('n1'), `분자식이 ${sub(task1.formula)} 이 아닙니다. 지금 그린 구조는 <b>${an.formulaSub}</b> 입니다. 수소 수는 자동으로 채워지므로 탄소·산소의 수와 결합 수를 확인하세요.`, 'err'); $('s1-msg').textContent = '분자식 불일치'; return; }
+            if (task1.benzene && !findGroups(mol).some(g => g.name === '벤젠 고리')) { setNote($('n1'), '분자식은 맞지만 벤젠 고리가 없습니다. 이 과제는 벤젠 유도체만 다룹니다.', 'warn'); return; }
+            const code = task1.stereo ? an.idcode : strippedCode(mol), strip = strippedCode(mol);
+            const hit = task1.codes.find(c => c.code === code);
+            if (hit) {
+                if (found1.includes(code)) { setNote($('n1'), `이미 찾은 <b>${hit.name}</b> 과 같은 물질입니다. 모양이 달라 보여도 원자의 연결이 같습니다.`, 'warn'); $('s1-msg').textContent = '중복'; }
+                else { found1.push(code); renderFound1(); const done = found1.length === task1.codes.length; setNote($('n1'), done ? `<b>${hit.name}</b> 까지 찾아서 ${task1.codes.length}개를 모두 찾았습니다!` : `<b>${hit.name}</b> 을(를) 찾았습니다. ${task1.codes.length - found1.length}개 남았습니다.`, 'ok'); $('s1-msg').textContent = done ? '완료' : '정답'; }
+                return;
+            }
+            const stripHit = task1.codes.find(c => c.strip === strip);
+            if (task1.stereo && stripHit) { setNote($('n1'), `연결은 <b>${stripHit.name.replace(/^(시스|트랜스)-/, '')}</b> 과 같지만 이중 결합 양쪽 치환기의 배치가 정해지지 않았거나 다릅니다. 두 메틸기를 이중 결합의 같은 쪽(시스) 또는 반대쪽(트랜스)에 놓이게 다시 그려 보세요.`, 'warn'); return; }
+            setNote($('n1'), '분자식은 맞지만 이 과제의 이성질체 목록에 없는 구조입니다. 원자가(탄소 4, 산소 2, 수소 1)를 넘지 않았는지, 고리나 이중 결합이 과제 범위에 맞는지 확인하세요.', 'err');
+        }
+        function renderFound1() {
+            const total = task1.codes.length;
+            $('p1-text').textContent = `${found1.length} / ${total}`; $('p1-bar').style.width = (100 * found1.length / total) + '%';
+            $('found1').innerHTML = task1.codes.map(c => {
+                if (!found1.includes(c.code)) return `<div class="card todo">?</div>`;
+                const m = OCL.Molecule.fromSmiles(c.smi); m.inventCoordinates();
+                return `<div class="card">${svgOf(m, 110, 70)}<div>${esc(c.name)}</div></div>`;
+            }).join('');
+        }
+
+        /* =====================================================================
+         *  3. 같은 물질일까?
+         * ===================================================================== */
+        function quick2(ed, which) { const an = analyze(ed.getMolecule()); $('s2' + which).textContent = an.atoms ? an.formulaSub : '—'; }
+        function skeletonCode(mol) {                         // 탄소 골격만 남긴 표준 코드 (사슬 이성질체 판정용)
+            const c = mol.getCompactCopy(); const del = []; for (let a = 0; a < c.getAllAtoms(); a++) if (c.getAtomicNo(a) !== 6) del.push(a);
+            c.deleteAtoms(del); for (let b = 0; b < c.getAllBonds(); b++) c.setBondType(b, OCL.Molecule.cBondTypeSingle);
+            return c.getIDCode();
+        }
+        function stereoKinds(mol) {
+            const m = mol.getCompactCopy(); m.ensureHelperArrays(OCL.Molecule.cHelperCIP); let ez = false, chiral = false;
+            for (let b = 0; b < m.getAllBonds(); b++) if (m.getBondOrder(b) === 2 && m.getBondParity(b) !== OCL.Molecule.cBondParityNone) ez = true;
+            for (let a = 0; a < m.getAllAtoms(); a++) if (m.isAtomStereoCenter(a) && m.getAtomParity(a) !== OCL.Molecule.cAtomParityNone) chiral = true;
+            return { ez, chiral };
+        }
+        $('pair2').addEventListener('change', () => { const v = $('pair2').value; if (!v) return; const [a, b] = v.split('|'); loadSmiles(editors.a, a); loadSmiles(editors.b, b); compare2(); });
+        $('compare2').addEventListener('click', compare2);
+        function compare2() {
+            const A = editors.a.getMolecule(), B = editors.b.getMolecule(), aa = analyze(A), ab = analyze(B);
+            const rel = $('rel2'), note = $('n2');
+            $('c2-fa').textContent = aa.formulaSub || '—'; $('c2-fb').textContent = ab.formulaSub || '—'; $('c2-ia').textContent = aa.idcode; $('c2-ib').textContent = ab.idcode;
+            if (!aa.atoms || !ab.atoms) { rel.textContent = '—'; rel.className = 'oc-rel'; setNote(note, '두 구조를 모두 그리세요.', 'err'); return; }
+            const set = (t, k, msg) => { rel.textContent = t; rel.className = 'oc-rel ' + k; setNote(note, msg, k === 'ok' ? 'ok' : k === 'err' ? 'err' : 'warn'); };
+            if (aa.formula !== ab.formula) return set('이성질체가 아닙니다', 'err', `분자식이 다릅니다 (A ${aa.formulaSub}, B ${ab.formulaSub}). 이성질체는 분자식이 같아야 합니다.`);
+            if (aa.idcode === ab.idcode) return set('같은 물질입니다', 'ok', '분자식과 원자의 연결(그리고 입체 배치)이 모두 같습니다. 그린 모양이나 방향이 달라도 같은 분자입니다.');
+            if (strippedCode(A) === strippedCode(B)) {
+                const k = stereoKinds(A), k2 = stereoKinds(B);
+                if (k.ez || k2.ez) return set('기하 이성질체 (시스·트랜스)', 'warn', '원자의 연결은 같지만 이중 결합 양쪽 치환기의 배치가 다릅니다. 이중 결합은 회전할 수 없어서 생기는 입체 이성질체입니다.');
+                if (k.chiral || k2.chiral) return set('광학 이성질체 (거울상)', 'warn', '원자의 연결은 같지만 비대칭 탄소 주위의 입체 배치가 다릅니다. 서로 거울상 관계이며 포개어지지 않습니다.');
+                return set('입체 이성질체', 'warn', '연결은 같지만 공간 배치가 다릅니다.');
+            }
+            const gA = [...new Set(findGroups(A).map(g => g.name))].sort().join(','), gB = [...new Set(findGroups(B).map(g => g.name))].sort().join(',');
+            if (gA !== gB) return set('구조 이성질체 (작용기 이성질체)', 'warn', `분자식은 같지만 작용기가 다릅니다. A: ${gA || '없음'} / B: ${gB || '없음'}. 성질(끓는점, 반응성)이 크게 다릅니다.`);
+            if (skeletonCode(A) !== skeletonCode(B)) return set('구조 이성질체 (사슬 이성질체)', 'warn', '분자식과 작용기는 같지만 탄소 골격(사슬의 가지)이 다릅니다.');
+            return set('구조 이성질체 (위치 이성질체)', 'warn', '탄소 골격과 작용기는 같지만 작용기나 다중 결합의 위치가 다릅니다.');
+        }
+
+        /* =====================================================================
+         *  4. 작용기 찾기 + 그리기 과제
+         * ===================================================================== */
+        function update3(ed) {
+            const mol = ed.getMolecule(), an = analyze(mol);
+            $('s3-formula').textContent = an.atoms ? an.formulaSub : '—';
+            const groups = an.atoms ? findGroups(mol) : [];
+            const names = [...new Set(groups.map(g => g.name))];
+            $('s3-count').textContent = an.atoms ? `${names.length}종 ${groups.length}개` : '—';
+            $('s3-msg').textContent = !an.atoms ? '구조를 그리면 작용기를 찾아 표시합니다.' : names.length ? names.join(' · ') : '작용기 없음 (탄화수소)';
+            $('g3').innerHTML = names.map((nm, i) => { const col = ['#2F6BFF', '#E5484D', '#C62828', '#F0640A', '#C026D3', '#12A66B', '#0B7A4B'][i % 7]; const cnt = groups.filter(g => g.name === nm).length; return `<li><i style="background:${col}"></i><b>${esc(nm)}</b><span>×${cnt}</span></li>`; }).join('') || (an.atoms ? '<li><i style="background:#999"></i>작용기가 없습니다 (탄화수소)</li>' : '');
+            setView($('v3'), an.atoms ? highlightSvg(mol, groups, 370, 190) : '', '작용기가 색으로 표시됩니다.');
+        }
+        $('ex3').addEventListener('change', () => { if ($('ex3').value) loadSmiles(editors.e3, $('ex3').value); $('ex3').value = ''; });
+        $('clear3').addEventListener('click', () => editors.e3.clearAll());
+
+        const QUIZ = [
+            ['에탄올', 'CCO', '탄소 2개, 하이드록시기'], ['아세트산', 'CC(=O)O', '카복실기 −COOH'], ['아세톤', 'CC(C)=O', '가운데 탄소에 카보닐기'], ['아세트알데하이드', 'CC=O', '끝 탄소에 포밀기 −CHO'],
+            ['다이메틸 에터', 'COC', '산소 양쪽에 메틸기'], ['프로펜', 'C=CC', '탄소 3개, 이중 결합 1개'], ['메틸아민', 'CN', '아미노기 −NH₂'], ['아세트산 메틸', 'CC(=O)OC', '에스터 결합'],
+            ['벤젠', 'c1ccccc1', '육각 고리, 이중 결합 3개'], ['페놀', 'Oc1ccccc1', '벤젠 고리 + −OH'], ['톨루엔', 'Cc1ccccc1', '벤젠 고리 + 메틸기'], ['에틸렌 글리콜', 'OCCO', '탄소 2개, −OH 2개'],
+            ['2-프로판올', 'CC(C)O', '가운데 탄소에 −OH'], ['뷰테인', 'CCCC', '곧은 사슬 탄소 4개'], ['2-메틸프로페인', 'CC(C)C', '가지 달린 탄소 4개'], ['클로로메테인', 'CCl', '메테인의 H 하나를 Cl 로'],
+            ['아세트아마이드', 'CC(N)=O', '아마이드 결합'], ['폼산', 'C(=O)O', '가장 작은 카복실산'], ['에타인', 'C#C', '삼중 결합'], ['사이클로헥세인', 'C1CCCCC1', '탄소 6개 고리, 이중 결합 없음']
+        ];
+        let quiz3 = null, score3 = 0, quizOrder = [], quizPos = 0;
+        function nextQuiz3() {
+            if (!quizOrder.length || quizPos >= quizOrder.length) { quizOrder = QUIZ.map((_, i) => i).sort(() => Math.random() - 0.5); quizPos = 0; }
+            quiz3 = QUIZ[quizOrder[quizPos++]];
+            const m = OCL.Molecule.fromSmiles(quiz3[1]);
+            $('q3-name').textContent = quiz3[0]; $('q3-formula').textContent = sub(m.getMolecularFormula().formula); $('q3-hint').textContent = quiz3[2];
+            setNote($('q3-note'), '편집기에 그린 뒤 정답 확인을 누르세요.');
+        }
+        $('q3-next').addEventListener('click', nextQuiz3);
+        $('q3-check').addEventListener('click', () => {
+            const mol = editors.e3.getMolecule(), an = analyze(mol);
+            if (!an.atoms) { setNote($('q3-note'), '먼저 구조를 그리세요.', 'err'); return; }
+            const target = OCL.Molecule.fromSmiles(quiz3[1]), tf = target.getMolecularFormula().formula;
+            if (strippedCode(mol) === strippedCode(target)) { score3++; $('q3-score').textContent = score3; setNote($('q3-note'), `정답! <b>${quiz3[0]}</b> 을(를) 바르게 그렸습니다.`, 'ok'); }
+            else if (an.formula !== tf) setNote($('q3-note'), `분자식이 다릅니다. 목표 ${sub(tf)}, 지금 ${an.formulaSub}.`, 'err');
+            else setNote($('q3-note'), '분자식은 맞지만 원자의 연결이 다릅니다. 이 분자의 이성질체를 그렸습니다. 힌트를 보고 작용기 위치를 바꿔 보세요.', 'warn');
+        });
+
+        /* =====================================================================
+         *  시작: 아이콘 자료를 읽은 뒤 현재 탭의 편집기를 만듦 (모든 선언이 끝난 뒤에 실행)
+         * ===================================================================== */
+        try {
+            await OCL.Resources.registerFromUrl('../../assets/vendor/openchemlib/resources.json');
+            ready = true;
+            initTab(activeTab);
+        } catch (e) {
+            document.querySelectorAll('.ocl-loading').forEach(el => el.textContent = '편집기를 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
+            console.error(e);
+        }
+    </script>
+</body>
+</html>

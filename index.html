@@ -88,8 +88,8 @@
 
       function sortList(list) {
         if (state.sort === "name") list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
-        else if (state.sort === "featured") list.sort((a, b) => (b.featured - a.featured) || b.added.localeCompare(a.added));
-        else list.sort((a, b) => b.added.localeCompare(a.added) || (a.exp ?? 0) - (b.exp ?? 0));
+        else if (state.sort === "featured") list.sort((a, b) => (b.featured - a.featured) || b.added.localeCompare(a.added) || a.order - b.order || (a.exp ?? 0) - (b.exp ?? 0));
+        else list.sort((a, b) => b.added.localeCompare(a.added) || a.order - b.order || (a.exp ?? 0) - (b.exp ?? 0));   // 같은 날짜면 등록부 순서, 한 파일의 실험은 함께
         return list;
       }
 

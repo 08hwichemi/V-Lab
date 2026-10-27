@@ -24,7 +24,8 @@ V-Lab/
 │   ├─ css/lab-theme.css   ★ 실험 HTML 공용 테마 (글꼴·색·버튼·패널)
 │   ├─ js/site.js          공통 스크립트 (카드·헤더·테마·최근 본 실험)
 │   ├─ js/tools.js         도구 패널 (환산·계산기·부록 자료)
-│   └─ img/thumbs/         실험 썸네일
+│   ├─ img/thumbs/         실험 썸네일
+│   └─ vendor/             외부 라이브러리 (openchemlib: 분자 편집기·화학 엔진)
 ├─ templates/lab-template.html   새 실험을 만들 때 복사해서 쓰는 뼈대
 └─ docs/DESIGN.md          디자인 가이드
 ```
@@ -100,6 +101,12 @@ experiments: [
 - **화학 · 물리 · 생명 · 지구** — 과목별 부록 자료. 주기율표(원소 클릭 시 상세), Ka/Kb/Ksp, 표준 환원 전위, 물 증기압, 지시약, 물리 상수, 유전 암호표, 아미노산, 지질 시대, 행성 자료 등. 검색창으로 표 안을 찾을 수 있습니다.
 
 자료는 `data/reference/<과목>.js` 에 있습니다. 표를 추가하려면 해당 파일의 `sections` 배열에 `{ id, title, type: "table", cols: [...], rows: [[...], ...] }` 항목을 넣으면 됩니다. `type: "list"` 는 글머리 목록입니다.
+
+## 외부 라이브러리
+
+- **OpenChemLib JS** (`assets/vendor/openchemlib/`, BSD-3-Clause, https://github.com/cheminfo/openchemlib-js)
+  탄소 화합물 구조 실험실의 분자 편집기와 분자식·이성질체 판정·작용기 검출에 씁니다. `openchemlib.js`(엔진+편집기)와 `resources.json`(편집기 아이콘)을 저장소에 직접 넣어 두어 CDN 없이 동작합니다.
+  실험 HTML 에서는 `<script type="module">` 안에서 `import OCL from '../../assets/vendor/openchemlib/openchemlib.js'` 로 불러오고, 편집기를 만들기 전에 `await OCL.Resources.registerFromUrl('../../assets/vendor/openchemlib/resources.json')` 을 한 번 호출합니다.
 
 ## 화면 구성
 
