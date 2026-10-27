@@ -178,7 +178,7 @@ input[type="number"].narrow { width: 84px; text-align: center; font-family: var(
 .guide[open] summary { margin-bottom: 8px; }
 .guide-wide { margin-top: 12px; }
 .guide-wide ol { columns: 2; column-gap: 28px; }
-.formula { font-family: var(--mono); font-size: 13.5px; line-height: 1.7; color: var(--text-2); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; }
+.formula { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--text-2); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; }
 .formula b { color: var(--accent); font-weight: 600; }
 .formula sub { font-size: .75em; }
 
