@@ -13,43 +13,23 @@
         /* 중화 적정: 조작(좌) · 장치(중앙) · 계산/결과(우) 3열 */
         .e5-layout { display: grid; grid-template-columns: 300px 320px minmax(0, 1fr) 340px; gap: 12px; align-items: start; }
         .e5-visual {
-            position: relative; width: 320px; height: 560px; background: #E9ECF0;
+            position: relative; width: 320px; height: 560px; background: linear-gradient(180deg, #F1F3F6, #E6E9EE);
             border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
         }
-        .e5-stand { position: absolute; left: 40px; top: 0; width: 14px; height: 100%; background: #3B4048; }
-        .e5-clamp { position: absolute; left: 40px; top: 120px; width: 90px; height: 16px; background: #3B4048; border-radius: 0 5px 5px 0; }
-        .e5-burette {
-            position: absolute; top: 20px; left: 124px; width: 30px; height: 350px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.75), rgba(255,255,255,0.25), rgba(255,255,255,0.75));
-            border: 2px solid #5A6472; border-top: none; border-bottom: none; z-index: 2;
-        }
-        .e5-burette::after {
-            content: ""; position: absolute; top: 20px; left: 0; width: 100%; height: 280px;
-            background: repeating-linear-gradient(to bottom, #222 0, #222 1px, transparent 1px, transparent 10px); opacity: 0.5;
-        }
-        .e5-burette-liq { position: absolute; bottom: 0; width: 100%; height: 90%; background: #35B6FF; opacity: 0.9; transition: height 0.1s linear; }
-        .e5-stopcock { position: absolute; bottom: -18px; left: -7px; width: 44px; height: 14px; transform-origin: center center; }
-        .e5-stopcock::after { content: ''; position: absolute; inset: 0; background: #1F2328; border-radius: 4px; box-shadow: inset 0 0 0 2px #555; }
-        .e5-spinning-fast { animation: e5-rotateCock 0.3s linear infinite; }
-        .e5-spinning-slow { animation: e5-rotateCock 0.8s linear infinite; }
-        @keyframes e5-rotateCock { from { transform: rotateZ(0deg); } to { transform: rotateZ(360deg); } }
-        .e5-tip { position: absolute; bottom: -40px; left: 9px; width: 12px; height: 40px; border: 2px solid #5A6472; border-top: none; }
-        .e5-drop { position: absolute; top: 370px; left: 135px; width: 10px; height: 10px; background: #35B6FF; border-radius: 50%; z-index: 5; opacity: 0; }
-        .e5-drop.falling { animation: e5-dropAnim 0.3s linear infinite; }
-        @keyframes e5-dropAnim { 0% { top: 370px; opacity: 1; transform: scale(1); } 90% { top: 460px; opacity: 1; } 100% { top: 470px; opacity: 0; transform: scale(0.5); } }
-        .e5-flask-wrap { position: absolute; top: 380px; left: 75px; width: 130px; height: 160px; z-index: 1; }
-        .e5-flask { width: 100%; height: 100%; position: relative; clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%); background: rgba(255,255,255,0.95); filter: drop-shadow(0 0 2px #777); }
-        .e5-flask-liq {
-            position: absolute; bottom: 0; width: 100%; height: 30%; background: rgba(180, 220, 255, 0.9);
-            transition: background-color 0.3s ease, height 0.1s linear; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 5px;
-        }
-        .e5-stir-bar { width: 35px; height: 8px; background: #fff; border: 2px solid #888; border-radius: 4px; animation: e5-spin 0.6s linear infinite; }
-        @keyframes e5-spin { 0% { transform: rotateX(70deg) rotateZ(0deg); } 100% { transform: rotateX(70deg) rotateZ(360deg); } }
-        .e5-stirrer { position: absolute; top: 520px; left: 60px; width: 160px; height: 35px; background: #2B3036; border-top: 4px solid #4B5563; display: flex; align-items: center; justify-content: center; color: #9AA3B0; font-size: 10px; letter-spacing: .08em; font-family: var(--mono); }
+        .e5-visual svg { display: block; }
+        #e5_cockBtn { transform-box: view-box; transform-origin: 160px 385.5px; transition: transform .25s ease; }
+        #e5_drop { opacity: 0; transform-box: fill-box; transform-origin: center; }
+        #e5_drop.falling { animation: e5-dropAnim 0.3s linear infinite; }
+        @keyframes e5-dropAnim { 0% { transform: translateY(0) scale(.6); opacity: 1; } 15% { transform: translateY(2px) scale(1); } 85% { transform: translateY(62px) scale(1); opacity: 1; } 100% { transform: translateY(68px) scale(.4); opacity: 0; } }
+        #e5_fLiq { transition: fill .3s ease, y .1s linear, height .1s linear; }
+        #e5_bLiq, #e5_bMen { transition: y .1s linear, height .1s linear, cy .1s linear; }
+        #e5_stir { transform-box: fill-box; transform-origin: center; animation: e5-spin .55s linear infinite; }
+        @keyframes e5-spin { 0% { transform: scaleX(1); } 50% { transform: scaleX(.12); } 100% { transform: scaleX(1); } }
         .e5-drip { flex: 1; }
         .e5-drip .dot { background: #35B6FF; }
         .e5-drip.slow .dot { background: #12A66B; }
-        #cvs5 { width: 100%; height: 200px; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+        .e5-drip.once { flex: .8; }
+        #cvs5 { width: 100%; height: 170px; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
         .e5-result { text-align: center; padding: 8px; margin-top: 10px; border-radius: var(--radius-sm); background: var(--panel-2); font-size: 13px; color: var(--text-2); }
         .e5-result b { font-family: var(--mono); color: var(--accent); font-size: 15px; }
 
@@ -367,42 +347,76 @@
                             </select>
                         </div>
                         <div class="note" id="e5_indNote" style="margin-top:10px;"></div>
-                        <button class="btn btn-block" style="margin-top:12px;" onclick="initExp5()">실험 초기화 (새 미지 시료)</button>
-                    </div>
-                    <div class="panel">
-                        <h3>2. 뷰렛 조작</h3>
+                        <button class="btn btn-block" style="margin-top:10px;" onclick="initExp5()">실험 초기화 (새 미지 시료)</button>
+                        <h3 style="margin-top:16px;">2. 뷰렛 조작</h3>
                         <div class="kv"><span>표준 용액</span><b id="e5_titrantName">NaOH 1.0 M</b></div>
                         <div class="kv" style="margin-top:4px;"><span>미지 시료</span><b>20.0 mL</b></div>
                         <div class="row" style="margin-top:10px;">
                             <button class="btn e5-drip" onpointerdown="startDrip5('fast')" onpointerup="stopDrip5()" onpointerleave="stopDrip5()" onpointercancel="stopDrip5()"><span class="dot"></span>일반 투입</button>
                             <button class="btn e5-drip slow" onpointerdown="startDrip5('slow')" onpointerup="stopDrip5()" onpointerleave="stopDrip5()" onpointercancel="stopDrip5()"><span class="dot"></span>미세 투입</button>
+                            <button class="btn e5-drip once" onclick="dropOnce5()">한 방울</button>
                         </div>
-                        <button class="btn btn-block" style="margin-top:8px;" onclick="dropOnce5()">한 방울 (0.05 mL)</button>
-                        <div class="muted" style="font-size:12.5px;margin-top:6px;">버튼을 누르고 있는 동안 떨어집니다.</div>
-                        <div style="text-align:center;margin-top:14px;">
-                            <div class="muted" style="font-size:12.5px;">현재 투입량</div>
+                        <div class="muted" style="font-size:12.5px;margin-top:6px;">일반·미세는 누르고 있는 동안 떨어집니다. 한 방울 = 0.05 mL</div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <div class="muted" style="font-size:12.5px;">현재 투입량 (뷰렛 눈금)</div>
                             <div class="big-value" id="e5_volDisplay">0.00 mL</div>
-                            <div style="margin-top:4px;font-weight:600;color:#6B7280;" id="e5_colorName">무색</div>
+                            <div style="margin-top:2px;font-weight:600;color:#6B7280;" id="e5_colorName">무색</div>
                         </div>
-                        <label class="radio" style="margin-top:8px;"><input type="checkbox" id="e5_phToggle" onchange="updateVisuals5()"> pH 미터 표시</label>
+                        <label class="radio" style="margin-top:6px;"><input type="checkbox" id="e5_phToggle" onchange="updateVisuals5()"> pH 미터 표시</label>
                         <div class="kv" id="e5_phRow" style="display:none;"><span>현재 pH</span><b id="e5_ph">-</b></div>
-                        <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="recordResult5()">중화점 부피 기록 (회차 추가)</button>
-                        <button class="btn btn-block" style="margin-top:8px;" onclick="nextTrial5()">다음 회차 · 뷰렛 다시 채우기</button>
                     </div>
                 </div>
 
                 <div class="e5-visual">
-                    <div class="e5-stand"></div><div class="e5-clamp"></div>
-                    <div class="e5-burette">
-                        <div class="e5-burette-liq" id="e5_bLiq"></div><div class="e5-tip"></div><div class="e5-stopcock" id="e5_cockBtn"></div>
-                    </div>
-                    <div class="e5-drop" id="e5_drop"></div>
-                    <div class="e5-flask-wrap">
-                        <div class="e5-flask">
-                            <div class="e5-flask-liq" id="e5_fLiq"><div class="e5-stir-bar"></div></div>
-                        </div>
-                    </div>
-                    <div class="e5-stirrer">MAGNETIC STIRRER</div>
+                    <svg viewBox="0 0 320 560" width="320" height="560" id="e5_svg" aria-label="적정 장치">
+                        <defs>
+                            <linearGradient id="e5_glass" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".45" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="#fff" stop-opacity=".6"/></linearGradient>
+                            <linearGradient id="e5_rod" x1="0" x2="1"><stop offset="0" stop-color="#5B6472"/><stop offset=".5" stop-color="#8C96A4"/><stop offset="1" stop-color="#3B4048"/></linearGradient>
+                            <linearGradient id="e5_liq" x1="0" x2="1"><stop offset="0" stop-color="#5CC8FF"/><stop offset="1" stop-color="#1E9BE0"/></linearGradient>
+                            <clipPath id="e5_flaskClip"><path d="M149 438 V462 L98 518 Q96 522 101 522 H219 Q224 522 222 518 L171 462 V438 Z"/></clipPath>
+                            <clipPath id="e5_tubeClip"><rect x="151" y="40" width="18" height="338"/></clipPath>
+                        </defs>
+                        <!-- 스탠드 -->
+                        <rect x="18" y="544" width="118" height="12" rx="3" fill="#2F343B"/>
+                        <rect x="46" y="18" width="10" height="528" fill="url(#e5_rod)"/>
+                        <!-- 클램프 -->
+                        <rect x="40" y="92" width="22" height="22" rx="3" fill="#3B4048"/>
+                        <circle cx="51" cy="103" r="3.5" fill="#9AA3B0"/>
+                        <rect x="60" y="99" width="88" height="8" rx="2" fill="#4B5563"/>
+                        <path d="M151 94 h-3 a6 6 0 0 0 -6 6 v6 a6 6 0 0 0 6 6 h3" fill="none" stroke="#4B5563" stroke-width="6"/>
+                        <path d="M169 94 h3 a6 6 0 0 1 6 6 v6 a6 6 0 0 1 -6 6 h-3" fill="none" stroke="#4B5563" stroke-width="6"/>
+                        <!-- 뷰렛 -->
+                        <g clip-path="url(#e5_tubeClip)">
+                            <rect id="e5_bLiq" x="151" y="60" width="18" height="318" fill="url(#e5_liq)" opacity=".9"/>
+                            <ellipse id="e5_bMen" cx="160" cy="60" rx="9" ry="2.2" fill="#fff" opacity=".55"/>
+                        </g>
+                        <rect x="150" y="40" width="20" height="338" fill="url(#e5_glass)" stroke="#6B7684" stroke-width="1.5"/>
+                        <rect x="147" y="36" width="26" height="5" rx="2" fill="#fff" stroke="#6B7684" stroke-width="1.5"/>
+                        <g id="e5_ticks" stroke="#1F2328" stroke-width="1"></g>
+                        <g id="e5_tickText" font-family="var(--mono)" font-size="7.5" fill="#1F2328" text-anchor="end"></g>
+                        <!-- 콕 (활전) -->
+                        <rect x="144" y="380" width="32" height="11" rx="3" fill="url(#e5_glass)" stroke="#6B7684" stroke-width="1.5"/>
+                        <g id="e5_cockBtn">
+                            <rect x="160" y="382.5" width="30" height="6" rx="3" fill="#2F343B"/>
+                            <circle cx="160" cy="385.5" r="5.5" fill="#D9DEE5" stroke="#4B5563" stroke-width="1.5"/>
+                        </g>
+                        <path d="M153 392 H167 L162.5 432 H157.5 Z" fill="url(#e5_glass)" stroke="#6B7684" stroke-width="1.5"/>
+                        <circle id="e5_drop" cx="160" cy="435" r="3.5" fill="#35B6FF"/>
+                        <!-- 교반기 -->
+                        <rect x="84" y="518" width="152" height="6" rx="2" fill="#5B6472"/>
+                        <rect x="78" y="524" width="164" height="32" rx="5" fill="#2B3036"/>
+                        <circle cx="222" cy="540" r="7" fill="#4B5563" stroke="#9AA3B0" stroke-width="1.5"/>
+                        <rect x="221" y="534" width="2" height="6" fill="#E6E8EC"/>
+                        <text x="92" y="543" font-family="var(--mono)" font-size="8" letter-spacing=".08em" fill="#9AA3B0">MAG STIRRER</text>
+                        <!-- 삼각 플라스크 -->
+                        <g clip-path="url(#e5_flaskClip)">
+                            <rect id="e5_fLiq" x="90" y="500" width="140" height="30" fill="rgba(180,220,255,0.9)"/>
+                            <rect id="e5_stir" x="146" y="512" width="28" height="6" rx="3" fill="#F3F4F6" stroke="#8A8F98" stroke-width="1.2"/>
+                        </g>
+                        <path d="M149 438 V462 L98 518 Q96 522 101 522 H219 Q224 522 222 518 L171 462 V438 Z" fill="url(#e5_glass)" stroke="#6B7684" stroke-width="1.8" stroke-linejoin="round"/>
+                        <rect x="146" y="434" width="28" height="5" rx="2" fill="#fff" stroke="#6B7684" stroke-width="1.5"/>
+                        <path d="M106 512 L120 496" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
                 </div>
 
                 <div class="stack e5-calc">
@@ -410,6 +424,10 @@
                         <h3>3. 농도 계산 (M₁V₁ = M₂V₂)</h3>
                         <div class="field"><label>표준 농도 M₁ (M)</label><input type="number" class="narrow" id="e5_calc_m1" value="1.0" readonly></div>
                         <div class="e5-trials" id="e5_trials"></div>
+                        <div class="row" style="margin-bottom:10px;">
+                            <button class="btn btn-primary" style="flex:1.3;" onclick="recordResult5()">중화점 부피 기록</button>
+                            <button class="btn" style="flex:1;" onclick="nextTrial5()">다음 회차</button>
+                        </div>
                         <div class="field"><label>평균 부피 V₁ (mL)</label><input type="number" class="narrow" id="e5_calc_v1" readonly placeholder="-"></div>
                         <div class="field"><label>미지 부피 V₂ (mL)</label><input type="number" class="narrow" id="e5_calc_v2" value="20.0" readonly></div>
                         <button class="btn btn-block" style="margin-top:12px;" onclick="calcConc5()">M₂ 계산</button>
@@ -716,7 +734,7 @@
 
             // 가열: 끓는점에 닿으면 온도가 더 오르지 않음 (가한 열은 기화에 쓰임)
             if (heating1) {
-                let T = parseFloat(c1_t.value) + 0.05;
+                let T = parseFloat(c1_t.value) + 0.015;      // 프레임당 0.015 °C (약 0.9 °C/s)
                 if (T >= actual_bp_sol) T = actual_bp_sol;
                 c1_t.value = Math.min(parseFloat(c1_t.max), T).toFixed(2);
             }
@@ -819,7 +837,7 @@
         const c2_t = document.getElementById('c2-t');
         const c2_c = document.getElementById('c2-c');
         const KF_WATER = 1.86;
-        const COOL_RATE = 0.015, PLATEAU_FR = 480;   // 프레임당 냉각 °C, 응고 정체 프레임 수 (60 fps 기준 약 8 s)
+        const COOL_RATE = 0.008, PLATEAU_FR = 540;   // 프레임당 냉각 °C (약 0.5 °C/s), 응고 정체 프레임 수 (60 fps 기준 약 9 s)
 
         const R = 22, dx = R * Math.sqrt(3), dy = R * 1.5;
         let waterParticles = [], soluteParticles = [], lastW2 = 0;
@@ -1430,12 +1448,26 @@
             setNote5("뷰렛을 다시 채우고 새 시료 20.0 mL 를 준비했습니다. 미지 농도는 같습니다. 같은 방법으로 다시 적정하세요.");
         }
         function dropOnce5() {                               // 한 방울: 중화점 근처 정밀 조작
-            if (t5_addedVol >= 50) return;
+            if (t5_addedVol >= 50 || t5_dripInterval) return;
             t5_addedVol = Math.min(50, t5_addedVol + 0.05);
             const drop = document.getElementById('e5_drop'); drop.style.animationDuration = "0.3s"; drop.classList.add('falling');
-            setTimeout(() => { if (!t5_dripInterval) drop.classList.remove('falling'); }, 320);
+            setCock5(35);                                     // 콕을 살짝 열었다가 닫는 동작
+            setTimeout(() => { if (!t5_dripInterval) { drop.classList.remove('falling'); setCock5(0); } }, 320);
             updateVisuals5();
         }
+        function setCock5(deg) { document.getElementById('e5_cockBtn').style.transform = `rotate(${deg}deg)`; }
+        // 뷰렛 눈금: 위가 0, 아래가 50 mL (6 px/mL). 1 mL 마다 짧은 눈금, 5 mL 마다 긴 눈금, 10 mL 마다 숫자
+        const BUR_TOP = 60, BUR_PX = 6;
+        (function buildBuretteTicks() {
+            const g = document.getElementById('e5_ticks'), t = document.getElementById('e5_tickText');
+            let lines = '', texts = '';
+            for (let mL = 0; mL <= 50; mL++) {
+                const y = BUR_TOP + mL * BUR_PX, len = mL % 10 === 0 ? 9 : mL % 5 === 0 ? 7 : 4;
+                lines += `<line x1="${169 - len}" y1="${y}" x2="169" y2="${y}"/>`;
+                if (mL % 10 === 0) texts += `<text x="146" y="${y + 2.5}">${mL}</text>`;
+            }
+            g.innerHTML = lines; t.innerHTML = texts;
+        })();
 
         function initExp5() {
             t5_unknownConc = parseFloat(((Math.random() * 1.3) + 0.4).toFixed(2));
@@ -1456,8 +1488,8 @@
             const drop = document.getElementById('e5_drop'), cock = document.getElementById('e5_cockBtn');
             drop.classList.add('falling');
             let intervalTime, amountPerTick;
-            if (speedMode === 'fast') { intervalTime = 50; amountPerTick = 0.1; drop.style.animationDuration = "0.2s"; cock.classList.add('e5-spinning-fast'); }
-            else { intervalTime = 150; amountPerTick = 0.01; drop.style.animationDuration = "0.5s"; cock.classList.add('e5-spinning-slow'); }
+            if (speedMode === 'fast') { intervalTime = 50; amountPerTick = 0.1; drop.style.animationDuration = "0.2s"; setCock5(90); }
+            else { intervalTime = 150; amountPerTick = 0.01; drop.style.animationDuration = "0.5s"; setCock5(35); }
             t5_dripInterval = setInterval(() => {
                 t5_addedVol += amountPerTick;
                 if (t5_addedVol >= 50.0) { t5_addedVol = 50.0; stopDrip5(); setNote5("뷰렛이 비었습니다. 실험을 초기화하세요.", "err"); }
@@ -1467,7 +1499,7 @@
         function stopDrip5() {
             if (t5_dripInterval) { clearInterval(t5_dripInterval); t5_dripInterval = null; }
             document.getElementById('e5_drop').classList.remove('falling');
-            document.getElementById('e5_cockBtn').classList.remove('e5-spinning-fast', 'e5-spinning-slow');
+            setCock5(0);
         }
 
         // 지시약이 중화점과 맞지 않으면 안내 (오차가 커지는 이유를 보여주는 학습 장면)
@@ -1493,9 +1525,12 @@
             document.getElementById('e5_colorName').innerText = text;
             document.getElementById('e5_colorName').style.color = textColor;
             const fLiq = document.getElementById('e5_fLiq');
-            fLiq.style.backgroundColor = colorStyle;
-            fLiq.style.height = (30 + t5_addedVol * 0.8) + "%";
-            document.getElementById('e5_bLiq').style.height = (90 - t5_addedVol * 1.6) + "%";
+            fLiq.style.fill = colorStyle;
+            const fy = 520 - 58 * (0.30 + t5_addedVol * 0.008);              // 플라스크 액면 (20 mL 시료 + 투입량)
+            fLiq.setAttribute('y', fy.toFixed(1)); fLiq.setAttribute('height', (522 - fy).toFixed(1));
+            const by = BUR_TOP + t5_addedVol * BUR_PX;                        // 뷰렛 액면 = 눈금 읽기
+            document.getElementById('e5_bLiq').setAttribute('y', by.toFixed(1)); document.getElementById('e5_bLiq').setAttribute('height', (378 - by).toFixed(1));
+            document.getElementById('e5_bMen').setAttribute('cy', by.toFixed(1));
             // pH 미터 (선택)
             const meterOn = document.getElementById('e5_phToggle').checked;
             document.getElementById('e5_phRow').style.display = meterOn ? 'flex' : 'none';
