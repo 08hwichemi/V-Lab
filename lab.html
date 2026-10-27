@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>실험 · V-Lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23111'/%3E%3Cpath d='M6 6l6 12 6-12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="data/labs.js"></script>
+  <script src="assets/js/site.js"></script>
+  <style>
+    .fs-exit { position: fixed; right: 14px; top: 14px; z-index: 30; display: none; }
+    body.fs .fs-exit { display: inline-flex; opacity: .35; }
+    body.fs .fs-exit:hover { opacity: 1; }
+  </style>
+</head>
+<body class="viewer">
+  <div id="hdr"></div>
+  <div id="app" style="display:contents"></div>
+  <button class="ic fs-exit" id="fsExit" title="전체화면 종료"></button>
+
+  <script>
+    (function () {
+      const { D, SUBJ, I, esc, items, recent } = VL;
+      const p = new URLSearchParams(location.search);
+      const lab = D.labs.find(l => l.id === p.get("id"));
+      const app = document.getElementById("app");
+
+      if (!lab) {
+        document.getElementById("hdr").innerHTML = VL.header("all", { search: false });
+        VL.bindHeader();
+        app.innerHTML = `<div class="notfound"><b>실험을 찾을 수 없습니다</b>주소가 바뀌었거나 등록부에서 삭제된 실험입니다. <a href="index.html#/" style="color:var(--accent)">전체 실험으로 돌아가기</a></div>`;
+        return;
+      }
+
+      const subj = SUBJ[lab.subject] || {};
+      const exps = lab.experiments || [];
+      let cur = exps.length ? Math.min(Math.max(parseInt(p.get("exp") || "0", 10) || 0, 0), exps.length - 1) : null;
+      const key = () => lab.id + (cur != null ? ":" + cur : "");
+      const hashFor = i => (i != null ? `exp=${i}&embed` : "embed");
+      const standaloneUrl = () => lab.file + (cur != null ? `#exp=${cur}` : "");
+
+      document.getElementById("hdr").innerHTML = VL.header(lab.subject, { search: false });
+      VL.bindHeader();
+
+      app.innerHTML = `
+        <div class="sub" data-subject="${esc(lab.subject)}">
+          <div class="bc"><a href="index.html#/s/${esc(lab.subject)}">${I.back}<i></i>${esc(subj.name || "")}</a><em>/</em><span id="labTitle">${esc(lab.title)}</span></div>
+          <div class="etabs" id="etabs">${exps.map((e, i) => `<button data-i="${i}" class="${i === cur ? "on" : ""}">${i + 1}. ${esc(e.title)}</button>`).join("")}</div>
+          <div class="r">
+            <button class="ic hide-sm" id="btnInfo" title="실험 정보">${I.info}</button>
+            <button class="ic" id="btnFull" title="전체화면">${I.full}</button>
+            <a class="ic hide-sm" id="btnExt" href="${esc(standaloneUrl())}" target="_blank" rel="noopener" title="새 창에서 열기">${I.ext}</a>
+          </div>
+        </div>
+        <div class="frame">
+          <div class="loading" id="loading">불러오는 중…</div>
+          <iframe id="fr" src="${esc(lab.file)}#${hashFor(cur)}" title="${esc(lab.title)}" allow="fullscreen"></iframe>
+          <aside class="info" id="info">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span class="mono" style="font-size:11px;color:var(--muted)">${esc(lab.subject.toUpperCase())}</span><button class="ic" id="btnInfoClose" style="width:28px;height:28px">${I.close}</button></div>
+            <h2>${esc(lab.title)}</h2>
+            <p>${esc(lab.summary || "")}</p>
+            <dl>
+              ${lab.unit ? `<dt>단원</dt><dd>${esc(lab.unit)}</dd>` : ""}
+              ${(lab.grade || []).length ? `<dt>대상</dt><dd>${esc(lab.grade.join(" · "))}</dd>` : ""}
+              ${lab.author ? `<dt>제작</dt><dd>${esc(lab.author)}${lab.added ? ` · ${esc(lab.added)}` : ""}</dd>` : ""}
+            </dl>
+            ${exps.length ? `<div class="list" id="ilist">${exps.map((e, i) => `<button data-i="${i}" class="${i === cur ? "on" : ""}"><i>${i + 1}</i>${esc(e.title)}</button>`).join("")}</div>` : ""}
+            ${(lab.tags || []).length ? `<div class="tags">${lab.tags.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
+            <a class="open-new" href="${esc(standaloneUrl())}" target="_blank" rel="noopener">실험 파일만 새 창에서 열기 ↗</a>
+          </aside>
+        </div>`;
+
+      const fr = document.getElementById("fr");
+      fr.addEventListener("load", () => document.getElementById("loading").classList.add("hide"));
+      setTimeout(() => document.getElementById("loading").classList.add("hide"), 4000);
+
+      function select(i) {
+        cur = i;
+        try { fr.contentWindow.location.hash = hashFor(i); } catch (e) { fr.src = lab.file + "#" + hashFor(i); }
+        document.querySelectorAll("#etabs button, #ilist button").forEach(b => b.classList.toggle("on", +b.dataset.i === i));
+        const u = new URL(location.href); u.searchParams.set("exp", i); history.replaceState(null, "", u);
+        document.getElementById("btnExt").href = standaloneUrl();
+        document.querySelector(".open-new").href = standaloneUrl();
+        document.title = `${exps[i].title} · ${lab.title} · V-Lab`;
+        recent.push(key());
+        const tab = document.querySelector(`#etabs button[data-i="${i}"]`); if (tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+      document.querySelectorAll("#etabs button, #ilist button").forEach(b => b.addEventListener("click", () => select(+b.dataset.i)));
+      document.title = (cur != null ? exps[cur].title + " · " : "") + lab.title + " · V-Lab";
+      recent.push(key());
+      if (cur != null) { const t = document.querySelector(`#etabs button[data-i="${cur}"]`); if (t) t.scrollIntoView({ inline: "nearest" }); }
+
+      // 정보 패널
+      const info = document.getElementById("info");
+      const toggleInfo = () => { info.classList.toggle("open"); document.getElementById("btnInfo").classList.toggle("on", info.classList.contains("open")); };
+      document.getElementById("btnInfo").addEventListener("click", toggleInfo);
+      document.getElementById("btnInfoClose").addEventListener("click", toggleInfo);
+
+      // 전체화면: 상단 바 숨김 + 가능하면 브라우저 전체화면
+      const fsExit = document.getElementById("fsExit"); fsExit.innerHTML = I.close;
+      function setFs(on) {
+        document.body.classList.toggle("fs", on);
+        if (on && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+        if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => { });
+      }
+      document.getElementById("btnFull").addEventListener("click", () => setFs(!document.body.classList.contains("fs")));
+      fsExit.addEventListener("click", () => setFs(false));
+      document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) document.body.classList.remove("fs"); });
+      window.addEventListener("keydown", e => { if (e.key === "Escape" && document.body.classList.contains("fs")) setFs(false); });
+    })();
+  </script>
+</body>
+</html>

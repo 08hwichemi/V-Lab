@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>V-Lab · 가상 실험실</title>
+  <meta name="description" content="물리·화학·생명·지구과학 가상 실험을 브라우저에서 바로 실행합니다.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23111'/%3E%3Cpath d='M6 6l6 12 6-12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="data/labs.js"></script>
+  <script src="assets/js/site.js"></script>
+</head>
+<body>
+  <div id="hdr"></div>
+  <main class="page"><div class="wrap" id="view"></div></main>
+  <div id="ftr"></div>
+
+  <script>
+    (function () {
+      const { D, SUBJ, I, esc, items, card, match, recent } = VL;
+      const view = document.getElementById("view");
+      const state = { grade: "", unit: "", sort: "latest", q: "" };
+
+      function route() {
+        const h = location.hash.replace(/^#\/?/, "");
+        if (h.startsWith("s/")) return { kind: "subject", id: h.slice(2) };
+        if (h === "recent") return { kind: "recent" };
+        return { kind: "all" };
+      }
+
+      function render() {
+        const r = route();
+        const subj = r.kind === "subject" ? SUBJ[r.id] : null;
+        const active = r.kind === "subject" ? r.id : (r.kind === "all" ? "all" : "");
+        document.getElementById("hdr").innerHTML = VL.header(active);
+        document.getElementById("ftr").innerHTML = VL.footer();
+        VL.bindHeader();
+        const q = document.getElementById("q");
+        q.value = state.q;
+        q.addEventListener("input", () => { state.q = q.value; paint(); });
+
+        // 제목 영역
+        let title, eyebrow, desc, pool;
+        if (r.kind === "subject" && subj) {
+          pool = items(subj.id); title = subj.name; eyebrow = `${subj.id.toUpperCase()} · ${pool.length}`; desc = subj.desc;
+        } else if (r.kind === "recent") {
+          pool = recent.list(); title = "최근 본 실험"; eyebrow = `RECENT · ${pool.length}`; desc = "이 브라우저에서 최근에 연 실험입니다.";
+        } else {
+          pool = items(); title = "실험"; eyebrow = `ALL · ${pool.length}`; desc = D.site.tagline || "";
+        }
+        const units = [...new Set(pool.map(it => it.unit).filter(Boolean))];
+        state.unit = units.includes(state.unit) ? state.unit : "";
+        view.innerHTML = `
+          <div class="hd">
+            <div><div class="eb mono">${esc(eyebrow)}</div><h1>${esc(title)}</h1></div>
+            <p>${esc(desc)}</p>
+            <div class="f">
+              <div class="seg" id="grade">${["", "고1", "고2", "고3"].map(g => `<button data-g="${g}" class="${state.grade === g ? "on" : ""}">${g || "전체"}</button>`).join("")}</div>
+              <select class="sel" id="unit"><option value="">단원 · 전체</option>${units.map(u => `<option value="${esc(u)}" ${state.unit === u ? "selected" : ""}>${esc(u)}</option>`).join("")}</select>
+              <select class="sel" id="sort"><option value="latest" ${state.sort === "latest" ? "selected" : ""}>최신순</option><option value="name" ${state.sort === "name" ? "selected" : ""}>이름순</option><option value="featured" ${state.sort === "featured" ? "selected" : ""}>추천순</option></select>
+            </div>
+          </div>
+          <div class="grid" id="grid"></div>`;
+        document.querySelectorAll("#grade button").forEach(b => b.addEventListener("click", () => { state.grade = b.dataset.g; document.querySelectorAll("#grade button").forEach(x => x.classList.toggle("on", x === b)); paint(); }));
+        document.getElementById("unit").addEventListener("change", e => { state.unit = e.target.value; paint(); });
+        document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; paint(); });
+        view.dataset.kind = r.kind;
+        view._pool = pool;
+        paint();
+      }
+
+      function paint() {
+        const grid = document.getElementById("grid");
+        let list = view._pool.filter(it => (!state.grade || (it.grade || []).includes(state.grade)) && (!state.unit || it.unit === state.unit) && match(it, state.q));
+        if (view.dataset.kind !== "recent") {
+          if (state.sort === "name") list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+          else if (state.sort === "featured") list.sort((a, b) => (b.featured - a.featured) || b.added.localeCompare(a.added));
+          else list.sort((a, b) => b.added.localeCompare(a.added) || (a.exp ?? 0) - (b.exp ?? 0));
+        }
+        if (!list.length) {
+          grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${state.q ? "검색 결과가 없습니다" : "아직 등록된 실험이 없습니다"}</b>${state.q ? "다른 키워드로 찾아보세요." : `<a href="manage.html">실험 등록 도우미</a>에서 첫 실험을 추가해 보세요.`}</div>`;
+          return;
+        }
+        grid.innerHTML = list.map(card).join("");
+      }
+
+      window.addEventListener("hashchange", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

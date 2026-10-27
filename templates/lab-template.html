@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>실험 제목 · V-Lab</title>
+
+    <!-- ① V-Lab 공용 테마: 이 한 줄로 글꼴·색·버튼·패널이 사이트와 통일됩니다.
+         파일 위치가 labs/과목/ 이면 경로는 ../../assets/css/lab-theme.css 입니다. -->
+    <link rel="stylesheet" href="../assets/css/lab-theme.css">
+
+    <style>
+        /* ② 이 실험에만 필요한 스타일은 여기에 */
+    </style>
+</head>
+<body>
+
+    <!-- ③ 상단 헤더: V-Lab 뷰어 안에서 열리면(주소에 embed) 자동으로 숨겨집니다.
+         실험이 하나뿐이면 <nav class="lab-tabs"> 를 지워도 됩니다. -->
+    <header class="lab-header">
+        <div class="inner">
+            <div class="lab-brand">실험 제목<small>제작자 · 교과</small></div>
+            <nav class="lab-tabs">
+                <button class="active" onclick="switchTab(0)">1. 첫 번째 실험</button>
+                <button onclick="switchTab(1)">2. 두 번째 실험</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="lab-main">
+        <h1 class="lab-title" id="main-title">1. 첫 번째 실험 <small>English title</small></h1>
+
+        <!-- ④ 실험 하나 = <section class="lab-page"> 하나. 보여줄 것에 .active -->
+        <section class="lab-page active">
+            <!-- 상태 표시줄: 라벨 + <b>값</b>, 오른쪽 메시지는 .msg -->
+            <div class="status">
+                <div>진폭 <b id="d-amp">10°</b></div>
+                <div>주기 <b id="d-period">2.0 s</b></div>
+                <div class="msg" id="d-msg">슬라이더를 움직여 보세요.</div>
+            </div>
+
+            <!-- 캔버스 바탕 -->
+            <div class="canvas-wrap">
+                <canvas id="cvs" height="360"></canvas>
+            </div>
+
+            <!-- 조작부: .control 안에 라벨 + .slider([-] range [+]) + .value -->
+            <div class="controls">
+                <div class="control">
+                    <label>진폭 (°)</label>
+                    <div class="slider">
+                        <button class="btn btn-icon" onclick="adjustSlider('c-amp', -1)">−</button>
+                        <input type="range" id="c-amp" min="5" max="60" step="1" value="10">
+                        <button class="btn btn-icon" onclick="adjustSlider('c-amp', 1)">+</button>
+                    </div>
+                    <div class="value" id="c-amp-val">10</div>
+                </div>
+                <div class="control">
+                    <label>선택형 버튼</label>
+                    <div class="seg" id="grp-mode">
+                        <button class="selected" onclick="selectIn('grp-mode', this)">A</button>
+                        <button onclick="selectIn('grp-mode', this)">B</button>
+                    </div>
+                </div>
+                <div class="control">
+                    <label>동작</label>
+                    <div class="row">
+                        <button class="btn btn-primary" onclick="reset()">초기화</button>
+                        <button class="btn">기록</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lab-page">
+            <div class="grid-2">
+                <div class="panel"><h3>패널 제목</h3><p class="muted">2열 레이아웃 예시입니다. 모바일에서는 1열이 됩니다.</p></div>
+                <div class="panel"><h3>입력 예시</h3>
+                    <div class="field"><label>값 (M)</label><input type="number" class="narrow" value="1.0"></div>
+                    <div class="field"><label>선택</label><select><option>항목 1</option><option>항목 2</option></select></div>
+                    <div class="note note-ok" style="margin-top:10px;">안내 메시지는 alert 대신 .note 로 표시합니다.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ⑤ 실험 전환 ------------------------------------------------------------
+        const titles = [["첫 번째 실험", "English title"], ["두 번째 실험", "Second"]];
+        let activeTab = 0;
+        function switchTab(i) {
+            activeTab = i;
+            document.querySelectorAll('.lab-tabs button').forEach((b, k) => b.classList.toggle('active', k === i));
+            document.querySelectorAll('.lab-page').forEach((p, k) => p.classList.toggle('active', k === i));
+            document.getElementById('main-title').innerHTML = `${i + 1}. ${titles[i][0]} <small>${titles[i][1]}</small>`;
+        }
+
+        // ⑥ 공통 도우미 ----------------------------------------------------------
+        function adjustSlider(id, dir) {            // [-] [+] 버튼으로 슬라이더 미세 조절
+            const s = document.getElementById(id), step = parseFloat(s.step) || 1;
+            let v = Math.round((parseFloat(s.value) + dir * step) * 10000) / 10000;
+            s.value = Math.min(parseFloat(s.max), Math.max(parseFloat(s.min), v));
+            s.dispatchEvent(new Event('input'));
+        }
+        function selectIn(groupId, btn) {           // .seg 안에서 하나만 선택
+            document.querySelectorAll('#' + groupId + ' button').forEach(b => b.classList.toggle('selected', b === btn));
+        }
+        function reset() { document.getElementById('c-amp').value = 10; }
+
+        // ⑦ 그리기: 루프는 하나만 돌리고, 보이는 실험만 그립니다. ---------------------
+        const cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
+        function draw() {
+            cvs.width = cvs.parentElement.clientWidth;            // 폭을 부모에 맞춤 (반응형)
+            const amp = parseFloat(document.getElementById('c-amp').value);
+            document.getElementById('c-amp-val').textContent = amp;
+            document.getElementById('d-amp').textContent = amp + '°';
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            const t = performance.now() / 1000, cx = cvs.width / 2, L = 220;
+            const th = amp * Math.PI / 180 * Math.cos(t * 2);
+            ctx.strokeStyle = '#C9CED6'; ctx.beginPath(); ctx.moveTo(cx - 60, 40); ctx.lineTo(cx + 60, 40); ctx.stroke();
+            ctx.strokeStyle = '#4B5563'; ctx.beginPath(); ctx.moveTo(cx, 40); ctx.lineTo(cx + L * Math.sin(th), 40 + L * Math.cos(th)); ctx.stroke();
+            ctx.fillStyle = '#3182F6'; ctx.beginPath(); ctx.arc(cx + L * Math.sin(th), 40 + L * Math.cos(th), 14, 0, Math.PI * 2); ctx.fill();
+        }
+        function tick() { if (activeTab === 0) draw(); requestAnimationFrame(tick); }
+        requestAnimationFrame(tick);
+
+        // ⑧ V-Lab 연동 (그대로 두세요) ------------------------------------------------
+        // 주소 해시 #exp=1 로 특정 실험을 바로 열고, embed 가 있으면 자체 헤더를 숨깁니다.
+        function applyHashTab() {
+            if (/embed/.test(location.hash)) document.body.classList.add('vlab-embed');
+            const m = location.hash.match(/exp=(\d+)/);
+            if (m) { const i = parseInt(m[1], 10); if (i >= 0 && i < titles.length) switchTab(i); }
+        }
+        window.addEventListener('hashchange', applyHashTab);
+        applyHashTab();
+    </script>
+</body>
+</html>
