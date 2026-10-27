@@ -250,16 +250,16 @@ table.list th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
 .tl-sec[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
 .tl-sec summary:hover { background: color-mix(in srgb, var(--sc) 6%, var(--panel)); border-radius: 0 10px 10px 0; }
 .tl-sec[open] summary { border-bottom: 1px solid var(--line-2); position: sticky; top: -16px; background: var(--panel); z-index: 1; border-radius: 0 10px 0 0; }
-.tl-sec-body { padding: 10px 14px 6px; overflow-x: auto; }
+.tl-sec-body { padding: 10px 10px 6px; overflow-x: auto; }
 .tl-sec .tl-table th { background: color-mix(in srgb, var(--sc) 7%, var(--panel)); color: var(--text-2); }
 .tl-sec .tl-table tr:last-child td { border-bottom: 0; }
 .tl-pad button.press { background: var(--bg-2); transform: scale(.94); }
 .tl-pad button.eq.press { background: var(--text-2); }
 .tl-note { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; line-height: 1.5; }
 .tl-table { width: auto; min-width: 100%; border-collapse: collapse; font-size: 13px; }
-.tl-table th, .tl-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; line-height: 1.45; white-space: nowrap; }
+.tl-table th, .tl-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line-2); vertical-align: top; line-height: 1.45; white-space: nowrap; }
 .tl-table td.wrap { white-space: normal; min-width: 180px; }
-.tl-table th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+.tl-table th { color: var(--muted); font-weight: 600; font-size: 11.5px; white-space: normal; vertical-align: bottom; }
 .tl-table td:nth-child(n+2) { font-family: var(--mono); font-size: 12.5px; }
 .tl-table td.txt { font-family: var(--font); font-size: 13px; }
 .tl-codon td { font-family: var(--mono) !important; font-size: 11.5px !important; padding: 5px 6px; }

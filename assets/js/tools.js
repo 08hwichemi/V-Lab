@@ -324,7 +324,7 @@
   /* ================================================================
    * 패널 틀, 열고 닫기
    * ================================================================ */
-  const TABS = [["convert", "환산"], ["calc", "계산"], ["chemistry", "화학"], ["physics", "물리"], ["biology", "생명"], ["earth", "지구"]];
+  const TABS = [["convert", "환산"], ["calc", "계산"], ["physics", "물리"], ["chemistry", "화학"], ["biology", "생명"], ["earth", "지구"]];
   let open = false, current = "convert";
   try { current = localStorage.getItem("vlab-tools-tab") || "convert"; } catch (e) { }
   function build() {

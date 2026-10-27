@@ -734,7 +734,7 @@
 
             // 가열: 끓는점에 닿으면 온도가 더 오르지 않음 (가한 열은 기화에 쓰임)
             if (heating1) {
-                let T = parseFloat(c1_t.value) + 0.015;      // 프레임당 0.015 °C (약 0.9 °C/s)
+                let T = parseFloat(c1_t.value) + 0.01;       // 프레임당 0.01 °C (약 0.6 °C/s)
                 if (T >= actual_bp_sol) T = actual_bp_sol;
                 c1_t.value = Math.min(parseFloat(c1_t.max), T).toFixed(2);
             }
@@ -837,7 +837,7 @@
         const c2_t = document.getElementById('c2-t');
         const c2_c = document.getElementById('c2-c');
         const KF_WATER = 1.86;
-        const COOL_RATE = 0.008, PLATEAU_FR = 540;   // 프레임당 냉각 °C (약 0.5 °C/s), 응고 정체 프레임 수 (60 fps 기준 약 9 s)
+        const COOL_RATE = 0.0055, PLATEAU_FR = 600;  // 프레임당 냉각 °C (약 0.33 °C/s), 응고 정체 프레임 수 (60 fps 기준 10 s)
 
         const R = 22, dx = R * Math.sqrt(3), dy = R * 1.5;
         let waterParticles = [], soluteParticles = [], lastW2 = 0;
