@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>동전 던지기로 보는 엔트로피</title>
+<link rel="stylesheet" href="../../assets/css/lab-theme.css">  
+<style>
+  :root{
+    --bg:#f5f3ee; --panel:#ffffff; --ink:#1f2328; --muted:#667085; --line:#e3e1db;
+    --heads:#e0ad2e; --heads-d:#a87d14; --tails:#a9b8cc; --tails-d:#52657d;
+    --accent:#2f6fb0; --entropy:#c2410c;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#15171b; --panel:#1f2228; --ink:#eceff3; --muted:#9aa3af; --line:#30343c;
+      --heads:#e9b949; --heads-d:#b88a1f; --tails:#a9b8cc; --tails-d:#5d7290;
+      --accent:#6aa6e8; --entropy:#fb923c; }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.4;font-size:15px;word-break:keep-all;overflow-wrap:break-word}
+
+  /* ===== 한 화면 레이아웃 ===== */
+  .app{height:100vh;display:grid;grid-template-rows:auto 1fr;gap:10px;padding:10px 14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding:8px 16px}
+  header h1{font-size:1.35rem;margin:0}
+  header .sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+  .eq svg{height:84px;width:auto;display:block}
+  .eqText{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;white-space:nowrap}
+  main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:10px;min-height:0}
+  .col{display:flex;flex-direction:column;gap:10px;min-height:0}
+  .ptitle{font-weight:700;font-size:.95rem;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .ptitle small{font-weight:400;color:var(--muted);font-size:.8rem}
+
+  /* 조작 */
+  .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+  input[type=number]{width:68px;padding:5px 6px;border:1px solid var(--line);border-radius:7px;
+    background:var(--bg);color:var(--ink);font-size:.95rem}
+  button,select{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+    padding:7px 8px;border-radius:8px;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  .quick{margin-top:6px}
+  .quick button{flex:1;padding:3px 0;font-size:.82rem}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+  .btns .full{grid-column:1/-1}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;padding:9px}
+  button.reset{border-color:#b42318;color:#b42318;font-weight:700}
+  @media (prefers-color-scheme:dark){ button.reset{border-color:#f97066;color:#f97066} }
+  button.on{background:var(--entropy);border-color:var(--entropy);color:#fff}
+  .speed{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+  .speed select{flex:1}
+
+  /* 결과 */
+  .split{display:flex;height:28px;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:8px}
+  .split div{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+    font-size:.82rem;white-space:nowrap;overflow:hidden;transition:width .25s}
+  .split .sh{background:var(--heads-d)} .split .st{background:var(--tails-d)}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .card{border:1px solid var(--line);border-radius:9px;padding:6px 9px}
+  .card .k{font-size:.78rem;color:var(--muted)}
+  .card .v{font-size:1.3rem;font-weight:800}
+  .card .v small{font-size:.78rem;font-weight:600;color:var(--muted)}
+  .card.h .v{color:var(--heads-d)} .card.t .v{color:var(--tails-d)}
+  @media (prefers-color-scheme:dark){ .card.h .v{color:var(--heads)} .card.t .v{color:var(--tails)} }
+  .dlgBtns{display:grid;grid-template-columns:1fr;gap:8px}
+  .conceptBtn{width:100%;padding:10px;font-weight:700}
+  /* 질문 팝업 */
+  .quiz{padding:8px 18px 18px;display:flex;flex-direction:column;gap:10px}
+  .quiz .intro{margin:6px 0 2px;color:var(--muted);font-size:.9rem}
+  .q{border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+  .q .qh{display:flex;gap:10px;align-items:flex-start;font-weight:700;font-size:1rem}
+  .q .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:.85rem}
+  .q .try{margin:6px 0 0 36px;color:var(--muted);font-size:.86rem}
+  .q details{margin:8px 0 0 36px}
+  .q summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:.9rem}
+  .q .ans{margin-top:6px;padding:9px 12px;border-radius:8px;background:var(--bg);font-size:.92rem}
+
+  /* 동전 */
+  .coinsPanel{display:flex;flex-direction:column;min-height:0}
+  .legend{display:flex;gap:12px;font-size:.82rem;color:var(--muted);font-weight:400}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+  .legend .lh::before{background:var(--heads)} .legend .lt::before{background:var(--tails)}
+  #gridWrap{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center}
+  .grid{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:var(--g,4px);width:100%;--s:40px}
+  .coin{width:var(--s);height:var(--s);border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:calc(var(--s)*.3);cursor:pointer;user-select:none;
+    box-shadow:inset 0 0 0 calc(var(--s)*.06) rgba(0,0,0,.18)}
+  .coin.h{background:radial-gradient(circle at 35% 30%,#fff3c4,var(--heads) 60%,var(--heads-d));color:#5a4106}
+  .coin.h::after{content:"500"}
+  .coin.t{background:var(--crane) center/78% no-repeat,
+    radial-gradient(circle at 35% 30%,#f4f7fb,var(--tails) 60%,var(--tails-d))}
+  .grid.tiny .coin.h::after{content:none}
+  .fa{animation:flipA .35s ease} .fb{animation:flipB .35s ease}
+  @keyframes flipA{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.08)}100%{transform:rotateY(0)}}
+  @keyframes flipB{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.08)}100%{transform:rotateY(0)}}
+
+  /* 그래프 */
+  .chart{flex:1;display:flex;flex-direction:column;min-height:0}
+  .chart p{margin:-4px 0 6px;color:var(--muted);font-size:.78rem}
+  .chart canvas{flex:1;min-height:0;width:100%;display:block}
+
+  /* 개념 정리 팝업 */
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);
+    width:min(820px,92vw);max-height:86vh;padding:0}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .dlgHead{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--panel)}
+  .dlgHead h2{margin:0;font-size:1.15rem}
+  .dlgBody{padding:4px 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+  .dlgBody h4{margin:12px 0 4px;font-size:1rem}
+  .dlgBody ul{margin:0;padding-left:18px} .dlgBody li{font-size:.92rem;margin-bottom:3px}
+  @media (max-width:700px){ .dlgBody{grid-template-columns:1fr} }
+
+  /* 높이가 낮은 노트북 화면(예: 1280×720)에서는 여백을 줄여 한 화면에 맞추기 */
+  @media (max-height:820px){
+    .app{gap:8px;padding:8px 12px}
+    .panel{padding:10px}
+    header{padding:6px 14px}
+    header h1{font-size:1.2rem}
+    .eq svg{height:76px}
+    .ptitle{margin-bottom:6px}
+    .btns{gap:5px;margin-top:8px}
+    button,select{padding:5px 8px}
+    button.primary{padding:7px}
+    .split{height:24px;margin-bottom:6px}
+    .card{padding:3px 8px}
+    .card .v{font-size:1.15rem}
+    .conceptBtn{padding:7px}
+    header{grid-template-columns:1fr auto 1fr}
+  }
+
+  /* 작은 화면(태블릿·휴대폰)에서는 세로로 쌓기 */
+  @media (max-width:1000px), (max-height:540px){
+    .app{height:auto}
+    header{grid-template-columns:1fr;justify-items:center;text-align:center}
+    .eqText{white-space:normal}
+    main{grid-template-columns:1fr}
+    #gridWrap{flex:none}
+    .chart canvas{flex:none;height:200px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 상단: 제목 + 가역반응 그림 -->
+  <header class="panel">
+    <div>
+      <h1>🪙 동전 던지기로 보는 엔트로피</h1>
+      <p class="sub">동전 수를 늘리면 왜 "반반"에 가까운 상태만 보이게 될까요?</p>
+    </div>
+    <div class="eq">
+      <svg viewBox="0 0 560 170" role="img" aria-label="앞면과 뒷면은 가역반응 관계">
+        <defs>
+          <radialGradient id="gH" cx="35%" cy="30%" r="70%">
+            <stop offset="0" stop-color="#fff3c4"/><stop offset=".6" stop-color="#e0ad2e"/><stop offset="1" stop-color="#a87d14"/>
+          </radialGradient>
+          <radialGradient id="gT" cx="35%" cy="30%" r="70%">
+            <stop offset="0" stop-color="#f4f7fb"/><stop offset=".6" stop-color="#a9b8cc"/><stop offset="1" stop-color="#52657d"/>
+          </radialGradient>
+          <symbol id="crane" viewBox="0 0 100 100">
+            <g fill="#1f2d42" stroke="#1f2d42" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M44 54 L50 16 L57 24 L60 52 Z"/>
+              <path d="M52 56 L74 20 L79 29 L64 56 Z"/>
+              <ellipse cx="55" cy="57" rx="15" ry="6.5" transform="rotate(-8 55 57)" stroke="none"/>
+              <path d="M42 55 Q32 52 23 42" fill="none" stroke-width="3.2"/>
+              <circle cx="21" cy="40" r="3.4" stroke="none"/>
+              <path d="M19 41 L8 45" fill="none" stroke-width="1.8"/>
+              <path d="M68 58 L91 63 M67 60 L90 67" fill="none" stroke-width="1.6"/>
+            </g>
+            <circle cx="21.5" cy="38" r="1.5" fill="#d92d20"/>
+          </symbol>
+        </defs>
+        <circle cx="90" cy="80" r="58" fill="url(#gH)" stroke="#8a650f" stroke-width="3"/>
+        <text x="90" y="92" text-anchor="middle" font-size="34" font-weight="800" fill="#5a4106">500</text>
+        <circle cx="470" cy="80" r="58" fill="url(#gT)" stroke="#42536a" stroke-width="3"/>
+        <use href="#crane" x="425" y="35" width="90" height="90"/>
+        <g style="color:var(--ink)">
+          <g stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M175 70 H385"/><path d="M385 70 L367 58"/>
+            <path d="M385 90 H175"/><path d="M175 90 L193 102"/>
+          </g>
+          <text x="280" y="54" text-anchor="middle" font-size="25" font-weight="600" fill="currentColor">정반응: 뒤집기</text>
+          <text x="280" y="128" text-anchor="middle" font-size="25" font-weight="600" fill="currentColor">역반응: 뒤집기</text>
+          <text x="90" y="166" text-anchor="middle" font-size="25" font-weight="700" fill="currentColor">앞면 (숫자)</text>
+          <text x="470" y="166" text-anchor="middle" font-size="25" font-weight="700" fill="currentColor">뒷면 (그림)</text>
+        </g>
+      </svg>
+    </div>
+    <p class="eqText">동전 하나는 앞면 → 뒷면, 뒷면 → 앞면<br>어느 쪽으로도 똑같이 바뀔 수 있어요.<br>마치 가역반응처럼요.</p>
+  </header>
+
+  <main>
+    <!-- 왼쪽: 조작 + 결과 -->
+    <div class="col">
+      <div class="panel">
+        <div class="ptitle">동전 개수</div>
+        <div class="row">
+          <input type="range" id="nRange" min="1" max="1000" value="10">
+          <input type="number" id="nInput" min="1" max="1000" value="10"><span>개</span>
+        </div>
+        <div class="row quick">
+          <button data-n="1">1</button><button data-n="2">2</button><button data-n="4">4</button>
+          <button data-n="10">10</button><button data-n="100">100</button><button data-n="1000">1000</button>
+        </div>
+        <div class="btns">
+          <button class="primary full" id="btnThrow">🎲 모든 동전 던지기</button>
+          <button id="btnOne">🔄 1개만 뒤집기</button>
+          <button id="btnHeads">⬆ 모두 앞면</button>
+          <button id="btnAutoThrow">▶ 자동 던지기</button>
+          <button id="btnAutoOne">▶ 자동 1개씩</button>
+          <label class="speed full">자동 속도
+            <select id="speed">
+              <option value="400">느리게</option>
+              <option value="150" selected>보통</option>
+              <option value="40">빠르게</option>
+            </select>
+          </label>
+          <button class="reset full" id="btnReset" title="자동 실행을 멈추고, 모두 앞면으로 정렬하고, 기록을 지웁니다">리셋</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ptitle">결과</div>
+        <div class="split"><div class="sh" id="barH"></div><div class="st" id="barT"></div></div>
+        <div class="cards">
+          <div class="card h"><div class="k">앞면(숫자) 개수</div><div class="v" id="hCount">0</div></div>
+          <div class="card t"><div class="k">뒷면(그림) 개수</div><div class="v" id="tCount">0</div></div>
+          <div class="card h"><div class="k">앞면 비율</div><div class="v" id="hPct">0%</div></div>
+          <div class="card t"><div class="k">뒷면 비율</div><div class="v" id="tPct">0%</div></div>
+        </div>
+      </div>
+
+      <div class="dlgBtns">
+        <button class="conceptBtn" id="btnConcept">📘 개념 정리</button>
+        <button class="conceptBtn" id="btnQuiz">💡 생각해 볼 질문</button>
+      </div>
+    </div>
+
+    <!-- 가운데: 동전 -->
+    <div class="panel coinsPanel">
+      <div class="ptitle">
+        <span>동전 <small id="coinInfo">(클릭하면 뒤집혀요)</small></span>
+        <span class="legend"><span class="lh">앞면</span><span class="lt">뒷면</span></span>
+      </div>
+      <div id="gridWrap"><div class="grid" id="grid"></div></div>
+    </div>
+
+    <!-- 오른쪽: 그래프 -->
+    <div class="col">
+      <div class="panel chart">
+        <div class="ptitle">앞면 비율의 변화</div>
+        <p>조작할 때마다 기록 (최근 500회) · 점선은 50%</p>
+        <canvas id="lineC"></canvas>
+      </div>
+      <div class="panel chart">
+        <div class="ptitle">던지기 결과 분포 <small><span id="nThrows">0</span>회</small></div>
+        <p>'모든 동전 던지기'의 앞면 수 · 점선은 이론적 분포</p>
+        <canvas id="histC"></canvas>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 개념 정리 팝업 -->
+<dialog id="concept">
+  <div class="dlgHead"><h2>📘 개념 정리</h2><button id="btnClose">✕ 닫기</button></div>
+  <div class="dlgBody">
+    <div>
+      <h4>엔트로피</h4>
+      <ul>
+        <li>엔트로피는 계의 <b>무질서한 정도</b>, 즉 입자와 에너지가 얼마나 다양한 방식으로 배열·분산될 수 있는지를 나타내는 양입니다.</li>
+        <li>동전에서 "앞면이 몇 개인가"는 같아도, 어느 동전이 앞면인지는 여러 가지일 수 있어요. 이렇게 <b>같은 결과를 만드는 배열의 가짓수</b>가 많을수록 엔트로피가 큽니다.</li>
+        <li>모두 앞면인 배열은 단 1가지뿐이지만, 반반에 가까운 배열은 엄청나게 많습니다. 그래서 동전 수가 많을수록 결과는 거의 항상 반반 근처에서 나타납니다.</li>
+      </ul>
+      <h4>가역반응과 동적 평형</h4>
+      <ul>
+        <li>동전 하나하나는 앞면 ⇌ 뒷면으로 양방향 변화가 모두 가능합니다.</li>
+        <li>'자동 1개씩'에서 앞면이 많을 때는 앞면 → 뒷면 변화가 더 자주 일어나고, 뒷면이 많을 때는 그 반대가 더 자주 일어납니다.</li>
+        <li>반반 근처에서는 두 방향의 변화가 같은 빈도로 일어나, 겉보기에는 비율이 거의 변하지 않습니다. 정반응과 역반응의 속도가 같아진 <b>동적 평형</b>과 비슷한 모습입니다.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>자발적 반응</h4>
+      <ul>
+        <li>외부에서 계속 에너지를 가해 주지 않아도 <b>저절로 일어나는</b> 반응(변화)입니다.</li>
+        <li>자발적인 변화에서는 계와 주위를 합한 <b>전체 엔트로피가 증가</b>합니다.</li>
+        <li>예: 잉크 한 방울이 물에 퍼짐, 상온에서 얼음이 녹음, 철이 녹슮.</li>
+        <li>동전에서: '모두 앞면'에서 무작위로 뒤집다 보면 저절로 '반반'에 가까워집니다. (엔트로피 증가 방향)</li>
+        <li>주의: 자발적이라고 해서 빠르게 일어나는 것은 아닙니다. 철이 녹스는 반응처럼 느린 자발적 반응도 많습니다.</li>
+      </ul>
+      <h4>비자발적 반응</h4>
+      <ul>
+        <li>저절로는 일어나지 않고, 외부에서 <b>에너지나 일을 계속 가해 주어야만</b> 일어나는 반응입니다.</li>
+        <li>예: 물의 전기 분해(전기 에너지 필요), 퍼진 잉크가 다시 한 방울로 모이는 것(저절로는 일어나지 않음).</li>
+        <li>동전에서: 무작위로 뒤집기만 해서는 '반반'에서 '모두 앞면'으로 돌아가지 않습니다. 사람이 일일이 정렬해 주어야 하죠. ('모두 앞면' 버튼)</li>
+      </ul>
+    </div>
+  </div>
+</dialog>
+
+<!-- 생각해 볼 질문 팝업 -->
+<dialog id="quizDlg">
+  <div class="dlgHead"><h2>💡 생각해 볼 질문</h2><button id="btnQuizClose">✕ 닫기</button></div>
+  <div class="quiz">
+    <p class="intro">시뮬레이션으로 직접 확인해 보고, 먼저 자기 생각을 정리한 뒤에 답을 열어 보세요.</p>
+
+    <div class="q">
+      <div class="qh"><span class="num">1</span><span>동전을 무한히 많이 던지면, 앞면의 평균 비율은 몇 %에 가까워질까?</span></div>
+      <p class="try">🔍 해 보기: 동전 10개로 '자동 던지기'를 켜고 '앞면 비율의 변화' 그래프를 지켜보세요.</p>
+      <details><summary>답 보기</summary><div class="ans">
+        <b>50%</b>에 가까워집니다. 한 번 한 번의 결과는 들쭉날쭉하지만, 던지는 횟수가 많아질수록 평균은 50%로 모입니다.
+        앞면과 뒷면이 나올 확률이 똑같이 1/2이기 때문이에요. (큰 수의 법칙)
+      </div></details>
+    </div>
+
+    <div class="q">
+      <div class="qh"><span class="num">2</span><span>동전이 10개일 때와 1000개일 때, 그래프에는 어떤 차이가 보일까?</span></div>
+      <p class="try">🔍 해 보기: 10개와 1000개로 각각 리셋한 뒤 '자동 던지기'를 켜서 두 그래프를 비교해 보세요.</p>
+      <details><summary>답 보기</summary><div class="ans">
+        10개일 때는 앞면 비율이 20%, 80%처럼 크게 오르내리고, 분포 그래프도 넓게 퍼집니다.
+        1000개일 때는 비율이 거의 50% 근처에만 머물고, 분포 그래프가 가운데에서 좁고 뾰족해집니다.
+        동전 수가 많을수록 반반에 가까운 배열의 가짓수가 압도적으로 많아지기 때문이에요.
+        실제 물질은 입자가 10<sup>23</sup>개 정도라서, 엔트로피가 큰 상태에서 벗어나는 일을 사실상 볼 수 없습니다.
+      </div></details>
+    </div>
+
+    <div class="q">
+      <div class="qh"><span class="num">3</span><span>이미 섞여 버린 동전을 모두 뒷면으로 바꾸려면 어떻게 해야 할까?</span></div>
+      <p class="try">🔍 해 보기: 동전 100개를 던진 뒤, '1개만 뒤집기'만 눌러서 모두 뒷면을 만들 수 있는지 시도해 보세요.</p>
+      <details><summary>답 보기</summary><div class="ans">
+        무작위로 뒤집기만 해서는 거의 불가능합니다. 누군가 동전을 하나씩 확인하고 앞면인 것만 골라 뒤집어야 해요.
+        즉 <b>외부에서 일(에너지)을 들여야만</b> 엔트로피가 낮은 상태로 되돌릴 수 있습니다.
+        저절로 일어나지 않는 이런 변화가 <b>비자발적 변화</b>입니다.
+        이때 정리하는 사람(주위)의 엔트로피는 증가하므로, 전체 엔트로피는 줄어들지 않아요.
+      </div></details>
+    </div>
+
+    <div class="q">
+      <div class="qh"><span class="num">4</span><span>동전 10개가 모두 앞면이 나올 확률은? 1000개라면 어떨까?</span></div>
+      <p class="try">🔍 해 보기: 동전 10개로 '자동 던지기'를 켜고, 모두 앞면이 나오는 순간을 기다려 보세요.</p>
+      <details><summary>답 보기</summary><div class="ans">
+        10개일 때는 (1/2)<sup>10</sup> = <b>1/1024</b>이므로, 약 1000번 던지면 한 번쯤 나옵니다.
+        1000개일 때는 (1/2)<sup>1000</sup>, 약 10<sup>−301</sup>로 우주의 나이 동안 던져도 사실상 나오지 않습니다.
+        '모두 앞면'은 배열이 단 1가지뿐인, 엔트로피가 가장 낮은 상태이기 때문이에요.
+      </div></details>
+    </div>
+
+    <div class="q">
+      <div class="qh"><span class="num">5</span><span>모두 앞면에서 '자동 1개씩'을 켜면, 처음엔 비율이 빠르게 줄다가 50% 근처에서 멈춘 것처럼 보인다. 그동안 동전은 정말 멈춰 있을까?</span></div>
+      <p class="try">🔍 해 보기: 동전 100개로 리셋한 뒤 '자동 1개씩'을 켜고 동전과 그래프를 함께 지켜보세요.</p>
+      <details><summary>답 보기</summary><div class="ans">
+        아니요. 동전은 계속 뒤집히고 있습니다. 앞면이 많을 때는 앞면 → 뒷면 변화가 더 자주 일어나 비율이 빠르게 줄어요.
+        반반 근처에서는 앞면 → 뒷면과 뒷면 → 앞면 변화가 같은 빈도로 일어나서, 겉보기에만 변화가 없어 보입니다.
+        이것이 정반응과 역반응의 속도가 같은 <b>동적 평형</b>의 모습입니다.
+      </div></details>
+    </div>
+
+    <div class="q">
+      <div class="qh"><span class="num">6</span><span>우리 주변에서 '저절로 섞이는' 변화와 '되돌리려면 노력이 필요한' 변화의 예를 찾아보자.</span></div>
+      <details><summary>답 예시 보기</summary><div class="ans">
+        저절로 일어나는 변화(자발적): 향수 냄새가 방 안에 퍼짐, 커피에 넣은 우유가 섞임, 뜨거운 국이 식음.<br>
+        노력이 필요한 변화(비자발적): 어질러진 방 정리하기, 섞인 소금물에서 소금 다시 얻기(가열 필요), 냉장고로 음식 차갑게 하기(전기 필요).
+      </div></details>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+const MAX = 1000, LN2 = Math.LN2;
+
+// 학 실루엣 (뒷면 동전용)
+const CRANE_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='#1f2d42' stroke='#1f2d42' stroke-linecap='round' stroke-linejoin='round'><path d='M44 54 L50 16 L57 24 L60 52 Z'/><path d='M52 56 L74 20 L79 29 L64 56 Z'/><ellipse cx='55' cy='57' rx='15' ry='6.5' transform='rotate(-8 55 57)' stroke='none'/><path d='M42 55 Q32 52 23 42' fill='none' stroke-width='3.2'/><circle cx='21' cy='40' r='3.4' stroke='none'/><path d='M19 41 L8 45' fill='none' stroke-width='1.8'/><path d='M68 58 L91 63 M67 60 L90 67' fill='none' stroke-width='1.6'/></g><circle cx='21.5' cy='38' r='1.5' fill='#d92d20'/></svg>`;
+document.documentElement.style.setProperty('--crane', `url("data:image/svg+xml,${encodeURIComponent(CRANE_SVG)}")`);
+
+// 분포 그래프의 이론값 계산용
+const lnF = new Float64Array(MAX + 1);
+for (let i = 1; i <= MAX; i++) lnF[i] = lnF[i - 1] + Math.log(i);
+const lnC = (n, k) => lnF[n] - lnF[k] - lnF[n - k];
+
+let N = 0, coins = new Uint8Array(0), els = [], parity = false, curH = 0;
+let history = [], throwsK = [];
+let timer = null, timerMode = null;
+const compact = window.matchMedia('(max-width:1000px), (max-height:540px)');
+
+// 동전 크기를 화면 영역에 맞게 자동 조절 (스크롤 없이 모두 보이도록)
+function layoutCoins() {
+  const grid = $('grid'), wrap = $('gridWrap');
+  const g = N > 400 ? 2 : N > 100 ? 3 : 4;
+  let s;
+  if (compact.matches) {
+    s = N <= 12 ? 60 : N <= 50 ? 44 : N <= 150 ? 30 : N <= 400 ? 18 : 12;
+  } else {
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+    for (s = 80; s > 4; s--) {
+      const cols = Math.floor((W + g) / (s + g));
+      if (cols < 1) continue;
+      const rows = Math.ceil(N / cols);
+      if (rows * (s + g) - g <= H) break;
+    }
+  }
+  grid.style.setProperty('--s', s + 'px');
+  grid.style.setProperty('--g', g + 'px');
+  grid.classList.toggle('tiny', s < 24);
+}
+
+function setN(n) {
+  n = Math.max(1, Math.min(MAX, Math.round(+n || 1)));
+  N = n; $('nRange').value = n; $('nInput').value = n;
+  coins = new Uint8Array(N).fill(1);
+  const grid = $('grid'); grid.innerHTML = '';
+  const frag = document.createDocumentFragment(); els = [];
+  for (let i = 0; i < N; i++) {
+    const d = document.createElement('div');
+    d.className = 'coin h';
+    d.addEventListener('click', () => { coins[i] ^= 1; paint(i); record(false); });
+    frag.appendChild(d); els.push(d);
+  }
+  grid.appendChild(frag);
+  layoutCoins();
+  history = []; throwsK = [];
+  paint(null); record(false);
+}
+
+function paint(which) {
+  parity = !parity;
+  const a = parity ? ' fa' : ' fb';
+  for (let i = 0; i < N; i++) {
+    // 동전이 100개를 넘으면 '전체 뒤집기' 회전 모션은 생략 (화면 번쩍임 방지)
+    const anim = (which === 'all' && N <= 100) || which === i;
+    els[i].className = 'coin ' + (coins[i] ? 'h' : 't') + (anim ? a : '');
+  }
+  updateStats();
+}
+
+function updateStats() {
+  let h = 0; for (let i = 0; i < N; i++) h += coins[i];
+  curH = h; const t = N - h;
+  $('hCount').innerHTML = `${h}<small> / ${N}</small>`;
+  $('tCount').innerHTML = `${t}<small> / ${N}</small>`;
+  const hp = h / N * 100, tp = 100 - hp;
+  $('hPct').textContent = hp.toFixed(1) + '%';
+  $('tPct').textContent = tp.toFixed(1) + '%';
+  $('barH').style.width = hp + '%'; $('barT').style.width = tp + '%';
+  $('barH').textContent = hp >= 15 ? `앞 ${hp.toFixed(1)}%` : '';
+  $('barT').textContent = tp >= 15 ? `뒤 ${tp.toFixed(1)}%` : '';
+}
+
+function record(isThrow) {
+  history.push(curH / N);
+  if (history.length > 500) history.shift();
+  if (isThrow) throwsK.push(curH);
+  $('nThrows').textContent = throwsK.length;
+  drawLine(); drawHist();
+}
+
+// 동작
+function throwAll() { for (let i = 0; i < N; i++) coins[i] = Math.random() < 0.5 ? 1 : 0; paint('all'); record(true); }
+function flipOne() { const i = Math.floor(Math.random() * N); coins[i] ^= 1; paint(i); record(false); }
+function allHeads() { coins.fill(1); paint('all'); record(false); }
+function resetAll() {
+  stopAuto();
+  coins.fill(1); history = []; throwsK = [];
+  paint('all'); record(false);
+}
+
+function stopAuto() { if (timer) clearInterval(timer); timer = null; timerMode = null; updAutoBtns(); }
+function toggleAuto(mode) {
+  const was = timerMode; stopAuto();
+  if (was === mode) return;
+  timerMode = mode;
+  timer = setInterval(mode === 'throw' ? throwAll : flipOne, +$('speed').value);
+  updAutoBtns();
+}
+function updAutoBtns() {
+  $('btnAutoThrow').classList.toggle('on', timerMode === 'throw');
+  $('btnAutoOne').classList.toggle('on', timerMode === 'one');
+  $('btnAutoThrow').textContent = timerMode === 'throw' ? '⏸ 던지기 멈춤' : '▶ 자동 던지기';
+  $('btnAutoOne').textContent = timerMode === 'one' ? '⏸ 뒤집기 멈춤' : '▶ 자동 1개씩';
+}
+
+// 그래프
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function fit(c) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  c.width = w * dpr; c.height = h * dpr;
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h); ctx.font = '11px system-ui, sans-serif';
+  return { ctx, w, h };
+}
+
+function drawLine() {
+  const { ctx, w, h } = fit($('lineC'));
+  if (h < 30) return;
+  const L = 36, R = 6, T = 6, B = 18, pw = w - L - R, ph = h - T - B;
+  const muted = css('--muted'), line = css('--line');
+  ctx.fillStyle = muted; ctx.strokeStyle = line; ctx.lineWidth = 1;
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => {
+    const y = T + ph * (1 - v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
+    ctx.fillText((v * 100) + '%', 2, y + 4);
+  });
+  ctx.setLineDash([5, 4]); ctx.strokeStyle = muted;
+  ctx.beginPath(); ctx.moveTo(L, T + ph / 2); ctx.lineTo(L + pw, T + ph / 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillText('조작 순서 →', L + pw - 62, h - 3);
+  if (history.length < 1) return;
+  ctx.strokeStyle = css('--heads-d'); ctx.lineWidth = 2; ctx.beginPath();
+  const n = history.length;
+  history.forEach((r, i) => {
+    const x = L + (n === 1 ? pw : i / (n - 1) * pw), y = T + ph * (1 - r);
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  });
+  ctx.stroke();
+}
+
+function drawHist() {
+  const { ctx, w, h } = fit($('histC'));
+  if (h < 30) return;
+  const L = 30, R = 6, T = 6, B = 18, pw = w - L - R, ph = h - T - B;
+  const muted = css('--muted'), line = css('--line');
+  const Tn = throwsK.length;
+  ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(L, T + ph); ctx.lineTo(L + pw, T + ph); ctx.stroke();
+  ctx.fillStyle = muted;
+  ctx.fillText('0', L, h - 4);
+  ctx.fillText(String(Math.round(N / 2)), L + pw / 2 - 8, h - 4);
+  ctx.fillText(String(N), L + pw - 22, h - 4);
+  if (Tn === 0) {
+    ctx.fillText("'모든 동전 던지기'를 누르면 결과가 쌓여요", L + 6, T + ph / 2);
+    return;
+  }
+  const nb = Math.min(N + 1, 41);
+  const binOf = k => Math.min(nb - 1, Math.floor(k * nb / (N + 1)));
+  const cnt = new Array(nb).fill(0), th = new Array(nb).fill(0);
+  throwsK.forEach(k => cnt[binOf(k)]++);
+  for (let k = 0; k <= N; k++) th[binOf(k)] += Math.exp(lnC(N, k) - N * LN2) * Tn;
+  const ymax = Math.max(1, ...cnt, ...th) * 1.08;
+  const bw = pw / nb;
+  ctx.fillStyle = css('--accent');
+  cnt.forEach((c, i) => {
+    const bh = c / ymax * ph;
+    ctx.fillRect(L + i * bw + 1, T + ph - bh, Math.max(1, bw - 2), bh);
+  });
+  ctx.strokeStyle = css('--entropy'); ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath();
+  th.forEach((v, i) => {
+    const x = L + (i + 0.5) * bw, y = T + ph - v / ymax * ph;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  });
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = muted;
+  ctx.fillText(String(Math.round(ymax / 1.08)), 2, T + 10);
+  ctx.fillText('앞면 수', L + pw / 2 + 22, h - 4);
+}
+
+// 이벤트
+$('nRange').addEventListener('input', e => setN(e.target.value));
+$('nInput').addEventListener('change', e => setN(e.target.value));
+document.querySelectorAll('.quick button').forEach(b => b.addEventListener('click', () => setN(b.dataset.n)));
+$('btnThrow').addEventListener('click', throwAll);
+$('btnOne').addEventListener('click', flipOne);
+$('btnHeads').addEventListener('click', allHeads);
+$('btnAutoThrow').addEventListener('click', () => toggleAuto('throw'));
+$('btnAutoOne').addEventListener('click', () => toggleAuto('one'));
+$('btnReset').addEventListener('click', resetAll);
+$('speed').addEventListener('change', () => { if (timerMode) { const m = timerMode; stopAuto(); toggleAuto(m); } });
+$('btnConcept').addEventListener('click', () => $('concept').showModal());
+$('btnClose').addEventListener('click', () => $('concept').close());
+$('concept').addEventListener('click', e => { if (e.target === $('concept')) $('concept').close(); });
+$('btnQuiz').addEventListener('click', () => $('quizDlg').showModal());
+$('btnQuizClose').addEventListener('click', () => $('quizDlg').close());
+$('quizDlg').addEventListener('click', e => { if (e.target === $('quizDlg')) $('quizDlg').close(); });
+
+let rt;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { layoutCoins(); drawLine(); drawHist(); }, 80);
+});
+
+setN(10);
+</script>
+</body>
+</html>
