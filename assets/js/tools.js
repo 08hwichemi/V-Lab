@@ -273,7 +273,7 @@
   }
   function renderSection(sec) {
     let inner = "";
-    if (sec.type === "table") inner = `<table class="tl-table"><thead><tr>${sec.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${sec.rows.map(r => `<tr data-row>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    if (sec.type === "table") inner = `<table class="tl-table"><thead><tr>${sec.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${sec.rows.map(r => { const rowMulti = r.some((c, i) => i > 0 && String(c).length > 14 && String(c).includes(" / ")); return `<tr data-row>${r.map((c, i) => { c = String(c); const multi = rowMulti && i > 0 && c.includes(" / "); const cls = [c.length > 18 && !multi ? "wrap" : "", i > 0 && /[가-힣]/.test(c) ? "txt" : ""].filter(Boolean).join(" "); return `<td${cls ? ` class="${cls}"` : ""}>${multi ? c.split(" / ").map(esc).join("<br>") : esc(c)}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table>`;
     else if (sec.type === "list") inner = `<ul class="tl-list">${sec.rows.map(r => `<li data-row>${esc(r)}</li>`).join("")}</ul>`;
     else if (sec.type === "codon") inner = renderCodon();
     else if (sec.type === "periodic") inner = renderPeriodic();
