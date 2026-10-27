@@ -362,6 +362,7 @@
                             <label for="e5_indicator">지시약</label>
                             <select id="e5_indicator" onchange="updateVisuals5()">
                                 <option value="pp">페놀프탈레인 (pH 8.2~10.0)</option>
+                                <option value="mr">메틸레드 (pH 4.4~6.2)</option>
                                 <option value="mo">메틸오렌지 (pH 3.1~4.4)</option>
                             </select>
                         </div>
@@ -426,7 +427,7 @@
                 </div>
                 <aside class="lab-side e5-guide"><div class="guide">
                     <h3>이 실험에서</h3>
-                    <p>농도를 아는 표준 용액(1.0 M)을 뷰렛으로 떨어뜨려 미지 시료 20.0 mL를 중화시키고, 중화점까지 들어간 부피로 미지 농도를 구합니다. 지시약은 중화점의 pH에 맞는 것을 골라야 합니다.</p>
+                    <p>농도를 아는 표준 용액(1.0 M)을 뷰렛으로 떨어뜨려 미지 시료 20.0 mL를 중화시키고, 중화점까지 들어간 부피로 미지 농도를 구합니다. pH 는 아세트산(Ka = 1.8×10⁻⁵)·암모니아(Kb = 1.8×10⁻⁵)의 평형식으로 실제 계산되며, 지시약은 중화점의 pH에 맞는 것을 골라야 합니다.</p>
                     <h4>탐구 과제</h4>
                     <ol>
                         <li>색이 변하기 시작하면 <b>미세 투입</b>으로 바꿔 한 방울 단위로 중화점을 찾고, 그 부피를 기록하세요.</li>
@@ -1445,7 +1446,7 @@
             setNote5("");
             const mode = document.querySelector('input[name="e5_mode"]:checked').value;
             if (mode === 'weakAcid') { document.getElementById('e5_titrantName').innerText = "NaOH 1.0 M (강염기)"; document.getElementById('e5_indicator').value = "pp"; }
-            else { document.getElementById('e5_titrantName').innerText = "HCl 1.0 M (강산)"; document.getElementById('e5_indicator').value = "mo"; }
+            else { document.getElementById('e5_titrantName').innerText = "HCl 1.0 M (강산)"; document.getElementById('e5_indicator').value = "mr"; }
             updateVisuals5();
         }
 
@@ -1473,9 +1474,12 @@
             const mode = document.querySelector('input[name="e5_mode"]:checked').value;
             const ind = document.getElementById('e5_indicator').value;
             const el = document.getElementById('e5_indNote');
-            if (mode === 'weakAcid' && ind === 'mo') { el.className = 'note note-warn'; el.textContent = "메틸오렌지는 pH 3.1~4.4에서 변색합니다. 약산+강염기 적정의 중화점은 pH 약 8이라 중화점보다 훨씬 먼저 색이 변해 오차가 큽니다. 페놀프탈레인이 적합합니다."; }
-            else if (mode === 'weakBase' && ind === 'pp') { el.className = 'note note-warn'; el.textContent = "페놀프탈레인은 pH 8.2~10에서 변색합니다. 약염기+강산 적정의 중화점은 pH 약 6이라 중화점을 지나도 한참 뒤에 변해 오차가 큽니다. 메틸오렌지가 적합합니다."; }
-            else { el.className = 'note note-ok'; el.textContent = mode === 'weakAcid' ? "중화점(pH 약 8)이 페놀프탈레인 변색 구간에 들어갑니다. 적합한 지시약입니다." : "중화점(pH 약 6)이 메틸오렌지 변색 구간에 가깝습니다. 적합한 지시약입니다."; }
+            const I = INDICATORS[ind], eq = equivPH5(mode), best = mode === 'weakAcid' ? INDICATORS.pp.name : INDICATORS.mr.name;
+            const range = `${I.name}(pH ${I.lo}~${I.hi})`;
+            if (eq >= I.lo && eq <= I.hi) { el.className = 'note note-ok'; el.textContent = `중화점 pH ${eq.toFixed(1)} 이 ${range} 변색 구간 안에 있습니다. 적합한 지시약입니다.`; }
+            else if (Math.abs(eq - (eq < I.lo ? I.lo : I.hi)) < 1.0) { el.className = 'note note-ok'; el.textContent = `중화점 pH ${eq.toFixed(1)} 이 ${range} 변색 구간에 가깝습니다. 중화점 부근에서 pH 가 급변하므로 쓸 수 있습니다.`; }
+            else if (eq > I.hi) { el.className = 'note note-warn'; el.textContent = `${range}은 중화점 pH ${eq.toFixed(1)} 보다 훨씬 낮은 pH 에서 변색합니다. 중화점 전에 색이 변해 부피를 작게 읽게 됩니다. ${best}이 적합합니다.`; }
+            else { el.className = 'note note-warn'; el.textContent = `${range}은 중화점 pH ${eq.toFixed(1)} 보다 훨씬 높은 pH 에서 변색합니다. 중화점을 지나 한참 뒤에 변해 부피를 크게 읽게 됩니다. ${best}이 적합합니다.`; }
         }
 
         function updateVisuals5() {
@@ -1483,16 +1487,8 @@
             const mode = document.querySelector('input[name="e5_mode"]:checked').value;
             const ph = calculatePH5(t5_addedVol, mode);
             const indicator = document.getElementById('e5_indicator').value;
-            let colorStyle = "rgba(180, 220, 255, 0.9)", text = "무색", textColor = "#6B7280";
-            if (indicator === "pp") {
-                if (ph < 8.2) { colorStyle = "rgba(180, 220, 255, 0.9)"; text = "무색"; textColor = "#6B7280"; }
-                else if (ph > 10.0) { colorStyle = "rgba(220, 0, 100, 0.95)"; text = "진한 분홍"; textColor = "#c71585"; }
-                else { colorStyle = "rgba(255, 105, 180, 0.9)"; text = "분홍색"; textColor = "#ff1493"; }
-            } else {
-                if (ph < 3.1) { colorStyle = "rgba(255, 50, 0, 0.9)"; text = "붉은색"; textColor = "#d60000"; }
-                else if (ph > 4.4) { colorStyle = "rgba(255, 230, 0, 0.9)"; text = "노란색"; textColor = "#c99700"; }
-                else { colorStyle = "rgba(255, 140, 0, 0.9)"; text = "주황색"; textColor = "#ff8c00"; }
-            }
+            const I = INDICATORS[indicator];
+            const [colorStyle, text, textColor] = ph < I.lo ? I.below : ph > I.hi ? I.above : I.mid;
             document.getElementById('e5_colorName').innerText = text;
             document.getElementById('e5_colorName').style.color = textColor;
             const fLiq = document.getElementById('e5_fLiq');
@@ -1506,12 +1502,27 @@
             updateIndicatorNote5();
         }
 
+        // 실제 산염기 평형으로 pH 계산: 전하 균형식을 pH 에 대해 이분법으로 풂
+        //   약산(아세트산, Ka = 1.8×10⁻⁵) + NaOH :  [Na⁺] + [H⁺] = [A⁻] + [OH⁻],  [A⁻] = C_HA·Ka/(Ka + [H⁺])
+        //   약염기(암모니아, Kb = 1.8×10⁻⁵) + HCl :  [BH⁺] + [H⁺] = [Cl⁻] + [OH⁻], [BH⁺] = C_B·[H⁺]/(Ka' + [H⁺]),  Ka' = Kw/Kb
+        const KA_ACETIC = 1.8e-5, KB_AMMONIA = 1.8e-5, KW = 1e-14;
         function calculatePH5(vol, mode) {
-            const equivVol = (t5_unknownConc * t5_unknownVol) / t5_standardConc;
-            const ratio = (equivVol > 0) ? vol / equivVol : 0;
-            if (mode === "weakAcid") return 3.0 + 10.0 / (1 + Math.exp(-15 * (ratio - 1)));
-            return 11.0 - 10.0 / (1 + Math.exp(-15 * (ratio - 1)));
+            const Vt = t5_unknownVol + vol;
+            const C_unknown = t5_unknownConc * t5_unknownVol / Vt;      // 미지 시료(약산 또는 약염기) 총농도
+            const C_titrant = t5_standardConc * vol / Vt;                // 표준 용액에서 온 Na⁺ 또는 Cl⁻
+            const f = mode === "weakAcid"
+                ? pH => { const H = Math.pow(10, -pH); return C_titrant + H - C_unknown * KA_ACETIC / (KA_ACETIC + H) - KW / H; }
+                : pH => { const H = Math.pow(10, -pH), Ka2 = KW / KB_AMMONIA; return C_unknown * H / (Ka2 + H) + H - C_titrant - KW / H; };
+            let lo = 0, hi = 14;                                          // f 는 pH 에 대해 감소 함수
+            for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (f(mid) > 0) lo = mid; else hi = mid; }
+            return (lo + hi) / 2;
         }
+        const INDICATORS = {
+            pp: { name: "페놀프탈레인", lo: 8.2, hi: 10.0, below: ["rgba(180, 220, 255, 0.9)", "무색", "#6B7280"], mid: ["rgba(255, 105, 180, 0.9)", "분홍색", "#ff1493"], above: ["rgba(220, 0, 100, 0.95)", "진한 분홍", "#c71585"] },
+            mr: { name: "메틸레드",     lo: 4.4, hi: 6.2,  below: ["rgba(255, 50, 0, 0.9)", "붉은색", "#d60000"], mid: ["rgba(255, 140, 0, 0.9)", "주황색", "#ff8c00"], above: ["rgba(255, 230, 0, 0.9)", "노란색", "#c99700"] },
+            mo: { name: "메틸오렌지",   lo: 3.1, hi: 4.4,  below: ["rgba(255, 50, 0, 0.9)", "붉은색", "#d60000"], mid: ["rgba(255, 140, 0, 0.9)", "주황색", "#ff8c00"], above: ["rgba(255, 230, 0, 0.9)", "노란색", "#c99700"] }
+        };
+        function equivPH5(mode) { return calculatePH5((t5_unknownConc * t5_unknownVol) / t5_standardConc, mode); }
 
         function calcConc5() {
             const m1 = parseFloat(document.getElementById('e5_calc_m1').value);
@@ -1559,13 +1570,13 @@
             const mapV = v => box.L + (v / 50) * (box.R - box.L), mapPH = p => box.B - (p / 14) * (box.B - box.T);
             drawAxes(ctx, box, { ticks: [0, 10, 20, 30, 40, 50], map: mapV }, { ticks: [0, 2, 4, 6, 8, 10, 12, 14], map: mapPH }, "V (mL)", "pH");
             ctx.beginPath(); ctx.strokeStyle = "#3182F6"; ctx.lineWidth = 2.5;
-            for (let v = 0; v <= 50; v += 0.5) { const x = mapV(v), y = mapPH(calculatePH5(v, mode)); if (v === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+            for (let v = 0; v <= 50; v += 0.1) { const x = mapV(v), y = mapPH(calculatePH5(v, mode)); if (v === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
             ctx.stroke();
             const equivVol = (t5_unknownConc * t5_unknownVol) / t5_standardConc;
             if (equivVol <= 50) {
-                const eqX = mapV(equivVol), eqY = mapPH(mode === "weakAcid" ? 8.0 : 6.0);
+                const eqX = mapV(equivVol), eqY = mapPH(equivPH5(mode));
                 ctx.fillStyle = "#E5484D"; ctx.beginPath(); ctx.arc(eqX, eqY, 5, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = "#111111"; ctx.font = `600 12px ${FONT}`; ctx.textAlign = "left"; ctx.fillText(`중화점 ${equivVol.toFixed(1)} mL`, eqX + 9, eqY + 4);
+                ctx.fillStyle = "#111111"; ctx.font = `600 12px ${FONT}`; ctx.textAlign = "left"; ctx.fillText(`중화점 ${equivVol.toFixed(1)} mL · pH ${equivPH5(mode).toFixed(1)}`, eqX + 9, eqY + 4);
             }
         }
         setTimeout(initExp5, 200);
