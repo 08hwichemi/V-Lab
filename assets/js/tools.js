@@ -188,8 +188,8 @@
         const d = document.createElement("div"); d.innerHTML = `<span>${esc(src)}</span><b>${fmt(v)}</b>`; d.addEventListener("click", () => { expr.value = src; expr.focus(); }); hist.prepend(d); while (hist.children.length > 8) hist.lastChild.remove();
       } catch (e) { res.textContent = "식을 확인하세요"; res.classList.add("err"); }
     };
-    pad.addEventListener("click", e => {
-      const b = e.target.closest("button"); if (!b) return; let k = b.dataset.k;
+    const press = k0 => {
+      let k = k0;
       if (k === "shift") { shift = !shift; paintShift(); return; }
       if (k === "deg") { angleDeg = !angleDeg; paintShift(); return; }
       if (k === "ac") { expr.value = ""; res.innerHTML = `<span class="tl-ans">Ans = ${fmt(lastAns)}</span>`; res.classList.remove("err"); justEvaluated = false; expr.focus(); return; }
@@ -200,10 +200,23 @@
       if (shift && SHIFT_INS[k]) { k = SHIFT_INS[k]; shift = false; paintShift(); }
       if (justEvaluated) { justEvaluated = false; if (/^[+\-*/^!]|^\/100/.test(k)) expr.value = "Ans"; else expr.value = ""; }
       insert(k);
-    });
-    expr.addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+    };
+    const flash = k => { const b = pad.querySelector(`[data-k="${CSS.escape(k)}"]`); if (!b) return; b.classList.add("press"); setTimeout(() => b.classList.remove("press"), 130); };
+    pad.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; press(b.dataset.k); });
+    /* 물리 키보드 ↔ 화면 키패드 연동: 숫자·연산자·Enter·Backspace 는 키패드 버튼을 누른 것과 같게 처리 */
+    const KEYMAP = { Enter: "eq", "=": "eq", Backspace: "del", Delete: "ac", "*": "*", "/": "/", "+": "+", "-": "-", "^": "^", "!": "!", "%": "/100", "(": "(", ")": ")", ".": ".", ",": "." };
+    const onKey = e => {
+      if (!pad.isConnected) { document.removeEventListener("keydown", onKey); return; }
+      if (!pad.closest(".tools").classList.contains("open")) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target; if (t !== expr && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      let k = /^[0-9]$/.test(e.key) ? e.key : KEYMAP[e.key];
+      if (!k) { if (t !== expr && e.key.length === 1) { expr.focus(); } return; }
+      e.preventDefault(); flash(k); press(k);
+    };
+    document.addEventListener("keydown", onKey);
     expr.addEventListener("input", () => { justEvaluated = false; });
-    paintShift();
+    paintShift(); expr.focus();
   }
 
   /* 화학 계산기 (화학 자료 탭 상단) */
@@ -255,9 +268,9 @@
     const data = REF[key];
     if (!data) { body.innerHTML = `<div class="tl-empty">자료가 아직 없습니다. data/reference/${esc(key)}.js 에 추가하면 여기에 표시됩니다.</div>`; return; }
     body.innerHTML = `<div class="tl-row"><input class="tl-search" id="tlQ" placeholder="${esc(data.name)} 자료 검색 (예: 아세트산, Ksp, 비열)"></div>
-      <div class="tl-toc">${data.sections.map(s => `<a href="#" data-s="${esc(s.id)}">${esc(s.title)}</a>`).join("")}</div>
+      <div class="tl-toc">${data.sections.map((s, i) => `<a href="#" data-s="${esc(s.id)}" style="--sc:${SEC_COLORS[i % SEC_COLORS.length]}"><i></i>${esc(s.title)}</a>`).join("")}</div>
       ${key === "chemistry" ? renderChemCalc() : ""}
-      <div id="tlSecs">${data.sections.map(sec => renderSection(sec)).join("")}</div>`;
+      <div id="tlSecs">${data.sections.map((sec, i) => renderSection(sec, SEC_COLORS[i % SEC_COLORS.length])).join("")}</div>`;
     bindChemCalc(body);
     body.querySelectorAll(".tl-toc a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = body.querySelector(`[data-sec="${a.dataset.s}"]`); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); }));
     const q = body.querySelector("#tlQ");
@@ -271,13 +284,14 @@
     });
     bindPeriodic(body);
   }
-  function renderSection(sec) {
+  const SEC_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16", "#06B6D4", "#A855F7"];
+  function renderSection(sec, color) {
     let inner = "";
     if (sec.type === "table") inner = `<table class="tl-table"><thead><tr>${sec.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${sec.rows.map(r => { const rowMulti = r.some((c, i) => i > 0 && String(c).length > 14 && String(c).includes(" / ")); return `<tr data-row>${r.map((c, i) => { c = String(c); const multi = rowMulti && i > 0 && c.includes(" / "); const cls = [c.length > 18 && !multi ? "wrap" : "", i > 0 && /[가-힣]/.test(c) ? "txt" : ""].filter(Boolean).join(" "); return `<td${cls ? ` class="${cls}"` : ""}>${multi ? c.split(" / ").map(esc).join("<br>") : esc(c)}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table>`;
     else if (sec.type === "list") inner = `<ul class="tl-list">${sec.rows.map(r => `<li data-row>${esc(r)}</li>`).join("")}</ul>`;
     else if (sec.type === "codon") inner = renderCodon();
     else if (sec.type === "periodic") inner = renderPeriodic();
-    return `<section class="tl-sec" data-sec="${esc(sec.id)}"><h4>${esc(sec.title)}</h4>${sec.note ? `<p class="tl-note">${esc(sec.note)}</p>` : ""}${inner}</section>`;
+    return `<section class="tl-sec" data-sec="${esc(sec.id)}" style="--sc:${color || "var(--accent)"}"><h4><i></i>${esc(sec.title)}</h4>${sec.note ? `<p class="tl-note">${esc(sec.note)}</p>` : ""}${inner}</section>`;
   }
   function renderCodon() {
     const B = ["U", "C", "A", "G"];
