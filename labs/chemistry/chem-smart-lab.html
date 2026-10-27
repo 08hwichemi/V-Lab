@@ -149,7 +149,7 @@
                     </div>
                 </div>
                 <div class="control is-off" id="guide-options">
-                    <label>분석 가이드</label>
+                    <label>가이드 · 평면 (최근접에서)</label>
                     <div class="row" id="grp-guide">
                         <button id="btn-guide-all" class="btn btn-sm" onclick="toggleGuide(this)">가이드 라인</button>
                         <div class="seg is-off" id="fcc-planes">
@@ -1151,8 +1151,9 @@
         function setCrystalType(t, btn) {
             cType = t; cMode = 0;
             updateBtnUI('grp-type', btn);
-            counted4.clear();
-            document.getElementById('fcc-planes').classList.toggle('is-off', t !== 'fcc');   // FCC 일 때만 평면 선택
+            counted4.clear(); fccPlaneMode = 'all';
+            document.querySelectorAll('#fcc-planes button').forEach(b => b.classList.remove('selected'));
+            document.getElementById('fcc-planes').classList.toggle('is-off', t === 'bcc');   // BCC 는 최근접 원자가 좌표 평면 위에 없어 평면 선택 없음
             document.getElementById('guide-options').classList.add('is-off');                   // 구조가 바뀌면 가이드 끔
             updateBtnUI('grp-mode', document.querySelectorAll('#grp-mode button')[2]);
             buildCrystal();
@@ -1246,7 +1247,15 @@
             if(cAtoms.length === 0) buildCrystal();
             
             let count = cAtoms.filter(a => Number(Math.hypot(a.x, a.y, a.z).toFixed(3)) === (cMode===1?cD1:cD2)).length;
-            document.getElementById('d4-coord').innerText = cMode === 0 ? "-" : (cSize === 1 ? "2×2×2 격자에서 확인하세요 (1×1×1은 기준 원자가 모서리라 일부만 보입니다)" : cMode === 1 ? `최근접 원자 ${count}개 (배위수)` : `두 번째로 가까운 원자 ${count}개`);
+            let coordMsg = "-";
+            if (cMode > 0) {
+                if (cSize === 1) coordMsg = "2×2×2 격자에서 확인하세요 (1×1×1은 기준 원자가 모서리라 일부만 보입니다)";
+                else if (cMode === 1 && cType !== 'bcc' && fccPlaneMode !== 'all') {
+                    const onPlane = cAtoms.filter(a => Number(Math.hypot(a.x, a.y, a.z).toFixed(3)) === cD1 && (fccPlaneMode === 'xy' ? Math.abs(a.z) < 0.1 : fccPlaneMode === 'yz' ? Math.abs(a.x) < 0.1 : Math.abs(a.y) < 0.1)).length;
+                    coordMsg = `${fccPlaneMode.toUpperCase()} 평면 위의 최근접 원자 ${onPlane}개 · 전체 ${count}개 (배위수)`;
+                } else coordMsg = cMode === 1 ? `최근접 원자 ${count}개 (배위수)` : `두 번째로 가까운 원자 ${count}개`;
+            }
+            document.getElementById('d4-coord').innerText = coordMsg;
             if (cSize === 1) {
                 let nc = 0, nf = 0, nb = 0, total = 0;
                 cAtoms.forEach(a => { if (counted4.has(keyOf4(a))) { const sh = shareOf4(a); total += sh; if (sh === 1) nb++; else if (sh === 0.5) nf++; else nc++; } });
@@ -1280,9 +1289,9 @@
             }
 
             // 2. 선생님 교안 연출 (가이드 라인 및 평면)
-            if (showGuide && cMode === 1) {
+            if (cMode === 1 && (showGuide || fccPlaneMode !== 'all')) {
                 ctx4.lineWidth = 3;
-                if (cType === 'sc') {
+                if (cType === 'sc' && showGuide) {
                     // x, y, z 축 가이드
                     const axesAtoms = [
                         {x:-1.5, y:0, z:0, c:'#E5484D'}, {x:1.5, y:0, z:0, c:'#E5484D'},
@@ -1300,7 +1309,7 @@
                         ctx4.strokeStyle = axesProj[i].c;
                         ctx4.beginPath(); ctx4.moveTo(axesProj[i].px, axesProj[i].py); ctx4.lineTo(axesProj[i+1].px, axesProj[i+1].py); ctx4.stroke();
                     }
-                } else if (cType === 'bcc') {
+                } else if (cType === 'bcc' && showGuide) {
                     // 체대각선 점선
                     ctx4.setLineDash([5, 5]); ctx4.strokeStyle = "#3182F6";
                     let center = proj.find(p => p.d === 0);
@@ -1310,8 +1319,9 @@
                         });
                     }
                     ctx4.setLineDash([]);
-                } else if (cType === 'fcc') {
-                    // 4+4+4 평면 시각화
+                }
+                if (cType === 'fcc' || (cType === 'sc' && fccPlaneMode !== 'all')) {
+                    // 평면 시각화 (FCC 4+4+4, SC 4+4+4 중 선택)
                     const planes = {
                         xy: {c:"rgba(49, 130, 246, 0.25)", f:p=>Math.abs(p.z)<0.1},
                         yz: {c:"rgba(18, 166, 107, 0.25)", f:p=>Math.abs(p.x)<0.1},
@@ -1342,7 +1352,7 @@
                 
                 // 선택된 평면(XY, YZ, ZX)에 속하는지 판별
                 let isOnPlane = true;
-                if (showGuide && cMode === 1 && cType === 'fcc' && fccPlaneMode !== 'all') {
+                if (cMode === 1 && cType !== 'bcc' && fccPlaneMode !== 'all') {
                     if (fccPlaneMode === 'xy') isOnPlane = Math.abs(pt.z) < 0.1;
                     else if (fccPlaneMode === 'yz') isOnPlane = Math.abs(pt.x) < 0.1;
                     else if (fccPlaneMode === 'zx') isOnPlane = Math.abs(pt.y) < 0.1;
@@ -1357,8 +1367,8 @@
                         else { color = "rgba(0, 0, 0, 0.05)"; r = 6; } // 그 외 흐리게
                     } 
                     else if (cMode === 2 && pt.d === cD2) { 
-                        color = (showGuide && fccPlaneMode !== 'all') ? "rgba(0, 0, 0, 0.05)" : "#F5A623"; 
-                        r = (showGuide && fccPlaneMode !== 'all') ? 6 : 14;
+                        color = (fccPlaneMode !== 'all') ? "rgba(0, 0, 0, 0.05)" : "#F5A623"; 
+                        r = (fccPlaneMode !== 'all') ? 6 : 14;
                     } 
                     else { 
                         color = "rgba(0, 0, 0, 0.05)"; r = 6; 
