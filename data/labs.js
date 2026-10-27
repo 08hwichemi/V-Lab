@@ -65,10 +65,23 @@ window.VLAB = {
         { title: "어는점 내림",       hash: "exp=3", thumb: "assets/img/thumbs/chem-smart-lab/3.png", unit: "화학Ⅱ · 묽은 용액의 성질", tags: ["결빙", "육각 격자"] },
         { title: "삼투압과 동적 평형", hash: "exp=4", thumb: "assets/img/thumbs/chem-smart-lab/4.png", unit: "화학Ⅱ · 묽은 용액의 성질", tags: ["반트호프", "역삼투"] },
         { title: "중화 적정",         hash: "exp=5", thumb: "assets/img/thumbs/chem-smart-lab/5.png", unit: "화학Ⅰ · 산과 염기", tags: ["뷰렛", "지시약", "적정 곡선"] },
-        { title: "르샤틀리에 원리",   hash: "exp=6", thumb: "assets/img/thumbs/chem-smart-lab/6.png", unit: "화학Ⅱ · 화학 평형", tags: ["평형 이동", "NO₂", "암모니아 합성"] }
+        { title: "르샤틀리에 원리",   hash: "exp=6", thumb: "assets/img/thumbs/chem-smart-lab/6.png", unit: "화학Ⅱ · 화학 평형", tags: ["평형 이동", "NO₂", "암모니아 합성"] },
       ],
       added: "2026-10-27",
       featured: true
-    }
+    },
+          {
+      id: "coin_entropy",
+      subject: "chemistry",
+      title: "동전 던지기로 보는 엔트로피",
+      summary: "N개의 동전을 일제히 던지는 활동을 통해, 우주는 왜 엔트로피가 커지는 방향으로 진행하는지 확률적인 관점에서 이해해봅시다.",
+      file: "labs/chemistry/coin-entropy.html",
+      author: "홍채린",
+      grade: ["고2"],
+      unit: "화학Ⅱ · 물질과 에너지",
+      tags: ["엔트로피","가역 반응","동적 평형","자발적인 반응","비자발적인 반응"],
+      thumbnail: "assets/img/thumbs/chem-smart-lab/coin-entropy.png",
+      added: "2026-10-27"
+    },
   ]
 };
