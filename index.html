@@ -96,7 +96,7 @@
             const list = sortList(hit.filter(it => it.subject === s.id));
             if (state.q && !list.length) return "";                       // 검색 중에는 결과 없는 과목 숨김
             const body = list.length ? `<div class="grid">${list.map(card).join("")}</div>`
-              : `<div class="none">아직 등록된 실험이 없습니다. <a href="manage.html" style="color:var(--accent)">실험 등록</a></div>`;
+              : `<div class="none">준비 중입니다.</div>`;
             return `<section class="sec" data-subject="${esc(s.id)}">
               <div class="sec-hd"><h2><i></i>${esc(s.name)}</h2><span class="n">${list.length}개</span>${list.length ? `<a class="more" href="#/s/${esc(s.id)}">전체 보기 →</a>` : ""}</div>
               ${body}</section>`;
@@ -108,7 +108,7 @@
         let list = view._pool.filter(it => (!state.grade || (it.grade || []).includes(state.grade)) && (!state.unit || it.unit === state.unit) && match(it, state.q));
         if (view.dataset.kind !== "recent") sortList(list);
         if (!list.length) {
-          grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${state.q ? "검색 결과가 없습니다" : "아직 등록된 실험이 없습니다"}</b>${state.q ? "다른 키워드로 찾아보세요." : `<a href="manage.html">실험 등록 도우미</a>에서 첫 실험을 추가해 보세요.`}</div>`;
+          grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${state.q ? "검색 결과가 없습니다" : "준비 중입니다"}</b>${state.q ? "다른 키워드로 찾아보세요." : "실험이 등록되면 여기에 표시됩니다."}</div>`;
           return;
         }
         grid.innerHTML = list.map(card).join("");

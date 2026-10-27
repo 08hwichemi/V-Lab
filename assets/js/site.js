@@ -74,14 +74,14 @@
     return `<header class="top">
       <a class="wm" href="index.html#/"><i>${I.mark}</i>${esc(D.site.name || "V-Lab")}<span>${esc(D.site.school || "가상 실험실")}</span></a>
       <nav class="tabs">${tabs}</nav>
-      <div class="r">${search}<button class="ic hide-sm" data-theme-toggle aria-label="테마 전환"></button><a class="bk" href="manage.html">실험 등록</a>${opts.extra || ""}</div>
+      <div class="r">${search}<button class="ic" data-theme-toggle aria-label="테마 전환"></button>${opts.extra || ""}</div>
     </header>
     <nav class="mtabs">${tabs}</nav>`;
   }
   function footer() {
     const s = D.site, y = new Date().getFullYear();
     return `<footer class="foot"><span>© ${y} ${esc(s.fullName || "V-Lab")}${s.manager ? " · 운영 " + esc(s.manager) : ""}${s.contact ? " · " + esc(s.contact) : ""}</span>
-      <span><a href="manage.html">실험 등록</a> &nbsp;·&nbsp; <a href="templates/lab-template.html" target="_blank">실험 템플릿</a> &nbsp;·&nbsp; <a href="README.md" target="_blank">운영 가이드</a></span></footer>`;
+      <span>${esc(s.tagline || "")}</span></footer>`;
   }
   function bindHeader() {
     document.querySelectorAll("[data-theme-toggle]").forEach(b => b.addEventListener("click", theme.toggle));
