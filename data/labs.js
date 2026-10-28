@@ -84,5 +84,19 @@ window.VLAB = {
       added: "2026-10-27",
       featured: true
     }
+,
+    {
+      id: "coin-entropy",
+      subject: "chemistry",
+      title: "동전 던지기로 보는 엔트로피",
+      summary: "동전을 던지거나 하나씩 뒤집으며 앞면 비율이 왜 반반으로 모이는지 봅니다. 배열의 가짓수 W 와 S = k ln W, 이항 분포 그래프로 엔트로피·자발성·동적 평형을 연결합니다.",
+      file: "labs/chemistry/coin-entropy.html",
+      author: "화학과 동료 교사",
+      grade: ["고2", "고3"],
+      unit: "화학Ⅱ · 반응의 자발성",
+      tags: ["엔트로피", "자발적 반응", "동적 평형", "확률", "이항 분포"],
+      thumbnail: "assets/img/thumbs/coin-entropy/0.png",
+      added: "2026-10-28"
+    }
   ]
 };
