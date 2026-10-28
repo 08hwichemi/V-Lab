@@ -369,19 +369,10 @@
         /* =====================================================================
          *  화면 갱신
          * ===================================================================== */
-        const EDIT_AVBL = 60;                                 // 편집기 안 결합 길이(px). 라이브러리 기본값 24 는 너무 작아 매번 맞춰 줌
-        function keepScale(mol) {
-            if (!mol.getAllBonds()) return false;
-            const avbl = mol.getAverageBondLength(); if (!(avbl > 0) || Math.abs(avbl - EDIT_AVBL) < 1.5) return false;
-            const n = mol.getAllAtoms(), f = EDIT_AVBL / avbl; let cx = 0, cy = 0;
-            for (let a = 0; a < n; a++) { cx += mol.getAtomX(a); cy += mol.getAtomY(a); } cx /= n; cy /= n;
-            for (let a = 0; a < n; a++) { mol.setAtomX(a, cx + (mol.getAtomX(a) - cx) * f); mol.setAtomY(a, cy + (mol.getAtomY(a) - cy) * f); }
-            return true;
-        }
         function update() {
             if (relabelling || !ed) return;
             const mol = ed.getMolecule();
-            if (keepScale(mol)) { relabelling = true; ed.moleculeChanged(); relabelling = false; }
+
             if ($('showC').checked) {
                 mol.ensureHelperArrays(OCL.Molecule.cHelperNeighbours); let changed = false;
                 for (let a = 0; a < mol.getAllAtoms(); a++) if (mol.getAtomicNo(a) === 6) { const h = mol.getImplicitHydrogens(a); const lab = h ? 'CH' + (h > 1 ? SUB[h] : '') : 'C'; if (mol.getAtomCustomLabel(a) !== lab) { mol.setAtomCustomLabel(a, lab); changed = true; } }
@@ -477,13 +468,62 @@
             toolsEl.addEventListener('mouseleave', () => tip.style.display = 'none');
         }
         function hideNativeToolbar() {                      // 편집기 안의 작은 도구 모음 캔버스를 보이지 않게 (이벤트는 그대로 받음)
-            const root = [...host.children].find(c => c.shadowRoot); const tb = root && root.shadowRoot.querySelector('canvas');
+            const root = [...edWrap.children].find(c => c.shadowRoot); const tb = root && root.shadowRoot.querySelector('canvas');
             if (tb) tb.style.visibility = 'hidden';
         }
+        /* 편집기는 결합 하나를 항상 24 px 로 그리므로(확대 기능 없음) 편집기 영역을 CSS zoom 으로 ZOOM 배 키웁니다.
+         * 편집기가 포인터 좌표를 화면 픽셀 그대로 읽기 때문에, 편집기로 가는 포인터 이벤트는 좌표를 1/ZOOM 로 되돌린
+         * 합성 이벤트로 바꿔 전달합니다. (도구 모음 버튼이 보내는 합성 이벤트는 __raw 표시로 그대로 통과) */
+        const ZOOM = 1.8;
+        let edRoot = null, edWrap = null, dragging = false;
+        function makeWrap() {                                // 편집기를 담을 확대 래퍼 (호스트의 도구 모음 영역 오른쪽을 채움)
+            edWrap = document.createElement('div'); edWrap.className = 'oc-wrap';
+            const padL = parseFloat(getComputedStyle(host).paddingLeft), w = host.clientWidth - padL, h = host.clientHeight;
+            Object.assign(edWrap.style, { position: 'absolute', top: '0', left: padL + 'px', zoom: ZOOM, width: (w / ZOOM + 46) + 'px', height: (h / ZOOM) + 'px', marginLeft: '-46px' });
+            host.appendChild(edWrap); return edWrap;
+        }
+        function drawCanvas() { return edRoot && edRoot.shadowRoot.querySelectorAll('canvas')[1]; }
+        function calibrate() {                               // 그리기 캔버스가 호스트 안쪽(도구 모음 오른쪽)을 정확히 덮도록 래퍼 크기·위치를 측정하며 맞춤
+            edRoot = [...edWrap.children].find(c => c.shadowRoot); if (!edRoot) return;
+            const padL = parseFloat(getComputedStyle(host).paddingLeft);
+            let tries = 0;
+            const step = () => {
+                const dc = drawCanvas(); if (!dc) return;
+                const r = dc.getBoundingClientRect(), hb = host.getBoundingClientRect(), bw = host.clientLeft;
+                const dl = r.left - (hb.left + bw + padL), dw = (hb.right - bw) - r.right, dt = r.top - (hb.top + bw), dh = (hb.bottom - bw) - r.bottom;
+                if (window.__calLog) console.log('cal', tries, JSON.stringify({ dl, dw, dt, dh, w: edWrap.style.width, ml: edWrap.style.marginLeft, cw: dc.width }));
+                if (Math.abs(dl) < 1 && Math.abs(dw) < 1 && Math.abs(dt) < 1 && Math.abs(dh) < 1) return;
+                if (++tries > 6) return;
+                edWrap.style.marginLeft = (parseFloat(edWrap.style.marginLeft || 0) - dl / ZOOM) + 'px';   // 래퍼의 margin 도 zoom 배로 보이므로
+                edWrap.style.marginTop = (parseFloat(edWrap.style.marginTop || 0) - dt / ZOOM) + 'px';
+                edWrap.style.width = (parseFloat(edWrap.style.width) + (dw + dl) / ZOOM) + 'px';     // 왼쪽을 dl 만큼 옮겼으니 폭은 dw + dl 만큼
+                edWrap.style.height = (parseFloat(edWrap.style.height) + (dh + dt) / ZOOM) + 'px';
+                const ev = new Event('resize'); ev.__fromCal = true; window.dispatchEvent(ev);
+                setTimeout(step, 150);                       // 편집기가 크기를 반영한 뒤 다시 측정
+            };
+            setTimeout(step, 50);
+        }
+        const POINTER_TYPES = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave'];
+        POINTER_TYPES.forEach(type => window.addEventListener(type, e => {
+            if (!edRoot || e.__raw || !e.isTrusted) return;
+            const path = e.composedPath(), inside = path.includes(edRoot);
+            if (type === 'pointerdown') dragging = inside;
+            if (!inside && !dragging) return;
+            if (type === 'pointerup' || type === 'pointercancel') dragging = false;
+            e.stopImmediatePropagation(); e.preventDefault();
+            const target = (inside && path[0] instanceof HTMLCanvasElement) ? path[0] : drawCanvas();
+            const r = target.getBoundingClientRect();                     // 편집기는 (clientX − 캔버스 rect.left) 를 그대로 캔버스 좌표로 씀
+            const init = { bubbles: true, cancelable: true, composed: true, clientX: r.left + (e.clientX - r.left) / ZOOM, clientY: r.top + (e.clientY - r.top) / ZOOM, screenX: e.screenX, screenY: e.screenY,
+                pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary, button: e.button, buttons: e.buttons, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey, pressure: e.pressure, width: e.width, height: e.height };
+            const ev = new PointerEvent(type, init); ev.__raw = true;
+            target.dispatchEvent(ev);
+        }, true));
+        let calT = null;
+        window.addEventListener('resize', e => { if (!edWrap || e.__fromCal) return; clearTimeout(calT); calT = setTimeout(calibrate, 120); });
         function pickTool(row, col) {
-            const root = [...host.children].find(c => c.shadowRoot); const tb = root && root.shadowRoot.querySelector('canvas'); if (!tb) return;
+            const tb = edRoot && edRoot.shadowRoot.querySelector('canvas'); if (!tb) return;
             const r = tb.getBoundingClientRect(), x = r.left + 13 + col * 22, y = r.top + 13 + row * 21;
-            ['pointerdown', 'pointerup'].forEach(type => tb.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: type === 'pointerdown' ? 1 : 0 })));
+            ['pointerdown', 'pointerup'].forEach(type => { const ev = new PointerEvent(type, { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: type === 'pointerdown' ? 1 : 0 }); ev.__raw = true; tb.dispatchEvent(ev); });
         }
 
         /* =====================================================================
@@ -553,9 +593,9 @@
         try {
             await OCL.Resources.registerFromUrl('../../assets/vendor/openchemlib/resources.json');
             host.querySelector('.ocl-loading').remove();
-            ed = new OCL.CanvasEditor(host);
+            ed = new OCL.CanvasEditor(makeWrap());
             ed.setOnChangeListener(update);
-            hideNativeToolbar(); buildTools(); toolsEl.querySelector('[data-id="bond"]').classList.add('on');
+            hideNativeToolbar(); calibrate(); buildTools(); toolsEl.querySelector('[data-id="bond"]').classList.add('on');
             buildTasks(); update();
         } catch (e) {
             host.querySelector('.ocl-loading').textContent = '편집기를 불러오지 못했습니다. 페이지를 새로고침해 주세요.';
