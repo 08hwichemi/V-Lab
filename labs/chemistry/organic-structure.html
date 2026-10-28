@@ -7,9 +7,21 @@
     <link rel="stylesheet" href="../../assets/css/lab-theme.css">
     <style>
         /* ---------- 이 실험 전용 ---------- */
-        .oc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 14px; align-items: start; }
-        .oc-editor { height: 660px; padding-left: 118px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; position: relative; }
-        .oc-tools { position: absolute; left: 0; top: 0; bottom: 0; width: 118px; padding: 7px; background: var(--panel-2); border-right: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 44px; gap: 5px; align-content: start; z-index: 2; }
+        .oc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 450px 380px; gap: 14px; align-items: stretch; margin-top: 12px; }
+        .oc-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .oc-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 9px 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; color: var(--text-2); }
+        .oc-bar .sp { flex: 1; }
+        .oc-bar label { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .oc-panel { display: flex; flex-direction: column; min-width: 0; }
+        .oc-panel .oc-view { flex: 1; }
+        .oc-help { margin-top: 14px; }
+        .oc-help summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 8px; }
+        .oc-help summary::-webkit-details-marker { display: none; }
+        .oc-help summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; }
+        .oc-help[open] summary::before { transform: rotate(45deg); }
+        .oc-help[open] summary { margin-bottom: 10px; }
+        .oc-editor { flex: 1 1 0px; height: 0; min-height: 620px; padding-left: 118px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; position: relative; }
+        .oc-tools { position: absolute; left: 0; top: 0; bottom: 0; width: 118px; padding: 7px; background: var(--panel-2); border-right: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 41px; gap: 4px; align-content: start; z-index: 2; }
         .oc-tools button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); padding: 0; cursor: pointer; }
         .oc-tools button:hover { background: #fff; border-color: var(--text-2); }
         .oc-tools button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -23,8 +35,8 @@
         .oc-editor .ocl-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
         .oc-tip { position: absolute; z-index: 6; pointer-events: none; background: #1F2328; color: #fff; padding: 7px 10px; border-radius: 8px; font-size: 13px; line-height: 1.45; max-width: 260px; box-shadow: 0 4px 14px rgba(0,0,0,.18); display: none; }
         .oc-tip b { display: block; font-size: 13.5px; margin-bottom: 1px; }
-        .oc-view { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); min-height: 300px; display: grid; place-items: center; padding: 10px; overflow: hidden; }
-        .oc-view svg { max-width: 100%; max-height: 300px; height: auto; }
+        .oc-view { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); min-height: 280px; display: grid; place-items: center; padding: 10px; overflow: hidden; }
+        .oc-view svg { max-width: 100%; max-height: 320px; height: auto; }
         .oc-view.empty { color: var(--muted); font-size: 14px; }
         .oc-cond { font-family: var(--font); font-size: 28px; font-weight: 500; letter-spacing: .01em; color: var(--text); text-align: center; line-height: 1.4; padding: 10px; word-break: break-all; }
         .oc-cond sub { font-size: 60%; }
@@ -38,7 +50,7 @@
         .oc-tips { font-size: 13.5px; color: var(--text-2); line-height: 1.6; padding-left: 18px; margin: 0; }
         .oc-tips li + li { margin-top: 4px; }
         .oc-tips kbd { font-family: var(--font); background: var(--line-2); border-radius: 4px; padding: 0 5px; font-size: 12.5px; font-weight: 600; }
-        .oc-found { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 10px; }
+        .oc-found { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; margin-top: 10px; }
         .oc-found .card { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); padding: 6px; text-align: center; font-size: 13px; font-weight: 600; }
         .oc-found .card svg { width: 100%; height: 76px; }
         .oc-found .card.todo { color: var(--muted); font-weight: 500; border-style: dashed; display: grid; place-items: center; min-height: 104px; font-size: 20px; }
@@ -55,7 +67,8 @@
         .panel h3 { font-size: 15.5px; }
         .seg button { font-size: 14px; }
         .controls { font-size: 14.5px; }
-        @media (max-width: 1150px) { .oc-grid { grid-template-columns: 1fr; } .oc-editor { height: 520px; } }
+        @media (max-width: 1500px) { .oc-grid { grid-template-columns: minmax(0, 1fr) 430px; } .oc-grid > .oc-panel:last-child { grid-column: 1 / -1; } }
+        @media (max-width: 1000px) { .oc-grid { grid-template-columns: 1fr; } .oc-editor { min-height: 520px; } }
     </style>
 </head>
 <body>
@@ -69,18 +82,16 @@
         <h1 class="lab-title" id="main-title">구조식 그리기 <small>Structural Formulas &amp; Isomers</small></h1>
 
         <section class="lab-page active" id="exp0">
+            <div class="status">
+                <div>분자식 <b id="s-formula">—</b></div>
+                <div>분자량 <b id="s-mw">—</b></div>
+                <div class="msg" id="s-msg">빈 곳을 드래그해 탄소 사슬을 그려 보세요.</div>
+            </div>
             <div class="oc-grid">
-                <div>
-                    <div class="status">
-                        <div>분자식 <b id="s-formula">—</b></div>
-                        <div>분자량 <b id="s-mw">—</b></div>
-                        <div class="msg" id="s-msg">빈 곳을 드래그해 탄소 사슬을 그려 보세요.</div>
-                    </div>
+                <div class="oc-col">
                     <div class="oc-editor" id="ed"><div class="ocl-loading">편집기를 불러오는 중…</div></div>
-                    <div class="controls" style="margin-top:12px; justify-content: space-between;">
-                        <div class="control row">
-                            <label>예시 분자</label>
-                            <select id="ex">
+                    <div class="oc-bar">
+                        <label>예시 분자 <select id="ex">
                                 <option value="">불러오기…</option>
                                 <option value="CC">에테인</option><option value="C=C">에텐</option><option value="C#C">에타인</option>
                                 <option value="CCCC">뷰테인</option><option value="CC(C)C">2-메틸프로페인</option><option value="CC(C)C(C)C">2,3-다이메틸뷰테인</option>
@@ -89,67 +100,64 @@
                                 <option value="CC(=O)OCC">아세트산 에틸</option><option value="CN">메틸아민</option><option value="CC(N)=O">아세트아마이드</option>
                                 <option value="OCCO">에틸렌 글리콜</option><option value="C=CC">프로펜</option><option value="C(Cl)(Cl)(Cl)Cl">사염화탄소</option>
                                 <option value="C1CCCCC1">사이클로헥세인</option><option value="c1ccccc1">벤젠</option><option value="Cc1ccccc1">톨루엔</option><option value="Oc1ccccc1">페놀</option>
-                            </select>
-                        </div>
-                        <div class="control row">
-                            <label class="radio"><input type="checkbox" id="showC"> 편집기에 탄소 글자 표시</label>
-                            <button class="btn btn-sm" id="clear">모두 지우기</button>
-                        </div>
-                    </div>
-                    <div class="panel" style="margin-top:12px;">
-                        <h3>그리는 방법 <small class="muted" style="font-weight:500;">왼쪽 버튼에 마우스를 올리면 설명이 나옵니다</small></h3>
-                        <ul class="oc-tips">
-                            <li><kbd>결합</kbd> 을 고르고 빈 곳을 <b>드래그</b>하면 탄소–탄소 결합이 생깁니다. 끝 원자에서 다시 드래그하면 사슬이 이어지고, <kbd>사슬</kbd> 로 드래그하면 한 번에 여러 개가 그려집니다.</li>
-                            <li>결합을 <b>다시 클릭</b>하면 단일 → 이중 → 삼중 결합으로 바뀝니다.</li>
-                            <li><kbd>O</kbd> <kbd>N</kbd> 같은 원소 버튼을 누른 뒤 원자를 클릭하면 그 원소로 바뀝니다. 수소는 자동으로 채워지므로 그리지 않아도 됩니다.</li>
-                            <li>고리는 <kbd>삼각</kbd>~<kbd>벤젠</kbd> 을 누르고 빈 곳을 클릭합니다. <kbd>지우개</kbd> 로 지우고, <kbd>되돌리기</kbd> 로 한 단계 취소합니다.</li>
-                            <li>골격 구조식에서는 탄소와 수소를 생략합니다. 어렵다면 <b>편집기에 탄소 글자 표시</b>를 켜고, 오른쪽에서 <b>펼친 구조식</b>과 비교해 보세요.</li>
-                        </ul>
+                            </select></label>
+                        <span class="sp"></span>
+                        <label class="radio"><input type="checkbox" id="showC"> 편집기에 탄소 글자 표시</label>
+                        <button class="btn btn-sm" id="clear">모두 지우기</button>
                     </div>
                 </div>
 
-                <div class="stack">
-                    <div class="panel">
-                        <h3>구조식 보기</h3>
-                        <div class="seg" id="viewSeg" style="margin-bottom:10px;">
-                            <button data-v="expanded" class="selected">펼친 구조식</button>
-                            <button data-v="condensed">축약 구조식</button>
-                            <button data-v="skel">골격 구조식</button>
-                        </div>
-                        <div class="oc-view empty" id="view">그린 구조가 여기에 표시됩니다.</div>
-                        <div class="oc-formula" id="formula">—</div>
-                        <div class="oc-stats">
-                            <div><span>분자량</span><b id="st-mw">—</b></div>
-                            <div><span>불포화도</span><b id="st-dbe">—</b></div>
-                            <div><span>탄소 C</span><b id="st-C">—</b></div>
-                            <div><span>수소 H</span><b id="st-H">—</b></div>
-                            <div><span>산소 O</span><b id="st-O">—</b></div>
-                            <div><span>질소 N</span><b id="st-N">—</b></div>
-                            <div><span>고리</span><b id="st-ring">—</b></div>
-                            <div><span>이중·삼중 결합</span><b id="st-multi">—</b></div>
-                            <div class="wide"><span>작용기</span><b id="st-groups">—</b></div>
-                        </div>
+                <div class="panel oc-panel">
+                    <h3>구조식 보기</h3>
+                    <div class="seg" id="viewSeg" style="margin-bottom:10px;">
+                        <button data-v="expanded" class="selected">펼친 구조식</button>
+                        <button data-v="condensed">축약 구조식</button>
+                        <button data-v="skel">골격 구조식</button>
                     </div>
+                    <div class="oc-view empty" id="view">그린 구조가 여기에 표시됩니다.</div>
+                    <div class="oc-formula" id="formula">—</div>
+                    <div class="oc-stats">
+                        <div><span>분자량</span><b id="st-mw">—</b></div>
+                        <div><span>불포화도</span><b id="st-dbe">—</b></div>
+                        <div><span>탄소 C</span><b id="st-C">—</b></div>
+                        <div><span>수소 H</span><b id="st-H">—</b></div>
+                        <div><span>산소 O</span><b id="st-O">—</b></div>
+                        <div><span>질소 N</span><b id="st-N">—</b></div>
+                        <div><span>고리</span><b id="st-ring">—</b></div>
+                        <div><span>이중·삼중 결합</span><b id="st-multi">—</b></div>
+                        <div class="wide"><span>작용기</span><b id="st-groups">—</b></div>
+                    </div>
+                </div>
 
-                    <div class="panel">
-                        <h3>과제: 이성질체 찾기</h3>
-                        <div class="oc-task">
-                            <select id="task"></select>
-                            <button class="btn btn-sm btn-primary" id="submit">제출</button>
-                            <button class="btn btn-sm" id="reset">처음부터</button>
-                        </div>
-                        <div class="kv" style="margin-top:10px;"><span>진행</span><b id="p-text">0 / 0</b></div>
-                        <div class="oc-progress"><i id="p-bar"></i></div>
-                        <div class="note" id="note"></div>
-                        <div class="oc-found" id="found"></div>
-                        <div class="row" style="margin-top:10px; gap:8px;">
-                            <button class="btn btn-sm" id="hint">남은 이름 힌트</button>
-                            <button class="btn btn-sm" id="reveal">정답 보기</button>
-                        </div>
-                        <p class="muted" style="font-size:13px; margin-top:10px; line-height:1.5;">그린 구조는 원자의 연결을 표준 코드로 바꿔 비교합니다. 모양이나 방향이 달라도 연결이 같으면 <b>같은 물질</b>로, 분자식이 같고 연결이 다르면 <b>이성질체</b>로 판정됩니다.</p>
+                <div class="panel oc-panel">
+                    <h3>과제: 이성질체 찾기</h3>
+                    <div class="oc-task">
+                        <select id="task"></select>
+                        <button class="btn btn-sm btn-primary" id="submit">제출</button>
+                        <button class="btn btn-sm" id="reset">처음부터</button>
+                    </div>
+                    <div class="kv" style="margin-top:10px;"><span>진행</span><b id="p-text">0 / 0</b></div>
+                    <div class="oc-progress"><i id="p-bar"></i></div>
+                    <div class="note" id="note"></div>
+                    <div class="oc-found" id="found"></div>
+                    <div class="row" style="margin-top:auto; padding-top:12px; gap:8px;">
+                        <button class="btn btn-sm" id="hint">남은 이름 힌트</button>
+                        <button class="btn btn-sm" id="reveal">정답 보기</button>
                     </div>
                 </div>
             </div>
+
+            <details class="panel oc-help">
+                <summary>그리는 방법 <small class="muted" style="font-weight:500;">왼쪽 버튼에 마우스를 올리면 설명이 나옵니다</small></summary>
+                <ul class="oc-tips">
+                    <li><kbd>결합</kbd> 을 고르고 빈 곳을 <b>드래그</b>하면 탄소–탄소 결합이 생깁니다. 끝 원자에서 다시 드래그하면 사슬이 이어지고, <kbd>사슬</kbd> 로 드래그하면 한 번에 여러 개가 그려집니다.</li>
+                    <li>결합을 <b>다시 클릭</b>하면 단일 → 이중 → 삼중 결합으로 바뀝니다.</li>
+                    <li><kbd>O</kbd> <kbd>N</kbd> 같은 원소 버튼을 누른 뒤 원자를 클릭하면 그 원소로 바뀝니다. 수소는 자동으로 채워지므로 그리지 않아도 됩니다.</li>
+                    <li>고리는 <kbd>삼각</kbd>~<kbd>벤젠</kbd> 을 누르고 빈 곳을 클릭합니다. <kbd>지우개</kbd> 로 지우고, <kbd>되돌리기</kbd> 로 한 단계 취소합니다.</li>
+                    <li>골격 구조식에서는 탄소와 수소를 생략합니다. 어렵다면 <b>편집기에 탄소 글자 표시</b>를 켜고, 오른쪽에서 <b>펼친 구조식</b>과 비교해 보세요.</li>
+                    <li>과제 제출 시 그린 구조는 원자의 연결을 표준 코드로 바꿔 비교합니다. 모양이나 방향이 달라도 연결이 같으면 <b>같은 물질</b>, 분자식이 같고 연결이 다르면 <b>이성질체</b>로 판정됩니다.</li>
+                </ul>
+            </details>
         </section>
     </main>
 
@@ -361,9 +369,19 @@
         /* =====================================================================
          *  화면 갱신
          * ===================================================================== */
+        const EDIT_AVBL = 60;                                 // 편집기 안 결합 길이(px). 라이브러리 기본값 24 는 너무 작아 매번 맞춰 줌
+        function keepScale(mol) {
+            if (!mol.getAllBonds()) return false;
+            const avbl = mol.getAverageBondLength(); if (!(avbl > 0) || Math.abs(avbl - EDIT_AVBL) < 1.5) return false;
+            const n = mol.getAllAtoms(), f = EDIT_AVBL / avbl; let cx = 0, cy = 0;
+            for (let a = 0; a < n; a++) { cx += mol.getAtomX(a); cy += mol.getAtomY(a); } cx /= n; cy /= n;
+            for (let a = 0; a < n; a++) { mol.setAtomX(a, cx + (mol.getAtomX(a) - cx) * f); mol.setAtomY(a, cy + (mol.getAtomY(a) - cy) * f); }
+            return true;
+        }
         function update() {
             if (relabelling || !ed) return;
             const mol = ed.getMolecule();
+            if (keepScale(mol)) { relabelling = true; ed.moleculeChanged(); relabelling = false; }
             if ($('showC').checked) {
                 mol.ensureHelperArrays(OCL.Molecule.cHelperNeighbours); let changed = false;
                 for (let a = 0; a < mol.getAllAtoms(); a++) if (mol.getAtomicNo(a) === 6) { const h = mol.getImplicitHydrogens(a); const lab = h ? 'CH' + (h > 1 ? SUB[h] : '') : 'C'; if (mol.getAtomCustomLabel(a) !== lab) { mol.setAtomCustomLabel(a, lab); changed = true; } }
