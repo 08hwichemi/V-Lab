@@ -170,6 +170,12 @@
         </section>
     </main>
 
+    <script>
+        /* 편집기 확대 배율. 편집기는 캔버스 해상도를 devicePixelRatio 로 정하고 그 값을 불러올 때 한 번 읽으므로,
+           라이브러리를 읽기 전에 배율만큼 높여 두어야 확대해도 선명합니다. */
+        window.VLAB_EDITOR_ZOOM = 1.8;
+        (function () { const real = window.devicePixelRatio || 1; Object.defineProperty(window, 'devicePixelRatio', { get: () => real * window.VLAB_EDITOR_ZOOM, configurable: true }); })();
+    </script>
     <script type="module">
         import OCL from '../../assets/vendor/openchemlib/openchemlib.js';
 
@@ -373,15 +379,22 @@
         let confKind = 'chair', ringFlip = false;
         /* 교과서식 틀 좌표: 의자형은 서로 평행한 세 쌍의 결합, 축방향은 수직, 적도방향은 두 칸 건너 결합과 평행하게 바깥으로 */
         function conformerSvg(kind, subLabel) {
-            const W = 330, Hh = 230, ox = 70, oy = 55;
-            const chair = [[10, 75], [60, 100], [110, 85], [160, 55], [110, 30], [60, 45]];
+            const W = 330, Hh = 230;
+            /* 의자형 틀: C1(발, 왼쪽 아래) → C2 → C3 → C4(머리, 오른쪽 위) → C5 → C6. 마주 보는 결합끼리 평행 (a, b, c 벡터) */
+            const a = [34, -44], bv = [54, 8], c = [40, -16], C1 = [0, 50];
+            let chair = [C1, [C1[0] + a[0], C1[1] + a[1]]]; chair.push([chair[1][0] + bv[0], chair[1][1] + bv[1]]); chair.push([chair[2][0] + c[0], chair[2][1] + c[1]]);
+            chair.push([chair[3][0] - a[0], chair[3][1] - a[1]]); chair.push([chair[4][0] - bv[0], chair[4][1] - bv[1]]);
+            chair = chair.map(([x, y]) => [x * 1.45, y * 1.45]);
+            if (kind === 'chair' && ringFlip) chair = chair.map(([x, y]) => [x, -y]);                     // 고리 뒤집기 = 위·아래 원자가 서로 바뀜 (상하 반전)
             const boat = [[10, 60], [60, 100], [120, 100], [170, 60], [120, 60], [60, 60]];
-            const P = (kind === 'chair' ? chair : boat).map(([x, y]) => [x + ox, y + oy]);
+            const raw = kind === 'chair' ? chair : boat;
+            const mx = (Math.min(...raw.map(p => p[0])) + Math.max(...raw.map(p => p[0]))) / 2, my = (Math.min(...raw.map(p => p[1])) + Math.max(...raw.map(p => p[1]))) / 2;
+            const P = raw.map(([x, y]) => [x - mx + W / 2, y - my + Hh / 2]);
             const cx = P.reduce((t, p) => t + p[0], 0) / 6, cy = P.reduce((t, p) => t + p[1], 0) / 6;
             const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], norm = v => { const l = Math.hypot(v[0], v[1]); return [v[0] / l, v[1] / l]; };
             const bonds = [];                                   // {i, dir:[dx,dy], len, kind:'ax'|'eq'|'fp'|'bs'}
             for (let i = 0; i < 6; i++) {
-                const up = kind === 'chair' ? (i % 2 === 1) : (i === 0 || i === 3);   // 의자형: 홀수 번째가 '위' 원자. 배형: 양 끝이 위
+                const up = kind === 'chair' ? ((i % 2 === 1) !== ringFlip) : (i === 0 || i === 3);   // 의자형: 홀수 번째가 '위' 원자 (뒤집으면 반대). 배형: 양 끝이 위
                 if (kind === 'chair') {
                     const e = norm(sub(P[(i + 2) % 6], P[(i + 1) % 6]));           // 두 칸 건너 결합과 평행
                     const out = sub(P[i], [cx, cy]); const sgn = (e[0] * out[0] + e[1] * out[1]) >= 0 ? 1 : -1;
@@ -398,11 +411,11 @@
             }
             const col = { ax: '#D93025', eq: '#1A56DB', fp: '#E07B00', bs: '#6B7280' };
             let s = '';
-            P.forEach((p, i) => { const q = P[(i + 1) % 6]; s += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#1F2328" stroke-width="${kind === 'chair' && (i === 1 || i === 0) ? 3.4 : 2.4}" stroke-linecap="round"/>`; });
+            P.forEach((p, i) => { const q = P[(i + 1) % 6]; const front = kind === 'chair' && ((!ringFlip && (i === 5 || i === 4)) || (ringFlip && (i === 0 || i === 1)));   // 앞쪽 결합은 굵게
+                s += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#1F2328" stroke-width="${front ? 3.6 : 2.4}" stroke-linecap="round"/>`; });
             bonds.forEach(b => {
                 let text = 'H', k = b.kind;
-                if (subLabel && b.i === 0 && ((k === 'eq') !== ringFlip)) { text = subLabel; }   // 치환기는 C1 에, 기본 적도방향 (뒤집으면 축방향)
-                if (subLabel && b.i === 0 && ((k === 'ax') !== ringFlip) === false) {}
+                if (subLabel && b.i === 0 && ((k === 'eq') !== ringFlip)) text = subLabel;   // 치환기는 C1 에, 기본 적도방향 (뒤집으면 축방향)
                 const d = norm(b.dir), x1 = P[b.i][0], y1 = P[b.i][1], x2 = x1 + d[0] * b.len, y2 = y1 + d[1] * b.len;
                 const isSub = text !== 'H';
                 s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isSub ? '#111' : col[k]}" stroke-width="${isSub ? 2.6 : 1.8}"/>`;
@@ -573,7 +586,7 @@
         /* 편집기는 결합 하나를 항상 24 px 로 그리므로(확대 기능 없음) 편집기 영역을 CSS zoom 으로 ZOOM 배 키웁니다.
          * 편집기가 포인터 좌표를 화면 픽셀 그대로 읽기 때문에, 편집기로 가는 포인터 이벤트는 좌표를 1/ZOOM 로 되돌린
          * 합성 이벤트로 바꿔 전달합니다. (도구 모음 버튼이 보내는 합성 이벤트는 __raw 표시로 그대로 통과) */
-        const ZOOM = 1.8;
+        const ZOOM = window.VLAB_EDITOR_ZOOM || 1.8;
         let REMAP = ZOOM, edRoot = null, edWrap = null, dragging = false;
         function makeWrap() {                                // 편집기를 담을 확대 래퍼 (호스트의 도구 모음 영역 오른쪽을 채움)
             edWrap = document.createElement('div'); edWrap.className = 'oc-wrap';
@@ -621,7 +634,7 @@
         window.addEventListener('resize', e => { if (!edWrap || e.__fromCal) return; clearTimeout(calT); calT = setTimeout(calibrate, 120); });
         function pickTool(row, col) {
             const tb = edRoot && edRoot.shadowRoot.querySelector('canvas'); if (!tb) return;
-            const r = tb.getBoundingClientRect(), x = r.left + (13 + col * 22) * ZOOM, y = r.top + (13 + row * 21) * ZOOM;   // devicePixelRatio 를 ZOOM 배로 올렸으므로
+            const r = tb.getBoundingClientRect(), x = r.left + 13 + col * 22, y = r.top + 13 + row * 21;   // 도구 모음 캔버스의 CSS 픽셀 좌표 (2열 × 17행, 22 × 21 px)
             ['pointerdown', 'pointerup'].forEach(type => { const ev = new PointerEvent(type, { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: type === 'pointerdown' ? 1 : 0 }); ev.__raw = true; tb.dispatchEvent(ev); });
         }
 
@@ -692,8 +705,6 @@
         try {
             await OCL.Resources.registerFromUrl('../../assets/vendor/openchemlib/resources.json');
             host.querySelector('.ocl-loading').remove();
-            const realDPR = window.devicePixelRatio || 1;   // 편집기는 캔버스 해상도를 devicePixelRatio 로 정하므로, 확대 배율만큼 높여 선명하게
-            Object.defineProperty(window, 'devicePixelRatio', { get: () => realDPR * ZOOM, configurable: true });
             ed = new OCL.CanvasEditor(makeWrap());
             ed.setOnChangeListener(update);
             hideNativeToolbar(); calibrate(); buildTools(); toolsEl.querySelector('[data-id="bond"]').classList.add('on');
