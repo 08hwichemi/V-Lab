@@ -66,6 +66,11 @@
         .status .msg { font-size: 14.5px; }
         .panel h3 { font-size: 15.5px; }
         .seg button { font-size: 14px; }
+        .seg button:disabled { opacity: .4; cursor: not-allowed; }
+        .oc-conf { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+        .oc-conf .legend { display: flex; gap: 14px; font-size: 13px; color: var(--text-2); flex-wrap: wrap; justify-content: center; }
+        .oc-conf .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+        .oc-conf p { font-size: 13px; color: var(--muted); margin: 0; text-align: center; line-height: 1.5; }
         .controls { font-size: 14.5px; }
         @media (max-width: 1500px) { .oc-grid { grid-template-columns: minmax(0, 1fr) 430px; } .oc-grid > .oc-panel:last-child { grid-column: 1 / -1; } }
         @media (max-width: 1000px) { .oc-grid { grid-template-columns: 1fr; } .oc-editor { min-height: 520px; } }
@@ -109,10 +114,14 @@
 
                 <div class="panel oc-panel">
                     <h3>구조식 보기</h3>
-                    <div class="seg" id="viewSeg" style="margin-bottom:10px;">
-                        <button data-v="expanded" class="selected">펼친 구조식</button>
-                        <button data-v="condensed">축약 구조식</button>
-                        <button data-v="skel">골격 구조식</button>
+                    <div class="row" style="justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                        <div class="seg" id="viewSeg">
+                            <button data-v="expanded" class="selected">펼친 구조식</button>
+                            <button data-v="condensed">축약 구조식</button>
+                            <button data-v="skel">골격 구조식</button>
+                            <button data-v="conf" id="confBtn" disabled title="사이클로헥세인(치환기 1개까지)을 그리면 볼 수 있습니다">입체 형태</button>
+                        </div>
+                        <label class="radio" style="padding:0; font-size:13.5px;"><input type="checkbox" id="lonePairs"> 비공유 전자쌍</label>
                     </div>
                     <div class="oc-view empty" id="view">그린 구조가 여기에 표시됩니다.</div>
                     <div class="oc-formula" id="formula">—</div>
@@ -297,14 +306,15 @@
             const hs = [];                                                                // 수소 배치
             for (let u = 0; u < g.n; u++) {
                 const P = pos[u]; if (!P) continue;
-                const dirs = (P.dx !== 0) ? [[0, -1], [0, 1], [1, 0], [-1, 0]] : [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                const dirs = (P.dx !== 0) ? [[P.dx, 0], [0, -1], [0, 1], [-P.dx, 0]] : [[0, P.dy], [1, 0], [-1, 0], [0, -P.dy]];   // 직진 → 수직 → 뒤
                 let left = g.atoms[u].h;
                 for (const [sx, sy] of dirs) { if (!left) break; if (occ.has(key(P.x + sx, P.y + sy)) || occ.has(key(P.x + sx * .62, P.y + sy * .62))) continue; occ.add(key(P.x + sx * .62, P.y + sy * .62)); hs.push({ u, x: P.x + sx * .62, y: P.y + sy * .62 }); left--; }
                 for (let i = 0; i < left; i++) hs.push({ u, x: P.x + .62, y: P.y - .62 });  // 자리가 모자라면 겹쳐서라도 표시
             }
             return { pos, hs };
         }
-        function expandedSvg(mol) {
+        const VALENCE_E = { 5: 3, 6: 4, 7: 5, 8: 6, 9: 7, 14: 4, 15: 5, 16: 6, 17: 7, 35: 7, 53: 7 };
+        function expandedSvg(mol, showLP) {
             const g = heavyGraph(mol), L = expandedLayout(g);
             if (!L) return null;
             const U = 64, R = 14, RH = 11, pts = [];
@@ -325,7 +335,91 @@
             const color = z => z === 8 ? '#D93025' : z === 7 ? '#1A56DB' : [9, 17, 35, 53].includes(z) ? '#0E8F8F' : '#1F2328';
             for (let u = 0; u < g.n; u++) { const P = L.pos[u]; s += `<text x="${X(P.x)}" y="${Y(P.y)}" text-anchor="middle" dominant-baseline="central" font-size="23" font-weight="600" fill="${color(g.atoms[u].z)}">${SYM[g.atoms[u].z] || '?'}</text>`; }
             L.hs.forEach(h => { s += `<text x="${X(h.x)}" y="${Y(h.y)}" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="500" fill="#3F4652">H</text>`; });
+            if (showLP) for (let u = 0; u < g.n; u++) {                    // 비공유 전자쌍: (원자가 전자 − 결합 전자 수) / 2 쌍을 빈 방향에 점 두 개로
+                const A = g.atoms[u], ve = VALENCE_E[A.z]; if (ve === undefined) continue;
+                const bonds = A.nb.reduce((t, e) => t + e.o, 0) + A.h, pairs = Math.max(0, Math.floor((ve - bonds) / 2));
+                if (!pairs) continue;
+                const P = L.pos[u], used = new Set();
+                const dirOf = (x, y) => (Math.abs(x) > Math.abs(y)) ? (x > 0 ? 'R' : 'L') : (y > 0 ? 'D' : 'U');
+                A.nb.forEach(e => { const Q = L.pos[e.a]; used.add(dirOf(Q.x - P.x, Q.y - P.y)); });
+                L.hs.filter(h => h.u === u).forEach(h => used.add(dirOf(h.x - P.x, h.y - P.y)));
+                const vec = { U: [0, -1], D: [0, 1], R: [1, 0], L: [-1, 0] }, horiz = used.has('L') || used.has('R');
+                const order = (horiz && !used.has('U') && !used.has('D')) ? ['U', 'D', 'R', 'L'] : (!horiz ? ['L', 'R', 'U', 'D'] : ['U', 'D', 'L', 'R']);
+                const free = order.filter(d => !used.has(d));
+                for (let i = 0; i < pairs; i++) {
+                    const d = free[i % free.length] || 'U', [dx, dy] = vec[d], cx = X(P.x) + dx * 24, cy = Y(P.y) + dy * 24, px = -dy * 5.5, py = dx * 5.5;
+                    s += `<circle cx="${cx + px}" cy="${cy + py}" r="2.6" fill="${color(A.z)}"/><circle cx="${cx - px}" cy="${cy - py}" r="2.6" fill="${color(A.z)}"/>`;
+                }
+            }
             return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-family="IBM Plex Sans KR, Arial, sans-serif">${s}</svg>`;
+        }
+        function cyclohexaneInfo(mol) {                     // 포화 6원 탄소 고리 + 치환기(최대 1개) 이면 정보 반환, 아니면 null
+            const g = heavyGraph(mol); if (g.rings !== 1) return null;
+            const m = mol.getCompactCopy(); m.ensureHelperArrays(OCL.Molecule.cHelperRings); const rs = m.getRingSet(); if (rs.getSize() !== 1) return null;
+            const ring = rs.getRingAtoms(0); if (ring.length !== 6 || !ring.every(a => g.atoms[a].z === 6 && g.atoms[a].nb.every(e => e.o === 1))) return null;
+            const inRing = new Set(ring), subs = [];
+            ring.forEach((a, i) => g.atoms[a].nb.forEach(e => { if (!inRing.has(e.a)) subs.push({ ringIdx: i, atom: e.a }); }));
+            if (subs.length > 1) return { ring, subs, tooMany: true };
+            let label = '';
+            if (subs.length === 1) {                           // 치환기 이름: 축약 구조식 방식으로 (CH₃, OH, Cl, CH₂CH₃ …)
+                const sub = subs[0], seen = new Set([ring[sub.ringIdx]]);
+                const walk = (u, par) => { const A = g.atoms[u], sym = SYM[A.z] || '?'; let out = sym + (A.h ? 'H' + (A.h > 1 ? SUB[A.h] : '') : ''); A.nb.filter(e => e.a !== par).forEach(e => { if (e.o === 2 && g.atoms[e.a].z === 8) out += 'O'; else out += walk(e.a, u); }); return out; };
+                label = walk(sub.atom, ring[sub.ringIdx]);
+                if (label === 'CO' + 'OH' || /^C(=O)?O.*H$/.test(label)) label = 'COOH';
+            }
+            return { ring, subs, label };
+        }
+        function isCyclohexane(mol) { const c = cyclohexaneInfo(mol); return !!c && !c.tooMany; }
+        let confKind = 'chair', ringFlip = false;
+        /* 교과서식 틀 좌표: 의자형은 서로 평행한 세 쌍의 결합, 축방향은 수직, 적도방향은 두 칸 건너 결합과 평행하게 바깥으로 */
+        function conformerSvg(kind, subLabel) {
+            const W = 330, Hh = 230, ox = 70, oy = 55;
+            const chair = [[10, 75], [60, 100], [110, 85], [160, 55], [110, 30], [60, 45]];
+            const boat = [[10, 60], [60, 100], [120, 100], [170, 60], [120, 60], [60, 60]];
+            const P = (kind === 'chair' ? chair : boat).map(([x, y]) => [x + ox, y + oy]);
+            const cx = P.reduce((t, p) => t + p[0], 0) / 6, cy = P.reduce((t, p) => t + p[1], 0) / 6;
+            const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], norm = v => { const l = Math.hypot(v[0], v[1]); return [v[0] / l, v[1] / l]; };
+            const bonds = [];                                   // {i, dir:[dx,dy], len, kind:'ax'|'eq'|'fp'|'bs'}
+            for (let i = 0; i < 6; i++) {
+                const up = kind === 'chair' ? (i % 2 === 1) : (i === 0 || i === 3);   // 의자형: 홀수 번째가 '위' 원자. 배형: 양 끝이 위
+                if (kind === 'chair') {
+                    const e = norm(sub(P[(i + 2) % 6], P[(i + 1) % 6]));           // 두 칸 건너 결합과 평행
+                    const out = sub(P[i], [cx, cy]); const sgn = (e[0] * out[0] + e[1] * out[1]) >= 0 ? 1 : -1;
+                    bonds.push({ i, dir: [0, up ? -1 : 1], len: 38, kind: 'ax' });
+                    bonds.push({ i, dir: [e[0] * sgn, e[1] * sgn], len: 34, kind: 'eq' });
+                } else if (i === 0 || i === 3) {
+                    const inward = norm(sub([cx, cy - 10], P[i]));
+                    bonds.push({ i, dir: [inward[0] * 0.35 + 0, -0.94], len: 36, kind: 'fp' });
+                    bonds.push({ i, dir: norm(sub(P[i], [cx, cy + 40])), len: 34, kind: 'bs' });
+                } else {
+                    bonds.push({ i, dir: [0, up ? -1 : 1], len: 36, kind: 'ax' });
+                    const e = norm(sub(P[i], [cx, cy])); bonds.push({ i, dir: [e[0], e[1] * 0.4 + (P[i][1] > cy ? 0.3 : -0.3)], len: 34, kind: 'eq' });
+                }
+            }
+            const col = { ax: '#D93025', eq: '#1A56DB', fp: '#E07B00', bs: '#6B7280' };
+            let s = '';
+            P.forEach((p, i) => { const q = P[(i + 1) % 6]; s += `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#1F2328" stroke-width="${kind === 'chair' && (i === 1 || i === 0) ? 3.4 : 2.4}" stroke-linecap="round"/>`; });
+            bonds.forEach(b => {
+                let text = 'H', k = b.kind;
+                if (subLabel && b.i === 0 && ((k === 'eq') !== ringFlip)) { text = subLabel; }   // 치환기는 C1 에, 기본 적도방향 (뒤집으면 축방향)
+                if (subLabel && b.i === 0 && ((k === 'ax') !== ringFlip) === false) {}
+                const d = norm(b.dir), x1 = P[b.i][0], y1 = P[b.i][1], x2 = x1 + d[0] * b.len, y2 = y1 + d[1] * b.len;
+                const isSub = text !== 'H';
+                s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isSub ? '#111' : col[k]}" stroke-width="${isSub ? 2.6 : 1.8}"/>`;
+                s += `<text x="${x2 + d[0] * (isSub ? 16 : 9)}" y="${y2 + d[1] * (isSub ? 12 : 9)}" text-anchor="middle" dominant-baseline="central" font-size="${isSub ? 14 : 13}" font-weight="${isSub ? 700 : 600}" fill="${isSub ? '#111' : col[k]}">${isSub ? subHtml(esc(text)) : 'H'}</text>`;
+            });
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-family="IBM Plex Sans KR, Arial, sans-serif">${s}</svg>`;
+        }
+        function conformerView(mol) {
+            const info = cyclohexaneInfo(mol) || {}; const chair = confKind === 'chair';
+            if (info.tooMany) return `<div class="oc-conf"><p>치환기가 2개 이상이면 시스·트랜스 배치에 따라 모양이 달라져서 여기서는 그리지 않습니다. 치환기 1개까지 표시합니다.</p></div>`;
+            const label = info.label || '';
+            return `<div class="oc-conf">
+                <div class="row" style="gap:8px; align-items:center;"><div class="seg"><button class="${chair ? 'selected' : ''}" data-k="chair">의자형</button><button class="${chair ? '' : 'selected'}" data-k="boat">배형</button></div>${chair ? `<button class="btn btn-sm" data-flip="1">고리 뒤집기</button>` : ''}</div>
+                ${conformerSvg(confKind, label)}
+                <div class="legend">${chair ? '<span><i style="background:#D93025"></i>축방향(axial) H</span><span><i style="background:#1A56DB"></i>적도방향(equatorial) H</span>' : '<span><i style="background:#E07B00"></i>플래그폴 H</span><span><i style="background:#6B7280"></i>보스프릿 H</span><span><i style="background:#D93025"></i>축방향</span><span><i style="background:#1A56DB"></i>적도방향</span>'}</div>
+                <p>${chair ? (label ? `치환기 ${subHtml(esc(label))} 는 ${ringFlip ? '<b>축방향</b>에 있습니다. 같은 쪽 축방향 H 두 개와 가까워 불안정합니다 (1,3-이축 상호작용).' : '<b>적도방향</b>에 있을 때 더 안정합니다. 고리 뒤집기를 누르면 축방향으로 바뀝니다.'}` : '의자형이 가장 안정합니다. 축방향 H 는 고리 평면에 수직으로 위·아래를 번갈아 향하고, 적도방향 H 는 고리 바깥쪽을 향합니다. 고리 뒤집기를 누르면 축방향과 적도방향이 서로 바뀝니다.') : '배형은 양 끝의 플래그폴 H 가 가까워 반발하고, 옆면의 H 들이 서로 가려진 배치라 의자형보다 약 28 kJ/mol 불안정합니다.'}</p>
+            </div>`;
         }
         function explicitHSvg(mol) {                          // 고리가 있을 때의 대체 그림 (수소 명시)
             const e = cleanCopy(mol); e.addImplicitHydrogens(); e.inventCoordinates({ keepHydrogens: true }); return skelSvg(e, 440, 300);
@@ -386,6 +480,8 @@
             $('st-ring').textContent = has ? an.rings : '—'; $('st-multi').textContent = has ? an.multi : '—';
             const groups = has ? findGroups(mol) : [];
             $('st-groups').textContent = has ? (groups.length ? groups.join(', ') : '없음 (탄화수소)') : '—';
+            const cyc = has && !!cyclohexaneInfo(mol); $('confBtn').disabled = !cyc;
+            if (!cyc && view === 'conf') { view = 'expanded'; $('viewSeg').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x.dataset.v === 'expanded')); }
             $('s-msg').textContent = !has ? '빈 곳을 드래그해 탄소 사슬을 그려 보세요.' : an.dbe < 0 ? '원자가를 확인하세요 (결합 수가 맞지 않습니다).' : an.dbe === 0 ? '포화 화합물 (이중 결합·고리 없음)' : `불포화도 ${an.dbe}: 이중 결합이나 고리가 ${an.dbe}개`;
             renderView();
         }
@@ -393,12 +489,15 @@
             const el = $('view'), mol = ed.getMolecule();
             if (!mol.getAllAtoms()) { el.className = 'oc-view empty'; el.textContent = '그린 구조가 여기에 표시됩니다.'; return; }
             el.className = 'oc-view';
+            if (view === 'conf') { el.innerHTML = conformerView(mol); return; }
             if (view === 'skel') { el.innerHTML = skelSvg(cleanCopy(mol), 440, 300); return; }
             if (view === 'condensed') { const c = condensed(mol); el.innerHTML = c === null ? `<div class="oc-cond muted" style="font-size:15px;">고리 화합물은 축약 구조식 대신 골격 구조식으로 봅니다.</div>` : `<div class="oc-cond">${subHtml(esc(c))}</div>`; return; }
-            const svg = expandedSvg(mol);
+            const svg = expandedSvg(mol, $('lonePairs').checked);
             el.innerHTML = svg || (explicitHSvg(mol) + '<div class="muted" style="font-size:12.5px;margin-top:4px;">고리 화합물은 격자형 대신 모든 원자를 표시한 그림으로 보여 줍니다.</div>');
         }
-        $('viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; view = b.dataset.v; $('viewSeg').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x === b)); renderView(); });
+        $('lonePairs').addEventListener('change', renderView);
+        $('view').addEventListener('click', e => { if (view !== 'conf') return; const b = e.target.closest('button'); if (!b) return; if (b.dataset.k) confKind = b.dataset.k; else if (b.dataset.flip) ringFlip = !ringFlip; renderView(); });
+        $('viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; view = b.dataset.v; $('viewSeg').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x === b)); renderView(); });
         $('ex').addEventListener('change', () => { if ($('ex').value) loadSmiles($('ex').value); $('ex').value = ''; });
         $('clear').addEventListener('click', () => { ed.clearAll(); });
         $('showC').addEventListener('change', () => {
@@ -475,7 +574,7 @@
          * 편집기가 포인터 좌표를 화면 픽셀 그대로 읽기 때문에, 편집기로 가는 포인터 이벤트는 좌표를 1/ZOOM 로 되돌린
          * 합성 이벤트로 바꿔 전달합니다. (도구 모음 버튼이 보내는 합성 이벤트는 __raw 표시로 그대로 통과) */
         const ZOOM = 1.8;
-        let edRoot = null, edWrap = null, dragging = false;
+        let REMAP = ZOOM, edRoot = null, edWrap = null, dragging = false;
         function makeWrap() {                                // 편집기를 담을 확대 래퍼 (호스트의 도구 모음 영역 오른쪽을 채움)
             edWrap = document.createElement('div'); edWrap.className = 'oc-wrap';
             const padL = parseFloat(getComputedStyle(host).paddingLeft), w = host.clientWidth - padL, h = host.clientHeight;
@@ -513,7 +612,7 @@
             e.stopImmediatePropagation(); e.preventDefault();
             const target = (inside && path[0] instanceof HTMLCanvasElement) ? path[0] : drawCanvas();
             const r = target.getBoundingClientRect();                     // 편집기는 (clientX − 캔버스 rect.left) 를 그대로 캔버스 좌표로 씀
-            const init = { bubbles: true, cancelable: true, composed: true, clientX: r.left + (e.clientX - r.left) / ZOOM, clientY: r.top + (e.clientY - r.top) / ZOOM, screenX: e.screenX, screenY: e.screenY,
+            const init = { bubbles: true, cancelable: true, composed: true, clientX: r.left + (e.clientX - r.left) / REMAP, clientY: r.top + (e.clientY - r.top) / REMAP, screenX: e.screenX, screenY: e.screenY,
                 pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary, button: e.button, buttons: e.buttons, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey, pressure: e.pressure, width: e.width, height: e.height };
             const ev = new PointerEvent(type, init); ev.__raw = true;
             target.dispatchEvent(ev);
@@ -522,7 +621,7 @@
         window.addEventListener('resize', e => { if (!edWrap || e.__fromCal) return; clearTimeout(calT); calT = setTimeout(calibrate, 120); });
         function pickTool(row, col) {
             const tb = edRoot && edRoot.shadowRoot.querySelector('canvas'); if (!tb) return;
-            const r = tb.getBoundingClientRect(), x = r.left + 13 + col * 22, y = r.top + 13 + row * 21;
+            const r = tb.getBoundingClientRect(), x = r.left + (13 + col * 22) * ZOOM, y = r.top + (13 + row * 21) * ZOOM;   // devicePixelRatio 를 ZOOM 배로 올렸으므로
             ['pointerdown', 'pointerup'].forEach(type => { const ev = new PointerEvent(type, { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: type === 'pointerdown' ? 1 : 0 }); ev.__raw = true; tb.dispatchEvent(ev); });
         }
 
@@ -589,10 +688,12 @@
         /* =====================================================================
          *  시작
          * ===================================================================== */
-        window.__oc = { get ed() { return ed; }, OCL, loadSmiles, submit, analyze, condensed, expandedSvg };   // 점검용
+        window.__oc = { get ed() { return ed; }, OCL, loadSmiles, submit, analyze, condensed, expandedSvg, set remap(v) { REMAP = v; } };   // 점검용
         try {
             await OCL.Resources.registerFromUrl('../../assets/vendor/openchemlib/resources.json');
             host.querySelector('.ocl-loading').remove();
+            const realDPR = window.devicePixelRatio || 1;   // 편집기는 캔버스 해상도를 devicePixelRatio 로 정하므로, 확대 배율만큼 높여 선명하게
+            Object.defineProperty(window, 'devicePixelRatio', { get: () => realDPR * ZOOM, configurable: true });
             ed = new OCL.CanvasEditor(makeWrap());
             ed.setOnChangeListener(update);
             hideNativeToolbar(); calibrate(); buildTools(); toolsEl.querySelector('[data-id="bond"]').classList.add('on');
