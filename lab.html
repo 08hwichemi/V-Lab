@@ -53,7 +53,7 @@
         <div class="sub" data-subject="${esc(lab.subject)}">
           <div class="bc"><a href="index.html#/s/${esc(lab.subject)}">${I.back}<i></i>${esc(subj.name || "")}</a><em>/</em><span id="labTitle">${esc(lab.title)}</span></div>
           <div class="etabs" id="etabs">${all.map((it, k) => {
-            const mine = it.lab.id === lab.id, n = it.lab.experiments && it.lab.experiments.length > 1 ? `${it.exp + 1}. ` : "";
+            const mine = it.lab.id === lab.id, n = "";                     // 과목 전체를 한 줄에 보이므로 번호는 붙이지 않음
             const sep = k > 0 && all[k - 1].lab.id !== it.lab.id ? `<i class="sep" title="${esc(it.lab.title)}"></i>` : "";
             return `${sep}<button data-key="${esc(it.key)}" data-lab="${esc(it.lab.id)}" data-i="${it.exp != null ? it.exp : ""}" class="${mine && it.exp === cur ? "on" : ""}" title="${esc(it.lab.title)}${it.lab.author ? " · " + esc(it.lab.author) : ""}">${n}${esc(it.title)}</button>`;
           }).join("")}</div>
@@ -75,7 +75,7 @@
               ${(lab.grade || []).length ? `<dt>대상</dt><dd>${esc(lab.grade.join(" · "))}</dd>` : ""}
               ${lab.author ? `<dt>제작</dt><dd>${esc(lab.author)}${lab.added ? ` · ${esc(lab.added)}` : ""}</dd>` : ""}
             </dl>
-            ${exps.length ? `<div class="list" id="ilist">${exps.map((e, i) => `<button data-i="${i}" class="${i === cur ? "on" : ""}"><i>${i + 1}</i>${esc(e.title)}</button>`).join("")}</div>` : ""}
+            ${exps.length ? `<div class="list" id="ilist">${exps.map((e, i) => `<button data-i="${i}" class="${i === cur ? "on" : ""}">${esc(e.title)}</button>`).join("")}</div>` : ""}
             ${(lab.tags || []).length ? `<div class="tags">${lab.tags.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
             <a class="open-new" href="${esc(standaloneUrl())}" target="_blank" rel="noopener">실험 파일만 새 창에서 열기 ↗</a>
           </aside>
