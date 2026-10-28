@@ -45,7 +45,7 @@ V-Lab/
   title: "단진자와 역학적 에너지",
   summary: "진자의 길이와 각도를 바꾸며 주기와 에너지 전환을 관찰합니다.",
   file: "labs/physics/pendulum.html",
-  author: "김물리",
+  author: "김물리",                                 // 제작하신 선생님 성함 (뷰어 정보·탭 설명에 표시)
   grade: ["고1"],
   unit: "통합과학 · 역학적 에너지",
   tags: ["단진자", "에너지 보존"],

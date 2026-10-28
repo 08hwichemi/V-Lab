@@ -26,7 +26,7 @@
 
   <script>
     (function () {
-      const { D, SUBJ, I, esc, items, recent } = VL;
+      const { D, SUBJ, I, esc, items, recent, url } = VL;
       const p = new URLSearchParams(location.search);
       const lab = D.labs.find(l => l.id === p.get("id"));
       const app = document.getElementById("app");
@@ -40,6 +40,7 @@
 
       const subj = SUBJ[lab.subject] || {};
       const exps = lab.experiments || [];
+      const all = items(lab.subject);                       // 같은 과목의 모든 실험 (파일이 달라도 한 줄에 함께 표시)
       let cur = exps.length ? Math.min(Math.max(parseInt(p.get("exp") || "0", 10) || 0, 0), exps.length - 1) : null;
       const key = () => lab.id + (cur != null ? ":" + cur : "");
       const hashFor = i => (i != null ? `exp=${i}&embed` : "embed");
@@ -51,7 +52,11 @@
       app.innerHTML = `
         <div class="sub" data-subject="${esc(lab.subject)}">
           <div class="bc"><a href="index.html#/s/${esc(lab.subject)}">${I.back}<i></i>${esc(subj.name || "")}</a><em>/</em><span id="labTitle">${esc(lab.title)}</span></div>
-          <div class="etabs" id="etabs">${exps.map((e, i) => `<button data-i="${i}" class="${i === cur ? "on" : ""}">${i + 1}. ${esc(e.title)}</button>`).join("")}</div>
+          <div class="etabs" id="etabs">${all.map((it, k) => {
+            const mine = it.lab.id === lab.id, n = it.lab.experiments && it.lab.experiments.length > 1 ? `${it.exp + 1}. ` : "";
+            const sep = k > 0 && all[k - 1].lab.id !== it.lab.id ? `<i class="sep" title="${esc(it.lab.title)}"></i>` : "";
+            return `${sep}<button data-key="${esc(it.key)}" data-lab="${esc(it.lab.id)}" data-i="${it.exp != null ? it.exp : ""}" class="${mine && it.exp === cur ? "on" : ""}" title="${esc(it.lab.title)}${it.lab.author ? " · " + esc(it.lab.author) : ""}">${n}${esc(it.title)}</button>`;
+          }).join("")}</div>
           <div class="r">
             <button class="ic hide-sm" id="btnInfo" title="실험 정보">${I.info}</button>
             <button class="ic" id="btnFull" title="전체화면">${I.full}</button>
@@ -83,18 +88,23 @@
       function select(i) {
         cur = i;
         try { fr.contentWindow.location.hash = hashFor(i); } catch (e) { fr.src = lab.file + "#" + hashFor(i); }
-        document.querySelectorAll("#etabs button, #ilist button").forEach(b => b.classList.toggle("on", +b.dataset.i === i));
+        document.querySelectorAll("#etabs button").forEach(b => b.classList.toggle("on", b.dataset.lab === lab.id && +b.dataset.i === i));
+        document.querySelectorAll("#ilist button").forEach(b => b.classList.toggle("on", +b.dataset.i === i));
         const u = new URL(location.href); u.searchParams.set("exp", i); history.replaceState(null, "", u);
         document.getElementById("btnExt").href = standaloneUrl();
         document.querySelector(".open-new").href = standaloneUrl();
         document.title = `${exps[i].title} · ${lab.title} · V-Lab`;
         recent.push(key());
-        const tab = document.querySelector(`#etabs button[data-i="${i}"]`); if (tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+        const tab = document.querySelector(`#etabs button.on`); if (tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
       }
-      document.querySelectorAll("#etabs button, #ilist button").forEach(b => b.addEventListener("click", () => select(+b.dataset.i)));
+      document.querySelectorAll("#etabs button").forEach(b => b.addEventListener("click", () => {
+        if (b.dataset.lab === lab.id) { if (cur != null) select(+b.dataset.i); }
+        else { const it = all.find(x => x.key === b.dataset.key); if (it) location.href = url(it); }   // 다른 파일의 실험이면 그 파일로 이동
+      }));
+      document.querySelectorAll("#ilist button").forEach(b => b.addEventListener("click", () => select(+b.dataset.i)));
       document.title = (cur != null ? exps[cur].title + " · " : "") + lab.title + " · V-Lab";
       recent.push(key());
-      if (cur != null) { const t = document.querySelector(`#etabs button[data-i="${cur}"]`); if (t) t.scrollIntoView({ inline: "nearest" }); }
+      { const t = document.querySelector("#etabs button.on"); if (t) t.scrollIntoView({ inline: "nearest" }); }
 
       // 정보 패널
       const info = document.getElementById("info");
