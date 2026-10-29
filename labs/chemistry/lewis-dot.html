@@ -461,7 +461,7 @@ main{max-width:none;padding:14px 16px}
       <li><b>공유 전자쌍</b>: 원자 두 개를 차례로 클릭하면 사이에 공유 전자쌍 1개가 생겨요. 공유 전자쌍을 클릭할 때마다 1쌍씩 늘어나요(최대 3쌍 = 삼중 결합). 우클릭(Shift+클릭)하거나 <b>두 번 탭(더블 클릭)</b>하면 1쌍 줄어요.</li>
       <li><b>비공유 전자쌍</b>: 원자를 클릭하면 비공유 전자쌍이 하나씩 추가돼요. 전자쌍을 클릭하거나 <b>두 번 탭(더블 클릭)</b>하거나, 원자를 우클릭(Shift+클릭)하면 하나 지워져요.</li>
       <li><b>이동</b>: 원자를 끌어서 옮겨요. <b>지우개</b>: 원자는 통째로, 전자쌍은 1쌍씩 지워요.</li>
-      <li><b>두 번 탭(더블 클릭)</b>: 어떤 도구에서든 원자를 두 번 탭하면 원자가, 전자쌍을 두 번 탭하면 그 전자쌍 1쌍이 지워져요.</li>
+      <li><b>두 번 탭(더블 클릭)</b>: 이동·지우개 도구에서 원자를 두 번 탭하면 원자가, 전자쌍을 두 번 탭하면 그 전자쌍 1쌍이 지워져요. (공유쌍·비공유쌍 도구에서는 빠르게 두 번 눌러도 추가로 처리돼요)</li>
       <li><b>확대·축소</b>: 보드 오른쪽 아래의 − / + 버튼, 마우스 휠, 또는 두 손가락 벌리기로 확대해요. 빈 곳을 끌면 보드가 움직이고, ⤢ 버튼은 그림 전체가 보이게 맞춰 줘요.</li>
       <li><b>옥텟 확인 표시</b>: 옥텟 규칙을 아직 만족하지 않는 원자(H, B, Be 제외)는 노란색으로 반짝여요. PC는 마우스를 올리면, 휴대폰은 원자를 <b>꾹 누르면</b> 안내가 나오고, 바르게 고치면 표시가 사라져요.</li>
       <li><b>확장된 옥텟 안내</b>: 3주기 원소 주위 전자가 10개나 12개가 되면 원자에서 선이 뻗어 [심화 개념] 안내가 나와요. ✕를 누르면 닫혀요.</li>
@@ -554,9 +554,9 @@ const TOOLS = [
 ];
 const TIPS = {
   select:'이동: 원자를 끌어서 위치를 옮겨요.',
-  atom:'원자: 빈 곳 클릭 → 원자 놓기 · 원자에서 끌기 → 공유 전자쌍으로 연결된 원자 추가 · 원자 클릭 → 선택한 원소로 바꾸기 · 두 번 탭 → 지우기',
-  bond:'공유 전자쌍: 원자 두 개를 차례로 클릭 → 공유 전자쌍 1개 · 공유 전자쌍 클릭 → 1쌍 추가(최대 3쌍) · 두 번 탭(더블 클릭)·우클릭 → 1쌍 제거',
-  lp:'비공유 전자쌍: 원자 클릭 → 추가 · 전자쌍 클릭·두 번 탭 또는 원자 우클릭 → 제거 · 원자 두 번 탭 → 원자 삭제',
+  atom:'원자: 빈 곳 클릭 → 원자 놓기 · 원자에서 끌기 → 공유 전자쌍으로 연결된 원자 추가 · 원자 클릭 → 선택한 원소로 바꾸기 · 지우기는 지우개 도구',
+  bond:'공유 전자쌍: 원자 두 개를 차례로 클릭 → 공유 전자쌍 1개 · 공유 전자쌍 클릭 → 1쌍 추가(최대 3쌍) · 우클릭(Shift+클릭) → 1쌍 제거',
+  lp:'비공유 전자쌍: 원자 클릭 → 추가 · 전자쌍 클릭 또는 원자 우클릭(Shift+클릭) → 제거',
   erase:'지우개: 원자 클릭 → 원자 삭제 · 공유/비공유 전자쌍 클릭 → 1쌍씩 삭제'
 };
 
@@ -640,15 +640,15 @@ const STAGES = [
       desc:'옥텟을 지키려면 형식 전하가 생겨요.',
       hints:['C와 O를 연결해요.','C≡O 삼중 결합 + 각 원자에 비공유 전자쌍 1개. C는 −1, O는 +1.'],
       note:'분자 전체는 중성이지만 C(−1), O(+1)의 형식 전하가 생겨요.'},
-    {id:'o3',name:'오존',f:'O<sub>3</sub>',atoms:{O:3},charge:0,maxFC:2,
+    {id:'o3',name:'오존',f:'O<sub>3</sub>',atoms:{O:3},charge:0,maxFC:2,skel:['O-O:1','O-O:2'],
       desc:'공명 구조를 가진 분자예요.',
       hints:['O–O–O 사슬로 연결해요. 가운데 O가 중심이에요.','이중 결합 1개 + 단일 결합 1개. 가운데 O는 +1, 단일 결합한 바깥 O는 −1.'],
       note:'이중 결합 위치만 다른 공명 구조 2개가 있어요. 실제 두 O–O 결합 길이는 같아요.'},
-    {id:'no3',name:'질산 이온',f:'NO<sub>3</sub><sup>−</sup>',atoms:{N:1,O:3},charge:-1,maxFC:3,
+    {id:'no3',name:'질산 이온',f:'NO<sub>3</sub><sup>−</sup>',atoms:{N:1,O:3},charge:-1,maxFC:3,skel:['N-O:1','N-O:1','N-O:2'],
       desc:'N 하나에 O 세 개가 결합한 음이온이에요.',
       hints:['N이 중심, O 3개를 연결해요.','N=O 이중 결합 1개 + N–O 단일 결합 2개.'],
       note:'이중 결합 위치에 따라 공명 구조가 3개 있어요.'},
-    {id:'co3',name:'탄산 이온',f:'CO<sub>3</sub><sup>2−</sup>',atoms:{C:1,O:3},charge:-2,maxFC:2,
+    {id:'co3',name:'탄산 이온',f:'CO<sub>3</sub><sup>2−</sup>',atoms:{C:1,O:3},charge:-2,maxFC:2,skel:['C-O:1','C-O:1','C-O:2'],
       desc:'전하가 −2인 다원자 이온이에요.',
       hints:['C가 중심, O 3개를 연결해요.','C=O 1개 + C–O 2개. 단일 결합한 O는 각각 −1.'],
       note:'NO₃⁻와 같은 모양의 공명 구조 3개를 가져요.'}
@@ -765,7 +765,7 @@ function usedElectrons(){ let n=0; for(const a of atoms) n+=a.lp*2; for(const b 
 function diffTxt(e,t){ return e<t ? `${t-e}개 부족` : `${e-t}개 초과`; }
 function rule(el,e,exp){
   if(el==='H') return e===2?{k:'ok',t:'듀엣 ✓'}:{k:'bad',t:diffTxt(e,2)};
-  if(el==='Be') return e===4?{k:'exc',t:'예외(4) ✓'}:{k:'bad',t:diffTxt(e,4)};
+  if(el==='Be'){ if(e===4) return {k:'exc',t:'예외(4) ✓'}; if(e===8) return {k:'ok',t:'옥텟 ✓'}; return {k:'bad',t:diffTxt(e,4)}; }
   if(el==='B'){ if(e===6) return {k:'exc',t:'예외(6) ✓'}; if(e===8) return {k:'ok',t:'옥텟 ✓'}; return {k:'bad',t:diffTxt(e,6)}; }
   if(e===8) return {k:'ok',t:'옥텟 ✓'};
   if(PERIOD3.has(el)&&(e===10||e===12)) return exp?{k:'exc',t:'확장 옥텟 ✓'}:{k:'bad',t:`${e-8}개 초과`,exp:true};
@@ -1054,6 +1054,13 @@ function evaluate(m,spS,lpS){
   // 2. 연결
   const conn=atoms.length>0&&connected();
   fb.push(conn?{s:'ok',t:'모든 원자가 공유 전자쌍으로 연결되어 있어요.'}:{s:'bad',t:'떨어져 있는 원자가 있어요. 모든 원자를 공유 전자쌍으로 연결하세요.'});
+  // 2-1. 골격 (공명 미션: 고리나 O–O 사슬처럼 전자 수·형식 전하는 맞지만 연결이 다른 구조를 걸러 냄)
+  let skelOk=true;
+  if(m.skel&&conn){
+    const have=bonds.map(b=>[getAtom(b.a).el,getAtom(b.b).el].sort().join('-')+':'+b.order).sort().join(',');
+    skelOk = have===m.skel.slice().sort().join(',');
+    fb.push(skelOk?{s:'ok',t:'골격(원자의 연결)이 맞아요.'}:{s:'bad',t:'원자의 연결(골격)을 확인하세요. 주변 원자는 모두 중심 원자에 붙고, 고리나 O–O 사슬은 만들지 않아요.'});
+  }
   // 3. 전자 수
   const used=usedElectrons(), req=missionValence(m);
   fb.push(used===req?{s:'ok',t:'원자가 전자를 빠짐없이 사용했어요.'}:
@@ -1065,7 +1072,7 @@ function evaluate(m,spS,lpS){
   else if(!badA.length) fb.push({s:'ok',t:'모든 원자가 옥텟(H는 듀엣) 규칙을 만족해요.'});
   else fb.push({s:'bad',t:'옥텟을 만족하지 않는 원자: '+badA.map(a=>`${L[a.id]}(전자 ${an[a.id].e}개, ${an[a.id].st.exp?'확장된 옥텟은 고등학교 수준에서 다루지 않아요':an[a.id].st.t})`).join(', ')});
   // 5. 형식 전하
-  const pre=comp&&conn&&used===req&&!badA.length;
+  const pre=comp&&conn&&skelOk&&used===req&&!badA.length;
   const sumAbs=atoms.reduce((s,a)=>s+Math.abs(an[a.id].fc),0);
   if(!pre) fb.push({s:'wait',t:'형식 전하 검사는 위 조건을 모두 만족하면 진행돼요.'});
   else if(sumAbs<=m.maxFC) fb.push({s:'ok',t:sumAbs===0?'모든 원자의 형식 전하가 0이에요.':'형식 전하가 가장 작은 구조예요.'});
@@ -1169,7 +1176,7 @@ function setModeUI(){
   document.querySelectorAll('.modes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
   $('#missionCard').hidden=mode!=='mission'; $('#freeCard').hidden=mode!=='free'; $('#challengeCard').hidden=mode!=='challenge';
   $('#anaCard').hidden=mode!=='free';   // 원자 분석 표는 자유 그리기에서만
-  showFC=showRing=(mode==='free'); $('#tgFC').checked=showFC; $('#tgRing').checked=showRing;
+  if(mode==='free'){ showFC=showRing=true; } $('#tgFC').checked=showFC; $('#tgRing').checked=showRing;
 }
 
 /* ===================== 도전 모드 ===================== */
@@ -1337,7 +1344,7 @@ svg.addEventListener('pointerdown',e=>{
         tol:e.pointerType==='mouse'?6:10};   // 손가락은 살짝 흔들려도 '누르기'로 인정
   // 꾹 누르기(0.45초): 강조 표시가 있는 원자의 안내를 보여 줌 (특히 휴대폰용)
   clearTimeout(lpTimer);
-  if(down.kind==='atom'&&e.button===0) lpTimer=setTimeout(()=>{
+  if(down.kind==='atom'&&e.button===0&&e.pointerType!=='mouse') lpTimer=setTimeout(()=>{
     const d=down; if(!d||d.moved) return;
     const g=svg.querySelector(`[data-kind="atom"][data-id="${d.id}"][data-tip]`); if(!g) return;
     d.long=true; temp=null; keepTipUntil=Date.now()+900;
@@ -1396,7 +1403,7 @@ function endPointer(e,cancel){
     render(); return;
   }
   const key=d.kind+':'+d.id, now=Date.now();
-  const dblOk = d.kind==='bond' || d.kind==='lp' || d.kind==='atom';   // 무엇이든 두 번 탭하면 지움
+  const dblOk = (tool==='select'||tool==='erase') && (d.kind==='bond' || d.kind==='lp' || d.kind==='atom');   // 두 번 탭 삭제는 이동·지우개 도구에서만 (공유쌍·비공유쌍 도구에서는 빠른 연속 클릭이 '추가'이므로)
   if(dblOk && !d.right && lastTap && lastTap.key===key && now-lastTap.t<350){
     restore(lastTap.snap); hist.length=lastTap.histLen; pending=lastTap.pending;  // 첫 번째 탭 결과 취소
     if(d.kind==='bond'){ const b=bonds.find(x=>x.id===d.id); if(b){ pushHistory(); removePair(b); } }
@@ -1464,7 +1471,7 @@ $('#missionList').addEventListener('click',e=>{
   const sh=e.target.closest('.stage-h');
   if(sh){ const si=+sh.dataset.stage; collapsed.has(si)?collapsed.delete(si):collapsed.add(si); save(); renderList(); return; }
   if(e.target.id==='foldAllBtn'){ if(collapsed.size===STAGES.length) collapsed.clear(); else STAGES.forEach((_,i)=>collapsed.add(i)); save(); renderList(); return; }
-  if(e.target.id==='resetBtn'){ askConfirm('모든 별점·도전 기록을 지울까요?','지운 기록은 되돌릴 수 없어요.',()=>{ progress={}; rec={}; chBest={}; save(); renderList(); renderHeader(); if(mode==='mission') renderMissionCard(); if(mode==='challenge') renderChallengeCard(); }); }
+  if(e.target.id==='resetBtn'){ askConfirm('모든 별점·도전 기록을 지울까요?','지운 기록은 되돌릴 수 없어요.',()=>{ progress={}; rec={}; chBest={}; for(const k in runs) delete runs[k]; save(); renderList(); renderHeader(); if(mode==='mission') renderMissionCard(); if(mode==='challenge') renderChallengeCard(); }); }
 });
 $('#missionList').addEventListener('change',e=>{ if(e.target.id==='unlockChk'){ unlockAll=e.target.checked; save(); renderList(); } });
 $('#missionCard').addEventListener('click',e=>{

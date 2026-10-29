@@ -315,7 +315,7 @@ body.vlab-embed header h1{display:none}
         <label class="tbtn" style="display:flex;align-items:center;gap:4px;cursor:pointer" title="결합의 쌍극자 모멘트를 화살표로 표시"><input type="checkbox" id="optDip2" style="margin:0"> 쌍극자 모멘트</label>
         <button class="tbtn" id="btnUndo">↶ 되돌리기</button>
         <button class="tbtn" id="btnClear">🗑 전체 지우기</button>
-        <span class="hidem" style="font-size:11.5px;color:var(--sub);margin-left:4px">결합 클릭 → 단일·2중·3중 전환 · 원자 더블 탭 · 꾹 누르기 → 삭제</span>
+        <span class="hidem" style="font-size:11.5px;color:var(--sub);margin-left:4px">결합 클릭 → 단일·2중·3중 전환 · 원자·결합 꾹 누르기 → 삭제</span>
       </div>
     </div>
     <div id="cvwrap"><canvas id="cv2"></canvas><div id="tip"></div>
@@ -391,9 +391,10 @@ let structVersion=0,convertedVersion=-1;
 let info={};             // 원자별 분석 결과
 let R3=null;             // 3D 변환 결과
 let toldExc=new Set();   // 20번 이내 옥텟 예외 안내를 띄운 원자
-let mode='mission',curMission=null,quizState=null;
+let mode='mission',curMission=null,quizState=null,hintOpen=false;
 let progress={};
 try{progress=JSON.parse(localStorage.getItem('vsepr-missions-v1')||'{}')}catch(e){progress={}}
+if(!progress||typeof progress!=='object'||Array.isArray(progress))progress={};
 const saveProgress=()=>{try{localStorage.setItem('vsepr-missions-v1',JSON.stringify(progress))}catch(e){}};
 
 /* =========================================================
@@ -625,7 +626,7 @@ cv.addEventListener('pointerdown',e=>{lastPtrType=e.pointerType;if(e.button!==0)
   const ch=closeHits.find(c=>Math.hypot(c.x-p.x,c.y-p.y)<12);if(ch){dismissed.add(ch.id);draw();return}
   const a=atomAt(p.x,p.y),b=a?null:bondAt(p.x,p.y);
   // 꾹 누르면 지우기 (원자·결합)
-  if((a||b)&&tool!=='erase'){const tgt=a||b;const cx=a?a.x:(atomById(b.a).x+atomById(b.b).x)/2,cy=a?a.y:(atomById(b.a).y+atomById(b.b).y)/2;
+  if((a||b)&&tool!=='erase'&&tool!=='move'){const tgt=a||b;const cx=a?a.x:(atomById(b.a).x+atomById(b.b).x)/2,cy=a?a.y:(atomById(b.a).y+atomById(b.b).y)/2;
     press={x:cx,y:cy,sx:p.x,sy:p.y,t0:performance.now(),timer:setTimeout(()=>{const pr=press;press=null;cancelAnimationFrame(pr.raf);drag=null;pushUndo();
       if(a)delAtom(a);else bonds=bonds.filter(x=>x!==b);if(navigator.vibrate)navigator.vibrate(30);changed();toast(a?`${a.el} 원자를 지웠어요. (↶ 되돌리기 가능)`:'결합을 지웠어요. (↶ 되돌리기 가능)');pressFired=true},LONGPRESS)};
     press.raf=requestAnimationFrame(()=>setTimeout(()=>press&&drawPress(),180))}
@@ -656,9 +657,9 @@ cv.addEventListener('pointerleave',()=>{tip.style.display='none';if(hover){hover
 let lastTap=null;
 cv.addEventListener('pointerup',e=>{cvPtrs.delete(e.pointerId);if(cvPtrs.size<2)pinch2=null;if(ignoreUp){if(!cvPtrs.size)ignoreUp=false;drag=null;return}
   const p=pos(e);if(press)cancelPress();if(pressFired){pressFired=false;drag=null;return}if(!drag)return;const d=drag;drag=null;
-  // 같은 원자를 빠르게 두 번 탭(더블 클릭)하면 첫 탭의 동작을 취소하고 원자를 지움
+  // ✋ 이동 도구에서 같은 원자를 빠르게 두 번 탭(더블 클릭)하면 원자를 지움 (원자 추가·전하 도구에서는 연속 클릭이 흔하므로 적용하지 않음)
   const still=Math.hypot(p.x-(d.sx??p.x),p.y-(d.sy??p.y))<8;
-  const tapAtom=(d.type==='link'&&!d.moved)?d.from:(d.type==='tap'&&d.a&&still)?d.a:(d.type==='move'&&!d.pushed)?d.atom:null;
+  const tapAtom=(d.type==='move'&&!d.pushed&&still)?d.atom:null;
   if(tapAtom){const now=performance.now();
     if(lastTap&&lastTap.id===tapAtom.id&&now-lastTap.t<350){
       let snap=null;while(undoStack.length>lastTap.u)snap=undoStack.pop();if(snap){const st=JSON.parse(snap);atoms=st.atoms;bonds=st.bonds;nextId=st.nextId}
@@ -771,7 +772,7 @@ document.getElementById('btnTidy').onclick=tidyLayout;
 document.getElementById('btnClear').onclick=()=>{if(!atoms.length)return;pushUndo();atoms=[];bonds=[];changed();toast('전체를 지웠어요. ↶ 되돌리기로 복구할 수 있어요.')};
 document.getElementById('btnAutoH').onclick=()=>{let added=0;pushUndo();
   atoms.filter(a=>a.el!=='H').forEach(a=>{const I=info[a.id];if(!I)return;const e=EL[a.el];
-    let target=['Be'].includes(a.el)?2:['B'].includes(a.el)?3:8-e.v+a.charge;const need=target-I.sumBO;
+    let target=['Be','B'].includes(a.el)&&!a.charge?e.v:Math.min(8-e.v+a.charge,e.v-a.charge);const need=target-I.sumBO;
     for(let k=0;k<need;k++){addNeighbor(a,'H',1);added++}});
   if(!added){undoStack.pop();toast('더 붙일 수소가 없어요.')}else{changed();toast(`H ${added}개를 붙였어요.`)}};
 
@@ -836,7 +837,7 @@ function domainInfo(I){
   const n=Math.max(I.n,1);const vecs=TEMPL[n].map(v=>new V3(...v).normalize());
   const Ls=LPORDER[n].slice(0,I.L);const bs=[...Array(n).keys()].filter(i=>!Ls.includes(i));
   // 비공유 전자쌍 반발로 결합각이 줄어드는 효과 (교과서 값)
-  let th=null;if(n===4&&I.L===1&&I.nb===3)th=107;if(n===4&&I.L===2&&I.nb===2)th=104.5;if(n===3&&I.L===1&&I.nb===2)th=117;
+  let th=null;if(n===4&&I.L===1&&I.nb===3)th=107;if(n===4&&I.L===2&&I.nb===2)th=104.5;if(n===3&&I.L===1&&I.nb===2)th=119;
   if(th){const ax=new V3();bs.forEach(s=>ax.add(vecs[s]));ax.normalize();const t=th*Math.PI/180;
     const al=I.nb===3?Math.acos(Math.sqrt((2*Math.cos(t)+1)/3)):t/2;
     bs.forEach(s=>{const v=vecs[s];const c=v.dot(ax);const p=v.clone().sub(ax.clone().multiplyScalar(c)).normalize();vecs[s]=ax.clone().multiplyScalar(Math.cos(al)).add(p.multiplyScalar(Math.sin(al)))});
@@ -870,10 +871,10 @@ function compute3D(){
       if(!targets.length)continue;const{q,assign}=orient(doms[id],targets,ai);
       I.nbrs.forEach(nid=>{if(placed.has(nid))return;const d=doms[id].vecs[assign[nid]].clone().applyQuaternion(q);P[nid]=P[id].clone().add(d.multiplyScalar(BL(id,nid)));placed.add(nid);queue.push({id:nid,parent:id})})}});
   // 고리 구조: 결합 길이·결합각 제약으로 이완
-  if(hasCycle){const cons=[];const key=(i,j)=>i<j?i+'_'+j:j+'_'+i;const ks=new Set();
+  if(hasCycle){const cons=[];const key=(i,j)=>i<j?i+'_'+j:j+'_'+i;const ks=new Set();const smallRings=[];comps.forEach(c=>findRings(c).forEach(r=>{if(r.length<=4)smallRings.push(r)}));
     bonds.forEach(b=>{cons.push([b.a,b.b,BL(b.a,b.b),1]);ks.add(key(b.a,b.b))});
     atoms.forEach(a=>{const I=info[a.id];if(I.nb<2)return;const t=I.nbrs.map(n=>({id:n,dir:P[n].clone().sub(P[a.id]).normalize(),w:1}));const{assign}=orient(doms[a.id],t,0);const v=doms[a.id].vecs;
-      for(let i=0;i<I.nb;i++)for(let j=i+1;j<I.nb;j++){const ni=I.nbrs[i],nj=I.nbrs[j];const c=v[assign[ni]].dot(v[assign[nj]]);const li=BL(a.id,ni),lj=BL(a.id,nj);cons.push([ni,nj,Math.sqrt(li*li+lj*lj-2*li*lj*c),0.7]);ks.add(key(ni,nj))}});
+      for(let i=0;i<I.nb;i++)for(let j=i+1;j<I.nb;j++){const ni=I.nbrs[i],nj=I.nbrs[j];const ring=smallRings.find(r=>r.includes(a.id)&&r.includes(ni)&&r.includes(nj));const c=ring?Math.cos((ring.length-2)*Math.PI/ring.length):v[assign[ni]].dot(v[assign[nj]]);const li=BL(a.id,ni),lj=BL(a.id,nj);cons.push([ni,nj,Math.sqrt(li*li+lj*lj-2*li*lj*c),ring?1:0.7]);ks.add(key(ni,nj))}});
     const ids=atoms.map(a=>a.id);
     for(let it=0;it<600;it++){cons.forEach(([i,j,d,k])=>{const D=P[j].clone().sub(P[i]);const l=D.length()||1e-6;const c=D.multiplyScalar((l-d)/l*0.5*k);P[i].add(c);P[j].sub(c)});
       for(let x=0;x<ids.length;x++)for(let y=x+1;y<ids.length;y++){if(ks.has(key(ids[x],ids[y])))continue;const D=P[ids[y]].clone().sub(P[ids[x]]);const l=D.length();if(l<2.6&&l>1e-6){const c=D.multiplyScalar((2.6-l)/l*0.05);P[ids[x]].sub(c);P[ids[y]].add(c)}}}}
@@ -892,8 +893,13 @@ function compute3D(){
   const dip=new V3();let polarBond=false;
   bonds.forEach(b=>{const ea=EL[byId[b.a].el].en,eb=EL[byId[b.b].el].en;if(Math.abs(eb-ea)>1e-9)polarBond=true;dip.add(P[b.b].clone().sub(P[b.a]).normalize().multiplyScalar(eb-ea))});
   Object.values(LP).forEach(arr=>arr.forEach(l=>dip.add(l.dir.clone().multiplyScalar(l.single?0.2:0.35))));
-  const polar=atoms.length>=2&&bonds.length>0?dip.length()>0.15:null;
-  return{P,LP,centers,polar,polarBond,comps:comps.length,byId,dip};
+  atoms.forEach(a=>{if(a.charge)dip.add(P[a.id].clone().multiplyScalar(-a.charge*0.6))});   // 형식 전하(O₃, CO 등)
+  // 단일 결합의 회전에 따라 극성이 달라질 수 있는 분자(H₂O₂, N₂H₄, 1,2-다이클로로에테인 등): 그린 모양대로 3D가 만들어지므로 표시만 해 둔다
+  const rot=(id,other)=>{const I=info[id];if(I.nb<2)return false;if(I.L>0)return true;const els=I.nbrs.filter(n=>n!==other).map(n=>byId[n].el);return new Set(els).size>1};
+  const ringKeys=new Set();comps.forEach(c=>findRings(c).forEach(r=>r.forEach((x,i)=>{const y=r[(i+1)%r.length];ringKeys.add(x<y?x+'_'+y:y+'_'+x)})));
+  const flexible=bonds.some(b=>b.order===1&&!ringKeys.has(b.a<b.b?b.a+'_'+b.b:b.b+'_'+b.a)&&rot(b.a,b.b)&&rot(b.b,b.a));
+  const polar=comps.length===1&&atoms.length>=2&&bonds.length>0?dip.length()>0.15:null;
+  return{P,LP,centers,polar,polarBond,flexible,comps:comps.length,byId,dip};
 }
 
 // ---------- 3D 렌더 (캔버스 원근 투영 + 깊이 정렬) ----------
@@ -954,10 +960,11 @@ function draw3D(t){
     R3.bonds.forEach(b=>{let a=b.a,z=b.b;const ea=EL[R3.byId[a].el].en,ez=EL[R3.byId[z].el].en;if(Math.abs(ea-ez)<1e-9)return;if(ea>ez){[a,z]=[z,a]}
       const A=C[a],Z=C[z];const side=perpFor(b,C).multiplyScalar(.42);const p1=proj(A.clone().lerp(Z,.18).add(side)),p2=proj(A.clone().lerp(Z,.82).add(side));
       arrow2(p1,p2,1.6+Math.abs(ea-ez)*1.6,'#38bdf8',true)});
-    const d=R3.dip.clone();const m=d.length();const o=proj(new V3());
+    const d=R3.dip.clone();const m=d.length();const o=proj(new V3());const lockedV=mode==='mission'&&curMission&&!progress[curMission.id];
+    const tagV=(t)=>{if(!lockedV)tag(W3/2,44,t,'rgba(244,114,182,.95)','#500724')};
     if(R3.polar){d.normalize();const L=1.4+Math.min(m,2)*.7;const a=proj(d.clone().multiplyScalar(-L*.5)),b=proj(d.clone().multiplyScalar(L*.5));
-      arrow2(a,b,5,'#f472b6',true);tag(W3/2,44,'쌍극자 모멘트의 합 ≠ 0 → 극성 분자','rgba(244,114,182,.95)','#500724')}
-    else if(R3.polar===false){g3.fillStyle='#f472b6';g3.beginPath();g3.arc(o.x,o.y,5,0,7);g3.fill();tag(W3/2,44,'쌍극자 모멘트가 상쇄 → 합 = 0 (무극성 분자)','rgba(244,114,182,.95)','#500724')}
+      arrow2(a,b,5,'#f472b6',true);tagV(R3.polarBond?'쌍극자 모멘트의 합 ≠ 0 → 극성 분자':'결합은 무극성이지만 비공유 전자쌍 때문에 쌍극자 모멘트 ≠ 0 → 극성 분자')}
+    else if(R3.polar===false){g3.fillStyle='#f472b6';g3.beginPath();g3.arc(o.x,o.y,5,0,7);g3.fill();tagV(R3.flexible?'이 배치에서는 쌍극자가 상쇄 → 단일 결합이 회전하면 극성이 될 수 있어요':'쌍극자 모멘트가 상쇄 → 합 = 0 (무극성 분자)')}
   }
 }
 function show3D(R){
@@ -1077,7 +1084,7 @@ function renderAnalysis(){
   const fresh=R3&&convertedVersion===structVersion;const locked=mode==='mission'&&curMission&&!progress[curMission.id];
   const comps=components();let h=`<div class="formula">${moleculeHTML()}</div><div class="chips"><span class="chip">원자 ${atoms.length}개</span><span class="chip">전체 전하 ${totalCharge()?chargeStr(totalCharge()):'0'}</span>`;
   if(comps.length>1)h+=`<span class="chip" style="background:#fef3c7;color:#92400e">분리된 조각 ${comps.length}개</span>`;
-  if(fresh&&R3.polar!==null)h+=locked?`<span class="chip">극성: 🔒 미션 클리어 후 공개</span>`:`<span class="chip ${R3.polar?'p':'np'}">${R3.polar?'극성 분자':'무극성 분자'}</span>`;
+  if(fresh&&R3.polar!==null)h+=locked?`<span class="chip">극성: 🔒 미션 클리어 후 공개</span>`:`<span class="chip ${R3.polar||R3.flexible?'p':'np'}">${R3.polar?'극성 분자':R3.flexible?'극성 (단일 결합의 회전에 따라 달라질 수 있음)':'무극성 분자'}</span>`;
   h+='</div>';
   const centers=atoms.filter(a=>info[a.id].nb>=2);
   if(centers.length){h+=`<table class="t"><tr><th>중심 원자</th><th>공유/비공유<br>전자쌍 수</th><th>전자쌍 배치</th><th>분자 모양</th><th>결합각</th></tr>`;
@@ -1122,7 +1129,7 @@ const MISSIONS=[
   quiz:{q:'N₂에서 두 질소 원자 사이의 공유 전자쌍은 몇 개인가요?',c:['1개','2개','3개','4개'],a:2,e:'N≡N 3중 결합으로 공유 전자쌍 3개를 공유하고, 각 N에는 비공유 전자쌍이 1개씩 있어 옥텟을 만족해요.'}},
  {id:'h2o',lv:1,title:'물 H₂O',formula:{H:2,O:1},charge:0,
   story:'생명체에 꼭 필요한 물 분자를 만들어 보세요. 평면에 그린 구조식이 3D에서는 어떤 모양이 되는지 관찰해요.',
-  hint:'O를 놓고, H를 선택한 상태에서 O를 두 번 클릭하면 H가 붙어요.',
+  hint:'O를 놓고, H를 선택한 상태에서 O를 클릭할 때마다 H가 하나씩 붙어요. 또는 O를 놓고 「H 자동 채우기」를 눌러 보세요.',
   quiz:{q:'3D 모형을 관찰해 보세요. 물 분자의 결합각에 가장 가까운 것은?',c:['180°','120°','109.5°','104.5°'],a:3,e:'중심 원자 O 주위의 전자쌍 4개(공유 2, 비공유 2)는 정사면체형으로 배치되지만, 비공유 전자쌍 사이의 반발력이 더 커서 결합각이 104.5°로 작아지고 굽은 형이 돼요.'}},
  {id:'nh3',lv:1,title:'암모니아 NH₃',formula:{H:3,N:1},charge:0,
   story:'비료의 원료인 암모니아를 만들어 보세요.',hint:'N에 H 3개를 붙이면 N에 비공유 전자쌍 1개가 자동으로 남아요.',
@@ -1180,7 +1187,7 @@ function bondsHavePolar(){return bonds.some(b=>EL[atomById(b.a).el].en!==EL[atom
 const LVNAME={1:'기본',2:'심화',3:'도전'};
 function missionChecks(m){
   const checks=[];const comps=atoms.length?components().length:0;
-  const valid=atoms.length>0&&atoms.every(a=>['ok','deficient'].includes(info[a.id].st));
+  const valid=atoms.length>0&&atoms.every(a=>['ok','deficient','expanded'].includes(info[a.id].st));
   if(m.formula){const f=formulaCounts();const same=Object.keys(m.formula).length===Object.keys(f).length&&Object.entries(m.formula).every(([k,v])=>f[k]===v);
     checks.push({label:`원소 구성 ${formulaHTML(m.formula,0)}`,ok:same});checks.push({label:`전체 전하 ${m.charge?chargeStr(m.charge):'0'}`,ok:atoms.length>0&&totalCharge()===m.charge})}
   checks.push({label:'하나로 연결된 분자',ok:comps===1});
@@ -1222,8 +1229,8 @@ function renderSide(){
   updateMobileUI();
 }
 function startMission(m){
-  curMission=m;quizState=null;
-  if(atoms.length){pushUndo()}atoms=[];bonds=[];R3=null;resetView();convertedVersion=-1;clearGroup();document.getElementById('placeholder').style.display='flex';
+  curMission=m;quizState=null;hintOpen=false;undoStack=[];
+  atoms=[];bonds=[];R3=null;resetView();convertedVersion=-1;clearGroup();document.getElementById('placeholder').style.display='flex';
   changed();renderSide();
   if(isMobile()){setView('edit');toast(`🎯 ${m.title}: 구조식을 그려 보세요!`)}
 }
@@ -1234,7 +1241,7 @@ function renderMission(){
     <div class="mhead"><button class="back" id="mBack">← 목록</button><span class="lvtag lv${m.lv}">${LVNAME[m.lv]}</span>${cleared?'<span class="lvtag" style="background:#dcfce7;color:#15803d">★ 클리어</span>':''}</div>
     <h3 style="font-size:17px;margin:6px 0">${m.title}</h3><div class="story">${m.story}</div>
     <ul class="checks">${checks.map(c=>`<li class="${c.ok?'ok':''}"><span class="ck">${c.ok?'✓':''}</span><span>${c.label}</span></li>`).join('')}</ul>
-    <button class="mbtn" id="hintBtn" style="margin-top:10px">💡 힌트 보기</button><div class="hintbox" id="hintBox">${m.hint}</div>`;
+    <button class="mbtn" id="hintBtn" style="margin-top:10px">💡 힌트 보기</button><div class="hintbox" id="hintBox" style="display:${hintOpen?'block':'none'}">${m.hint}</div>`;
   if(allOk||cleared){
     if(cleared&&(!quizState||quizState.done)){h+=`<div class="clear"><b class="big">🎉 미션 클리어!</b>${m.quiz.e}</div>`}
     else{h+=`<div class="quiz"><div class="q">✏️ 확인 문제<br>${m.quiz.q}</div>${m.quiz.c.map((c,i)=>`<button class="qopt" data-q="${i}">${String.fromCharCode(9312+i)} ${c}</button>`).join('')}<div id="qmsg" style="font-size:12.5px;color:#b91c1c;min-height:16px"></div></div>`}
@@ -1242,11 +1249,11 @@ function renderMission(){
   h+=`<div class="mbtns"><button class="mbtn" id="mReset">처음부터 다시</button>${idx<MISSIONS.length-1?`<button class="mbtn ${cleared?'pri':''}" id="mNext">다음 미션 →</button>`:''}</div></div>`;
   s.innerHTML=h;
   document.getElementById('mBack').onclick=()=>{curMission=null;renderSide();renderAnalysis();updateMobileUI()};
-  document.getElementById('hintBtn').onclick=()=>{const b=document.getElementById('hintBox');b.style.display=b.style.display==='block'?'none':'block'};
+  document.getElementById('hintBtn').onclick=()=>{hintOpen=!hintOpen;document.getElementById('hintBox').style.display=hintOpen?'block':'none'};
   document.getElementById('mReset').onclick=()=>startMission(m);
   const nx=document.getElementById('mNext');if(nx)nx.onclick=()=>startMission(MISSIONS[idx+1]);
   s.querySelectorAll('.qopt').forEach(b=>b.onclick=()=>{const i=+b.dataset.q;
-    if(i===m.quiz.a){b.classList.add('right');progress[m.id]=true;saveProgress();quizState={done:true};toast(`🎉 ${m.title} 미션 클리어!`,'ok');setTimeout(()=>{renderMission();renderAnalysis();updateMobileUI()},500)}
+    if(i===m.quiz.a){b.classList.add('right');progress[m.id]=true;saveProgress();quizState={done:true};toast(`🎉 ${m.title} 미션 클리어!`,'ok');setTimeout(()=>{if(curMission!==m)return;renderMission();renderAnalysis();updateMobileUI()},500)}
     else{b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');document.getElementById('qmsg').textContent='다시 생각해 보세요. 3D 모형을 돌려 보며 관찰하면 도움이 돼요!'}});
 }
 
@@ -1270,7 +1277,7 @@ function showGuide(first){
   <h4>🛠 사용 방법</h4>
   <ol class="steps">
     <li><b>구조식 그리기</b> — 원소를 고르고 빈 곳을 ${tap}하면 원자가 놓여요. 원자를 ${tap}하면 고른 원소가 결합된 채로 붙고, 원자에서 원자로 끌면 결합이 생겨요.</li>
-    <li><b>결합 바꾸기</b> — 결합을 ${tap}하면 단일 → 2중 → 3중 결합으로 바뀌어요. 이온은 ⊕/⊖ 전하 도구로 전하를 정해요. 잘못 놓은 원자는 <b>두 번 빠르게 탭</b>하거나, 원자·결합을 <b>꾹 누르면</b> 지워져요${m?'':' (우클릭이나 🧽 지우기 도구로도 삭제)'}.</li>
+    <li><b>결합 바꾸기</b> — 결합을 ${tap}하면 단일 → 2중 → 3중 결합으로 바뀌어요. 이온은 ⊕/⊖ 전하 도구로 전하를 정해요. 잘못 놓은 원자·결합은 <b>꾹 누르면</b> 지워져요 (✋ 이동 도구에서는 원자를 두 번 빠르게 탭해도 지워져요)${m?'':' (우클릭이나 🧽 지우기 도구로도 삭제)'}.</li>
     <li><b>전자 확인</b> — 비공유 전자쌍은 원자가 전자 수로 자동 계산돼요. 원자 둘레의 고리 색으로 옥텟 규칙을 확인해요. 보드 오른쪽 위 <b>－ / ＋</b>로 확대·축소하고, <b>100%</b>를 누르면 원래 크기, <b>⤢</b>를 누르면 분자 전체가 보이게 맞춰요${m?' (두 손가락으로도 확대·축소)':' (마우스 휠로도 확대·축소)'}. 빈 곳을 끌면 보드가 움직여요. <b>📐 원자 간 거리 조정</b>을 누르면 같은 결합은 같은 길이로, 다른 결합은 원자 크기와 결합 차수에 맞는 길이로 정리돼요.</li>
     <li><b>▶ 3D로 변환</b> — 평면 구조식이 전자쌍 반발 이론에 따라 입체 모형으로 바뀌어요. ${m?'손가락으로 끌어 회전하고, 두 손가락으로 확대·축소해요.':'끌어서 회전하고, 마우스 휠로 확대·축소해요.'} <b>🎯 정면 보기</b>를 누르면 H 외 원자가 화면 평면에 가장 많이 놓이는 방향에서 정면으로 보여 줘요.</li>
     <li><b>분자 분석</b> — 전자쌍 배치, 분자 모양, 결합각, 극성을 확인해요. <b>쌍극자 모멘트</b> 체크박스를 켜면 결합의 극성과 분자 전체의 쌍극자 모멘트를 화살표로, 부분 전하를 δ+ · δ−로 볼 수 있어요.</li>
