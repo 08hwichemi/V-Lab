@@ -1,0 +1,1549 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>루이스 전자점식 연습실 · V-Lab</title>
+<link rel="stylesheet" href="../../assets/css/lab-theme.css">
+<style>
+:root{
+  --bg:#f3f5fa;--panel:#ffffff;--ink:#1d2333;--muted:#667085;--line:#e3e7ef;
+  --accent:#5b4bdb;--accent-ink:#ffffff;--accent-soft:#eeebff;
+  --ok:#15803d;--ok-soft:#e6f6eb;--warn:#b45309;--warn-soft:#fff3dd;--bad:#c62828;--bad-soft:#fdecec;
+  --paper:#fffdf8;--grid:#eceff5;--star:#f5a623;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11131a;--panel:#1a1d28;--ink:#e8eaf2;--muted:#9aa1b5;--line:#2b3041;
+    --accent:#8b7dff;--accent-ink:#11131a;--accent-soft:#29254d;
+    --ok:#4ade80;--ok-soft:#163020;--warn:#fbbf24;--warn-soft:#382a0e;--bad:#f87171;--bad-soft:#3a1818;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11131a;--panel:#1a1d28;--ink:#e8eaf2;--muted:#9aa1b5;--line:#2b3041;
+  --accent:#8b7dff;--accent-ink:#11131a;--accent-soft:#29254d;
+  --ok:#4ade80;--ok-soft:#163020;--warn:#fbbf24;--warn-soft:#382a0e;--bad:#f87171;--bad-soft:#3a1818;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:14px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+sub,sup{font-size:.68em;line-height:0}
+
+/* header */
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;flex:1;min-width:240px}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:900;font-size:18px;letter-spacing:-1px}
+.brand h1{margin:0;font-size:19px;font-weight:900;letter-spacing:-.3px}
+.brand p{margin:0;color:var(--muted);font-size:12.5px}
+.modes{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
+.modes button{border:0;background:none;padding:7px 14px;border-radius:9px;font-weight:700;color:var(--muted)}
+.modes button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.rank{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:12px;background:var(--accent-soft)}
+.rank .st{color:var(--star);font-weight:900}
+.rank .nm{font-weight:700}
+.iconbtn{border:1px solid var(--line);background:var(--panel);width:36px;height:36px;border-radius:10px;font-weight:900}
+
+/* layout */
+main{display:grid;grid-template-columns:230px minmax(0,1fr) 330px;gap:16px;padding:16px;max-width:1560px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px;font-size:14px}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* mission list */
+#missionList{display:flex;flex-direction:column;gap:12px;min-width:0}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow)}
+.stage-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;width:100%;border:0;background:none;padding:0;text-align:left;cursor:pointer}
+.chev{display:inline-block;width:14px;color:var(--muted);transition:transform .15s}
+.stage.folded .chev{transform:rotate(-90deg)}
+.stage.folded .stage-h{margin-bottom:0}
+.stage.folded .mgrid{display:none}
+.stage-h b{font-size:13px}
+.stage-h span{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.stage.locked{opacity:.55}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mbtn{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px 8px;text-align:left;display:flex;flex-direction:column;gap:1px;min-width:0}
+.mbtn .f{font-weight:700;font-size:14px}
+.mbtn .s{font-size:11px;color:var(--star);letter-spacing:1px}
+.mbtn .s.none{color:var(--line)}
+.mbtn.cur{border-color:var(--accent);background:var(--accent-soft)}
+.mbtn:disabled{cursor:not-allowed}
+.settings{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px;padding:4px 4px 0}
+.settings label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;padding:0;text-align:left;font-size:12px}
+
+/* workspace */
+.workspace{display:flex;flex-direction:column;gap:10px;min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:var(--shadow)}
+.grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.sep{width:1px;align-self:stretch;background:var(--line)}
+.tbtn{border:1px solid transparent;background:none;border-radius:10px;padding:5px 9px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:52px;color:var(--muted)}
+.tbtn svg{width:22px;height:22px}
+.tbtn span{font-size:11px;font-weight:700}
+.tbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.ebtn{width:50px;height:50px;padding:0;border-radius:11px;border:1px solid var(--line);background:#fffdf8}
+.ebtn svg{display:block;width:100%;height:100%}
+.ebtn .es{font-family:"Noto Sans KR",system-ui,sans-serif;font-weight:800;font-size:16px;text-anchor:middle;dominant-baseline:central}
+.ebtn.on{outline:2.5px solid var(--accent);outline-offset:1px}
+.abtn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 10px;font-weight:700;font-size:12.5px}
+.abtn:disabled{opacity:.4;cursor:default}
+.toggles{display:flex;gap:12px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.canvas-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:var(--paper)}
+#cv{display:block;width:100%;height:600px;touch-action:none;user-select:none;-webkit-user-select:none;background-color:#fffdf8;background-image:linear-gradient(#eceff5 1px,transparent 1px),linear-gradient(90deg,#eceff5 1px,transparent 1px);background-size:20px 20px}
+.counter{position:absolute;top:12px;right:12px;background:#fff;border:1px solid #e3e7ef;border-radius:12px;padding:6px 12px;font-size:13px;color:#475467;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.counter b{font-size:18px;color:#1d2333}
+.counter.ok{border-color:#15803d;background:#e6f6eb}
+.counter.over{border-color:#c62828;background:#fdecec}
+.formula-tag{position:absolute;top:12px;left:12px;background:#fff;border:1px solid #e3e7ef;border-radius:12px;padding:6px 12px;font-size:13px;color:#475467}
+.formula-tag b{color:#1d2333;font-size:16px}
+.tip{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(29,35,51,.86);color:#fff;border-radius:10px;padding:8px 12px;font-size:12.5px;pointer-events:none}
+.zoomctl{position:absolute;right:12px;bottom:64px;display:flex;background:#fff;border:1px solid #e3e7ef;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.zoomctl button{border:0;background:none;color:#1d2333;min-width:36px;height:34px;font-weight:800;font-size:15px;padding:0 6px}
+.zoomctl button+button{border-left:1px solid #e3e7ef}
+.zoomctl #zReset{font-size:12px;min-width:50px}
+.zoomctl button:hover{background:#f3f5fa}
+.toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:#1d2333;color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* svg drawing */
+.sym{font-family:"Noto Sans KR",system-ui,sans-serif;font-weight:700;font-size:23px;dominant-baseline:central;text-anchor:middle;pointer-events:none}
+.ahit{fill:transparent;cursor:pointer}
+.atom:hover .ahit{fill:rgba(91,75,219,.10)}
+.bhit{stroke:transparent;stroke-width:16;cursor:pointer}
+.bline{stroke:#2a3142;stroke-width:2.4;stroke-linecap:round;pointer-events:none}
+g[data-kind="bond"]:hover .bline{stroke:#5b4bdb}
+.lphit{fill:transparent;cursor:pointer}
+g[data-kind="lp"]:hover .lphit{fill:rgba(91,75,219,.14)}
+.dot{fill:#2a3142;pointer-events:none}
+.bdot{fill:#2a3142;pointer-events:none}
+g[data-kind="bond"]:hover .bdot{fill:#5b4bdb}
+.colorize .bdot,.colorize .bline{fill:#2563eb;stroke:#2563eb}
+.colorize .lpdot{fill:#dc2626}
+.viewbtn{min-width:150px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;font-size:12.5px}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.notice{border:1px solid var(--warn);background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:8px 11px;font-size:12.5px;margin:0 0 10px;display:flex;gap:8px}
+.notice b{color:var(--warn)}
+.ring{fill:none;stroke-width:2.5;pointer-events:none}
+.ring.ok{stroke:#16a34a}.ring.exc{stroke:#d97706}.ring.bad{stroke:#dc2626;stroke-dasharray:4 3}
+.pend{fill:none;stroke:#5b4bdb;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
+.flash{fill:rgba(91,75,219,.18);stroke:#5b4bdb;stroke-width:2;pointer-events:none}
+.fc{font-size:12.5px;font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.fcbg{fill:#fff;stroke-width:1.5;pointer-events:none}
+.dip{stroke:#0f766e;stroke-width:2;fill:none;stroke-linecap:round;pointer-events:none}
+.diphead{fill:#0f766e;pointer-events:none}
+.pc{font-size:13px;font-weight:800;font-style:italic;text-anchor:middle;dominant-baseline:central;pointer-events:none;paint-order:stroke;stroke:#fffdf8;stroke-width:3px}
+.octbad{fill:rgba(250,204,21,.45);stroke:#f59e0b;stroke-width:2;stroke-dasharray:3 3;pointer-events:none;animation:octpulse 1.6s ease-in-out infinite}
+@keyframes octpulse{50%{fill:rgba(250,204,21,.22)}}
+.expline{stroke:#d97706;stroke-width:1.6;stroke-dasharray:4 3;fill:none;pointer-events:none}
+.expdot{fill:#d97706;pointer-events:none}
+.expbox{fill:#fff7e6;stroke:#d97706;stroke-width:1.4;pointer-events:none}
+.exptag{font-size:11.5px;font-weight:800;fill:#be185d;pointer-events:none}
+.exptxt{font-size:12px;font-weight:600;fill:#1d2333;pointer-events:none}
+.expx{cursor:pointer}
+.expx circle{fill:#fde68a}
+.expx:hover circle{fill:#fbbf24}
+.expx text{font-size:12px;font-weight:900;fill:#92400e;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.temp{stroke:#5b4bdb;stroke-width:2.4;stroke-dasharray:6 5;pointer-events:none}
+.ghost{fill:rgba(91,75,219,.12);stroke:#5b4bdb;stroke-width:1.5;pointer-events:none}
+.ph{fill:#a0a7b8;font-size:16px;font-weight:500}
+.brk{fill:none;stroke:#2a3142;stroke-width:2.2;pointer-events:none}
+.chg{font-size:18px;font-weight:800;fill:#2a3142;pointer-events:none}
+
+/* mission card */
+.mc-stage{font-size:12px;font-weight:700;color:var(--accent)}
+.mc-title{display:flex;align-items:baseline;gap:10px;margin:2px 0 4px;flex-wrap:wrap}
+.formula{font-size:30px;font-weight:900;letter-spacing:.5px}
+.mc-name{font-size:16px;font-weight:700;color:var(--muted)}
+.mc-desc{margin:0 0 10px;color:var(--muted);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:700;background:var(--bg)}
+.chip.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.chip.over{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.chip.charge{background:var(--accent-soft);border-color:var(--accent)}
+.step{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.step.done{border-color:var(--ok);background:var(--ok-soft)}
+.step-h{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px}
+.num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:12px;font-weight:900;flex:none}
+.step.done .num{background:var(--ok)}
+.vrow{display:flex;gap:6px}
+.cnt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cnt label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.cnt input{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:16px;font-weight:700;background:var(--bg);color:var(--ink)}
+.stepnote{margin:0;font-size:12.5px;color:var(--muted)}
+.vrow input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:15px;background:var(--bg);color:var(--ink)}
+.vmsg{font-size:12.5px;margin-top:6px;color:var(--bad)}
+.solved{font-weight:700;color:var(--ok)}
+.primary{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:9px 16px;font-weight:800}
+.primary.wide{width:100%;font-size:15px;padding:11px}
+.ghostbtn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;font-weight:700}
+.hints{margin:6px 0 4px}
+.hints ol{margin:8px 0 0;padding-left:20px;font-size:13px}
+.hints li{margin-bottom:4px;background:var(--warn-soft);border-radius:8px;padding:5px 8px;list-style-position:outside}
+.fb{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fb li{border-radius:10px;padding:7px 10px;font-size:13px;display:flex;gap:8px}
+.fb li.ok{background:var(--ok-soft)}
+.fb li.bad{background:var(--bad-soft)}
+.fb li.wait{background:var(--bg);color:var(--muted)}
+.fb .ic{font-weight:900;flex:none}
+.fb li.ok .ic{color:var(--ok)}.fb li.bad .ic{color:var(--bad)}
+.meta{margin-top:10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.meta .s{color:var(--star);letter-spacing:1px}
+details.howto{margin-top:12px;font-size:13px}
+details.howto summary{cursor:pointer;font-weight:700;color:var(--muted)}
+details.howto ol{padding-left:20px;margin:8px 0 0}
+
+/* table */
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:700;font-size:11.5px}
+td.l{font-weight:800}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--bg)}
+.st-ok{color:var(--ok);font-weight:700}.st-exc{color:var(--warn);font-weight:700}.st-bad{color:var(--bad);font-weight:700}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:10px}
+
+/* free card */
+.frow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.frow:last-of-type{border-bottom:0}
+.frow select{font:inherit;border:1px solid var(--line);border-radius:8px;padding:4px 8px;background:var(--bg);color:var(--ink)}
+.verdict{margin-top:10px;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.bad{background:var(--bg);color:var(--muted);font-weight:500}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(10,12,20,.55);display:grid;place-items:center;z-index:50;padding:16px}
+.overlay[hidden]{display:none}
+.modal{background:var(--panel);border-radius:20px;padding:26px;max-width:460px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+.modal.wide{max-width:620px;text-align:left}
+.modal h2{margin:6px 0 6px;font-size:22px}
+.big-stars{font-size:46px;color:var(--star);letter-spacing:6px;line-height:1.1}
+.big-stars .off{color:var(--line)}
+.modal p{color:var(--muted);margin:6px 0 16px}
+.mrow{display:flex;gap:8px;justify-content:center}
+.legend-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.legend-t td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;white-space:normal;vertical-align:middle}
+.legend-t td:first-child{width:52px;text-align:center}
+.legend-t svg{width:36px;height:36px;display:inline-block;background:#fffdf8;border-radius:8px}
+.lg-sym{font-size:15px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.lg-chip{display:inline-block;border:1px solid var(--ok);background:var(--ok-soft);color:var(--ok);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700;white-space:nowrap}
+.goals{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;margin:10px 0 4px}
+.goals li{font-weight:500}
+.modal h4{margin:16px 0 6px}
+.modal ol,.modal ul{padding-left:20px;margin:0}
+.modal li{margin-bottom:4px}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:12px;background:var(--bg)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* 형식 전하(심화) 용어 */
+.adv{color:#be185d;font-weight:800;border-bottom:1.5px dotted currentColor;cursor:help;outline:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .adv{color:#f472b6}}
+#advTip{position:fixed;z-index:90;max-width:320px;background:#1d2333;color:#fff;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none}
+#advTip b{color:#f9a8d4}
+#advTip[hidden]{display:none}
+button{touch-action:manipulation}
+#cv{-webkit-touch-callout:none}
+.hbtn{border:1px solid var(--line);background:var(--panel);height:36px;border-radius:10px;padding:0 12px;font-weight:700}
+/* 도전 모드 */
+.seg{display:flex;gap:6px;margin:4px 0 10px}
+.seg button{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px;font-weight:700;font-size:12.5px}
+.seg button.on{border-color:var(--accent);background:var(--accent-soft)}
+.best{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.chbar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.chtime{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;flex:1}
+.chtime.low{color:var(--bad)}
+.chstat{display:flex;flex-direction:column;align-items:center;background:var(--bg);border-radius:10px;padding:4px 10px;min-width:52px}
+.chstat span{font-size:11px;color:var(--muted)}
+.chstat b{font-size:17px}
+.tbar{height:6px;border-radius:99px;background:var(--bg);overflow:hidden;margin-bottom:12px}
+.tbar i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+/* 결과창 */
+.rhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.rhead h2{margin:0}
+.rdate{font-size:12.5px;color:var(--muted)}
+.rname{display:flex;align-items:center;gap:8px;font-weight:700}
+.rname input{border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;width:160px;background:var(--bg);color:var(--ink)}
+.rsum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.rsum div{background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+.rsum span{font-size:11.5px;color:var(--muted)}
+.rsum b{font-size:14px}
+#rTable td.mn{text-align:left}
+#rTable td .s{color:var(--star);letter-spacing:1px}
+#rTable tr.stg td{background:var(--accent-soft);font-weight:800;text-align:left}
+@media print{
+  body.print-result{background:#fff}
+  body.print-result header,body.print-result main,body.print-result .overlay:not(#resultModal),body.print-result .confetti,body.print-result #advTip{display:none!important}
+  body.print-result #resultModal{position:static;display:block!important;background:none;padding:0}
+  body.print-result #resultModal .modal{box-shadow:none;max-height:none;max-width:none;padding:0;background:#fff}
+  body.print-result #resultModal *{color:#000!important}
+  body.print-result .rsum div,body.print-result #rTable tr.stg td{background:#f1f1f1!important}
+  body.print-result .noprint{display:none!important}
+  body.print-result #rName{border:0;border-bottom:1px solid #000;border-radius:0;background:none}
+}
+
+@media (max-width:1180px){
+  main{grid-template-columns:1fr 330px}
+  #missionList{grid-column:1 / -1;order:3;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+}
+@media (max-width:820px){
+  header{padding:10px 12px;gap:8px}
+  .brand{min-width:0;flex-basis:100%}
+  .brand p{display:none}
+  .brand h1{font-size:17px}
+  .logo{width:36px;height:36px;font-size:15px;border-radius:10px}
+  .modes button{padding:6px 9px;font-size:13px}
+  .rank{padding:5px 9px;font-size:12.5px}
+  main{grid-template-columns:1fr;padding:10px;gap:10px}
+  .side{order:2}
+  .workspace{order:1}
+  #missionList{order:3;grid-template-columns:1fr}
+  .toolbar{gap:6px;padding:8px}
+  .sep{display:none}
+  .tbtn{min-width:46px;padding:4px 5px}
+  .rank .nm{display:none}
+  .hbtn{padding:0 9px}
+  #elGrp{flex-wrap:nowrap;overflow-x:auto;width:100%;padding:2px 2px 4px;-webkit-overflow-scrolling:touch}
+  .ebtn{flex:none;width:42px;height:42px}
+  .abtn{padding:6px 8px;font-size:12px}
+  .viewbtn{min-width:0;padding:6px 10px;font-size:12px}
+  .toggles{gap:8px;font-size:12px;width:100%}
+  #cv{height:62vh;min-height:360px;max-height:560px}
+  .tip{font-size:11.5px;padding:6px 10px}
+  .counter,.formula-tag{font-size:12px;padding:4px 9px}
+  .formula-tag b,.counter b{font-size:14px}
+  .rsum{grid-template-columns:1fr 1fr}
+  .modal{padding:18px}
+}
+
+/* ===== V-Lab 공용 테마에 맞춘 덮어쓰기 ===== */
+:root{--bg:#fff;--panel:#fff;--ink:#111;--muted:#6B7280;--line:#E6E8EC;--accent:#3182F6;--accent-ink:#fff;--accent-soft:#EAF2FF;
+  --ok:#0B7A4B;--ok-soft:#EDFAF3;--warn:#9A6200;--warn-soft:#FFF8E6;--bad:#B42318;--bad-soft:#FDEEEE;--paper:#FAFBFC;--grid:#EEF0F3;--star:#F5A623;--shadow:none}
+body{font-family:var(--font);font-size:14.5px;letter-spacing:-0.012em;-webkit-font-smoothing:antialiased}
+header{padding:10px 20px;gap:12px}
+.logo{display:none}
+.brand h1{font-size:18px;font-weight:600;letter-spacing:-.02em}
+.brand p{font-size:13px}
+body.vlab-embed .brand{display:none}
+body.vlab-embed header{padding:8px 16px}
+.modes{background:var(--line-2,#F0F1F3);border:0;border-radius:8px;padding:3px}
+.modes button{border-radius:6px;font-weight:600;padding:6px 14px}
+.modes button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.rank{border-radius:8px}
+.iconbtn,.hbtn,.abtn,.ghostbtn,.tbtn,.ebtn,.mbtn,.viewbtn,.zoomctl,.counter,.formula-tag{border-radius:8px}
+.card,.stage,.toolbar,.canvas-wrap,.modal,.step,.q{border-radius:12px;box-shadow:none}
+main{max-width:none;padding:14px 16px}
+.card h3,.stage-h b{font-weight:600}
+.sym,.ebtn .es{font-family:var(--font)}
+#cv{background-color:#FAFBFC;background-image:linear-gradient(#EEF0F3 1px,transparent 1px),linear-gradient(90deg,#EEF0F3 1px,transparent 1px)}
+.primary{background:#111;border-radius:8px;font-weight:600}
+.primary:hover{background:#333}
+.viewbtn{font-weight:600}
+.formula{font-weight:600}
+.mbtn.cur{border-color:var(--accent)}
+.counter,.formula-tag,.zoomctl{box-shadow:none;border-color:var(--line)}
+.tip{background:rgba(17,17,17,.86)}
+.modal{box-shadow:0 20px 60px rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+<script>if(/embed/.test(location.hash))document.body.classList.add("vlab-embed");</script>
+<header>
+  <div class="brand">
+    <div class="logo">:Ö:</div>
+    <div>
+      <h1>루이스 전자점식 연습실</h1>
+      <p>원자를 놓고, 결합하고, 전자쌍을 채워 옥텟을 완성하세요</p>
+    </div>
+  </div>
+  <nav class="modes">
+    <button data-mode="mission" class="on">🎯 미션</button>
+    <button data-mode="free">✏️ 자유 그리기</button>
+    <button data-mode="challenge">⏱ 도전</button>
+  </nav>
+  <div class="rank"><span class="st" id="starTotal">★ 0</span><span class="nm" id="rankName">원자 탐험가</span></div>
+  <button class="hbtn" id="resultBtn" title="클리어 결과 보기·인쇄">📋 결과</button>
+  <button class="hbtn" id="helpBtn" title="도움말">❓ 도움말</button>
+</header>
+
+<main>
+  <aside id="missionList"></aside>
+
+  <section class="workspace">
+    <div class="toolbar">
+      <div class="grp" id="toolGrp"></div>
+      <div class="sep"></div>
+      <div class="grp" id="elGrp"></div>
+      <div class="sep"></div>
+      <div class="grp">
+        <button class="abtn" id="undoBtn" title="되돌리기 (Ctrl+Z)">↶ 되돌리기</button>
+        <button class="abtn" id="redoBtn" title="다시 실행 (Ctrl+Y)">↷</button>
+        <button class="abtn" id="clearBtn">모두 지우기</button>
+      </div>
+      <div class="grp">
+        <button class="viewbtn" id="viewBtn" title="공유 전자쌍을 결합선으로(또는 다시 점으로) 바꿔 보여 줘요"></button>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tgFC"> <span class="adv" tabindex="0" data-term="형식 전하">형식 전하</span> 표시</label>
+        <label><input type="checkbox" id="tgRing"> 옥텟 상태 표시</label>
+        <label><input type="checkbox" id="tgColor"> 공유·비공유 색 구분</label>
+        <label><input type="checkbox" id="tgDip"> 쌍극자 모멘트·부분 전하</label>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="formula-tag" id="formulaTag"></div>
+      <div class="counter" id="counter"></div>
+      <div class="zoomctl">
+        <button id="zOut" title="축소 ( - )">−</button>
+        <button id="zReset" title="100%로 되돌리기 ( 0 )">100%</button>
+        <button id="zIn" title="확대 ( + )">+</button>
+        <button id="zFit" title="그림 전체가 보이게 맞추기">⤢</button>
+      </div>
+      <div class="toast" id="toast"></div>
+      <div class="tip" id="tip"></div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="card" id="missionCard"></div>
+    <div class="card" id="freeCard" hidden></div>
+    <div class="card" id="challengeCard" hidden></div>
+    <div class="card" id="anaCard" hidden>
+      <h3>원자 분석</h3>
+      <div class="tablewrap"><table id="table"></table></div>
+    </div>
+  </aside>
+</main>
+
+<div class="overlay" id="clearModal" hidden>
+  <div class="modal">
+    <div class="big-stars" id="cmStars"></div>
+    <h2 id="cmTitle">미션 클리어!</h2>
+    <p id="cmNote"></p>
+    <div class="mrow">
+      <button class="ghostbtn" id="cmClose">닫기</button>
+      <button class="primary" id="cmNext">다음 미션 →</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="helpModal" hidden>
+  <div class="modal wide">
+    <h2>도움말</h2>
+    <div class="goals">
+      <h4 style="margin-top:0">🎯 학습 목표</h4>
+      <ol>
+        <li>원자의 원자가 전자를 루이스 전자점식으로 나타낼 수 있다.</li>
+        <li>옥텟 규칙을 이용하여 분자와 다원자 이온의 루이스 전자점식을 그릴 수 있다.</li>
+        <li>루이스 전자점식에서 공유 전자쌍과 비공유 전자쌍을 구별하고 그 수를 셀 수 있다.</li>
+        <li>공유 전자쌍을 결합선으로 바꾸어 루이스 구조식으로 나타낼 수 있다.</li>
+      </ol>
+    </div>
+    <h4>📐 루이스 전자점식 그리는 순서</h4>
+    <ol>
+      <li>원소 카드의 점으로 각 원자의 원자가 전자를 확인한다. (음이온은 전하만큼 전자를 더 받고, 양이온은 잃는다)</li>
+      <li>골격을 정한다. 보통 개수가 적고 전기 음성도가 작은 원자가 중심, H는 항상 바깥쪽.</li>
+      <li>중심 원자와 주변 원자를 단일 결합으로 연결한다.</li>
+      <li>남은 전자로 주변 원자부터 비공유 전자쌍을 채워 옥텟(H는 2개)을 만든다.</li>
+      <li>중심 원자의 옥텟이 부족하면 주변 원자의 비공유 전자쌍을 다중 결합으로 바꾼다.</li>
+      <li><span class="adv" tabindex="0" data-term="형식 전하">형식 전하</span>를 확인해 가장 작은 구조를 고른다. (심화)</li>
+      <li>완성한 구조에서 공유 전자쌍 수와 비공유 전자쌍 수를 센다.</li>
+    </ol>
+    <h4>🛠 도구</h4>
+    <ul>
+      <li><b>원자</b>: 빈 곳을 클릭하면 선택한 원소를 놓아요. 원자에서 바깥으로 끌면 공유 전자쌍으로 연결된 새 원자가 생기고, 다른 원자까지 끌면 두 원자 사이에 공유 전자쌍이 생겨요. 원자를 클릭하면 선택한 원소로 바뀌어요.</li>
+      <li><b>공유 전자쌍</b>: 원자 두 개를 차례로 클릭하면 사이에 공유 전자쌍 1개가 생겨요. 공유 전자쌍을 클릭할 때마다 1쌍씩 늘어나요(최대 3쌍 = 삼중 결합). 우클릭(Shift+클릭)하거나 <b>두 번 탭(더블 클릭)</b>하면 1쌍 줄어요.</li>
+      <li><b>비공유 전자쌍</b>: 원자를 클릭하면 비공유 전자쌍이 하나씩 추가돼요. 전자쌍을 클릭하거나 <b>두 번 탭(더블 클릭)</b>하거나, 원자를 우클릭(Shift+클릭)하면 하나 지워져요.</li>
+      <li><b>이동</b>: 원자를 끌어서 옮겨요. <b>지우개</b>: 원자는 통째로, 전자쌍은 1쌍씩 지워요.</li>
+      <li><b>두 번 탭(더블 클릭)</b>: 어떤 도구에서든 원자를 두 번 탭하면 원자가, 전자쌍을 두 번 탭하면 그 전자쌍 1쌍이 지워져요.</li>
+      <li><b>확대·축소</b>: 보드 오른쪽 아래의 − / + 버튼, 마우스 휠, 또는 두 손가락 벌리기로 확대해요. 빈 곳을 끌면 보드가 움직이고, ⤢ 버튼은 그림 전체가 보이게 맞춰 줘요.</li>
+      <li><b>옥텟 확인 표시</b>: 옥텟 규칙을 아직 만족하지 않는 원자(H, B, Be 제외)는 노란색으로 반짝여요. PC는 마우스를 올리면, 휴대폰은 원자를 <b>꾹 누르면</b> 안내가 나오고, 바르게 고치면 표시가 사라져요.</li>
+      <li><b>확장된 옥텟 안내</b>: 3주기 원소 주위 전자가 10개나 12개가 되면 원자에서 선이 뻗어 [심화 개념] 안내가 나와요. ✕를 누르면 닫혀요.</li>
+      <li><b>쌍극자 모멘트·부분 전하</b>: 체크하면 극성 공유 결합마다 쌍극자 모멘트 화살표(δ+ → δ−, 꼬리에 +)가 나오고, 각 원자에 부분 전하 δ+ / δ−가 표시돼요. 화살표는 전기 음성도가 큰 원자 쪽을 가리켜요.</li>
+      <li><b>결합선으로 바꾸기</b>: 전자점식(공유 전자쌍을 점으로)과 구조식(공유 전자쌍 1개 = 결합선 1개)을 오가며 볼 수 있어요.</li>
+    </ul>
+    <h4>🎨 화면 표시 안내</h4>
+    <table class="legend-t">
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="rgba(250,204,21,.45)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3"/><text x="20" y="21" class="lg-sym" fill="#dc2626">O</text></svg></td>
+          <td><b>노란색 반짝임</b> — 옥텟 규칙을 아직 만족하지 않는 원자예요(H·B·Be 제외). 바르게 고치면 사라져요. PC는 마우스를 올리고, 휴대폰은 꾹 누르면 안내가 보여요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#16a34a" stroke-width="2.5"/><text x="20" y="21" class="lg-sym" fill="#dc2626">O</text></svg></td>
+          <td><b>초록 원</b> (옥텟 상태 표시를 켰을 때) — 옥텟 규칙을 만족해요. H는 전자 2개(듀엣)일 때 초록색이에요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#d97706" stroke-width="2.5"/><text x="20" y="21" class="lg-sym" fill="#b45f2f">B</text></svg></td>
+          <td><b>주황 원</b> (옥텟 상태 표시를 켰을 때) — 옥텟 규칙의 예외예요. B는 전자 6개, Be는 4개, 3주기 원소의 확장된 옥텟(10·12개)이 여기에 해당해요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="4 3"/><text x="20" y="21" class="lg-sym" fill="#2563eb">N</text></svg></td>
+          <td><b>빨간 점선 원</b> (옥텟 상태 표시를 켰을 때) — 옥텟 규칙을 만족하지 않아요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><rect x="3" y="11" width="34" height="18" rx="4" fill="#fff7e6" stroke="#d97706" stroke-width="1.4"/><line x1="20" y1="29" x2="20" y2="38" stroke="#d97706" stroke-width="1.6" stroke-dasharray="3 2"/><text x="20" y="21" style="font-size:8px;font-weight:800;text-anchor:middle;dominant-baseline:central" fill="#be185d">심화</text></svg></td>
+          <td><b>주황 말풍선</b> — 확장된 옥텟 규칙을 가진 원자를 알려 줘요(심화 개념). ✕로 닫을 수 있어요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="11" cy="20" r="8" fill="#fff" stroke="#2563eb" stroke-width="1.5"/><text x="11" y="20.5" style="font-size:10px;font-weight:800;text-anchor:middle;dominant-baseline:central" fill="#2563eb">+</text><circle cx="29" cy="20" r="8" fill="#fff" stroke="#dc2626" stroke-width="1.5"/><text x="29" y="20.5" style="font-size:10px;font-weight:800;text-anchor:middle;dominant-baseline:central" fill="#dc2626">−</text></svg></td>
+          <td><b>동그라미 속 + / − / 0</b> (<span class="adv" tabindex="0" data-term="형식 전하">형식 전하</span> 표시) — 각 원자의 형식 전하예요. 파란 +, 빨간 −, 회색 0.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><line x1="7" y1="20" x2="28" y2="20" stroke="#0f766e" stroke-width="2"/><line x1="11" y1="16" x2="11" y2="24" stroke="#0f766e" stroke-width="2"/><polygon points="35,20 27,16 27,24" fill="#0f766e"/></svg></td>
+          <td><b>청록 화살표</b> (쌍극자 모멘트 표시) — 극성 공유 결합의 쌍극자 모멘트예요. 꼬리의 +는 δ+ 쪽, 화살촉은 전기 음성도가 큰 δ− 쪽이에요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><text x="12" y="21" style="font-size:12px;font-weight:800;font-style:italic;text-anchor:middle;dominant-baseline:central" fill="#2563eb">δ+</text><text x="29" y="21" style="font-size:12px;font-weight:800;font-style:italic;text-anchor:middle;dominant-baseline:central" fill="#dc2626">δ−</text></svg></td>
+          <td><b>δ+ / δ−</b> (부분 전하) — 전자를 덜 끌어당기는 원자는 δ+(파랑), 더 끌어당기는 원자는 δ−(빨강)예요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="15" cy="15" r="3" fill="#2563eb"/><circle cx="15" cy="25" r="3" fill="#2563eb"/><circle cx="27" cy="15" r="3" fill="#dc2626"/><circle cx="27" cy="25" r="3" fill="#dc2626"/></svg></td>
+          <td><b>파란 점 / 빨간 점</b> (공유·비공유 색 구분) — 파란 점은 공유 전자쌍, 빨간 점은 비공유 전자쌍이에요.</td></tr>
+      <tr><td><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="#5b4bdb" stroke-width="2" stroke-dasharray="5 4"/><text x="20" y="21" class="lg-sym" fill="#1f2937">C</text></svg></td>
+          <td><b>보라 점선 원</b> — 공유쌍 도구로 고른 원자예요. 이어서 연결할 원자를 누르세요.</td></tr>
+      <tr><td><span class="lg-chip ok">O 1/1</span></td>
+          <td><b>미션 칩</b> — 필요한 원자 수와 지금 그린 수예요. 초록은 개수가 맞음, 빨강은 너무 많음, 회색은 아직 부족함이에요.</td></tr>
+      <tr><td><span class="adv" style="font-size:12px">심화</span></td>
+          <td><b>분홍 점선 밑줄 글자</b> — 고등학교 범위를 넘는 심화 개념이에요. 마우스를 올리거나 누르면 설명이 나와요.</td></tr>
+    </table>
+    <h4>⌨️ 단축키</h4>
+    <p style="margin:0">도구 <kbd>1</kbd>~<kbd>5</kbd> · 원소 <kbd>H</kbd> <kbd>C</kbd> <kbd>N</kbd> <kbd>O</kbd> <kbd>F</kbd> <kbd>S</kbd> <kbd>P</kbd> <kbd>B</kbd>, <kbd>L</kbd>=Cl, <kbd>E</kbd>=Be · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd> 확대·축소·원래 크기 · <kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기</p>
+    <h4>⏱ 도전 모드 · 📋 결과</h4>
+    <p style="margin:0">도전 모드는 3분 동안 무작위 분자를 최대한 많이 완성하는 게임이에요. 연속 정답은 콤보 보너스! 상단 <b>📋 결과</b>에서 이름을 쓰고 클리어 기록을 인쇄하거나 PDF로 저장할 수 있어요.</p>
+    <h4>🏅 별점</h4>
+    <p style="margin:0">힌트 없이 2번 안에 맞히면 ★★★, 힌트 1개 이하·4번 안이면 ★★, 그 외 ★. 단계의 60% 이상을 클리어하면 다음 단계가 열려요.</p>
+    <div class="mrow" style="margin-top:18px"><button class="primary" id="helpClose">시작하기</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="resultModal" hidden>
+  <div class="modal wide">
+    <div class="rhead">
+      <div><h2>📋 클리어 결과</h2><div class="rdate" id="rDate"></div></div>
+      <label class="rname">이름 <input id="rName" placeholder="이름을 입력하세요" maxlength="20"></label>
+    </div>
+    <div class="rsum" id="rSum"></div>
+    <div class="tablewrap"><table id="rTable"></table></div>
+    <div class="mrow noprint" style="margin-top:16px">
+      <button class="ghostbtn" id="rClose">닫기</button>
+      <button class="primary" id="rPrint">🖨 인쇄 · PDF 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="askModal" hidden>
+  <div class="modal" style="max-width:380px">
+    <h2 style="font-size:18px" id="askMsg"></h2>
+    <p id="askSub"></p>
+    <div class="mrow"><button class="ghostbtn" id="askNo">취소</button><button class="primary" id="askYes">확인</button></div>
+  </div>
+</div>
+<div id="advTip" hidden></div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ===================== 데이터 ===================== */
+const KEY = 'lewis-lab-progress-v1';
+const EL = {
+  H:{v:1,c:'#64748b'}, Be:{v:2,c:'#0f766e'}, B:{v:3,c:'#b45f2f'}, C:{v:4,c:'#1f2937'},
+  N:{v:5,c:'#2563eb'}, O:{v:6,c:'#dc2626'}, F:{v:7,c:'#16a34a'}, P:{v:5,c:'#ea580c'},
+  S:{v:6,c:'#b8860b'}, Cl:{v:7,c:'#15803d'}
+};
+const PERIOD3 = new Set(['P','S','Cl']);
+const PAL = ['H','C','N','O','F','Cl','S','P','B','Be'];
+const KEYMAP = {h:'H',c:'C',n:'N',o:'O',f:'F',l:'Cl',s:'S',p:'P',b:'B',e:'Be'};
+const ICON = {
+  select:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>',
+  atom:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><text x="12" y="16.5" font-size="11" font-weight="800" text-anchor="middle" fill="currentColor" stroke="none">C</text></svg>',
+  bond:'<svg viewBox="0 0 24 24"><circle cx="4" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="20" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="8.5" r="2.2" fill="currentColor"/><circle cx="12" cy="15.5" r="2.2" fill="currentColor"/></svg>',
+  lp:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".5"/><circle cx="9" cy="4.5" r="2.2" fill="currentColor"/><circle cx="15" cy="4.5" r="2.2" fill="currentColor"/></svg>',
+  erase:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 16l9-9 6 6-6 6H8z"/><path d="M8.5 11.5l6 6M13 19h7"/></svg>'
+};
+const TOOLS = [
+  {id:'select',name:'이동',key:'1'},{id:'atom',name:'원자',key:'2'},{id:'bond',name:'공유쌍',full:'공유 전자쌍',key:'3'},
+  {id:'lp',name:'비공유쌍',full:'비공유 전자쌍',key:'4'},{id:'erase',name:'지우개',key:'5'}
+];
+const TIPS = {
+  select:'이동: 원자를 끌어서 위치를 옮겨요.',
+  atom:'원자: 빈 곳 클릭 → 원자 놓기 · 원자에서 끌기 → 공유 전자쌍으로 연결된 원자 추가 · 원자 클릭 → 선택한 원소로 바꾸기 · 두 번 탭 → 지우기',
+  bond:'공유 전자쌍: 원자 두 개를 차례로 클릭 → 공유 전자쌍 1개 · 공유 전자쌍 클릭 → 1쌍 추가(최대 3쌍) · 두 번 탭(더블 클릭)·우클릭 → 1쌍 제거',
+  lp:'비공유 전자쌍: 원자 클릭 → 추가 · 전자쌍 클릭·두 번 탭 또는 원자 우클릭 → 제거 · 원자 두 번 탭 → 원자 삭제',
+  erase:'지우개: 원자 클릭 → 원자 삭제 · 공유/비공유 전자쌍 클릭 → 1쌍씩 삭제'
+};
+
+const STAGES = [
+  {name:'1단계 · 단일 결합', missions:[
+    {id:'h2',name:'수소',f:'H<sub>2</sub>',atoms:{H:2},charge:0,maxFC:0,
+      desc:'가장 간단한 분자. 두 H가 전자쌍 하나를 공유해요.',
+      hints:['H 원자 2개를 단일 결합으로 연결해요.','H는 전자 2개(듀엣)면 안정해요. 비공유 전자쌍은 필요 없어요.'],
+      note:'수소는 옥텟(8개)이 아니라 듀엣(2개) 규칙을 따라요.'},
+    {id:'cl2',name:'염소',f:'Cl<sub>2</sub>',atoms:{Cl:2},charge:0,maxFC:0,
+      desc:'할로젠 원소는 이원자 분자로 존재해요.',
+      hints:['Cl–Cl 단일 결합 하나로 연결해요.','각 Cl에 비공유 전자쌍을 3개씩 그려요.'],
+      note:'공유 전자쌍 1개, 비공유 전자쌍 6개 — 할로젠 분자의 공통 모양이에요.'},
+    {id:'hf',name:'플루오린화 수소',f:'HF',atoms:{H:1,F:1},charge:0,maxFC:0,
+      desc:'전기 음성도 차이가 큰 극성 분자예요.',
+      hints:['H–F 단일 결합으로 연결해요.','F 주위에 비공유 전자쌍 3개를 그려 옥텟을 채워요.'],
+      note:'F는 결합 1개 + 비공유 전자쌍 3개로 옥텟을 이뤄요.'},
+    {id:'h2o',name:'물',f:'H<sub>2</sub>O',atoms:{H:2,O:1},charge:0,maxFC:0,
+      desc:'중심 원자 O에 비공유 전자쌍이 있어요.',
+      hints:['O가 중심 원자예요: H–O–H','O에 비공유 전자쌍 2개를 그려 옥텟을 완성해요.'],
+      note:'O의 비공유 전자쌍 2개 때문에 물 분자는 굽은형(약 104.5°)이 돼요.'},
+    {id:'nh3',name:'암모니아',f:'NH<sub>3</sub>',atoms:{N:1,H:3},charge:0,maxFC:0,
+      desc:'N이 H 3개와 결합한 분자예요.',
+      hints:['N이 중심, 주위에 H 3개를 연결해요.','N에 비공유 전자쌍 1개가 남아요.'],
+      note:'비공유 전자쌍 1개 + 공유 전자쌍 3개 → 삼각뿔형(약 107°).'},
+    {id:'ch4',name:'메테인',f:'CH<sub>4</sub>',atoms:{C:1,H:4},charge:0,maxFC:0,
+      desc:'가장 간단한 탄화수소예요.',
+      hints:['C가 중심, H 4개를 연결해요.','C는 결합 4개로 옥텟 완성! 비공유 전자쌍은 없어요.'],
+      note:'공유 전자쌍 4개, 비공유 전자쌍 0개 → 정사면체형(109.5°).'}
+  ]},
+  {name:'2단계 · 다중 결합', missions:[
+    {id:'o2',name:'산소',f:'O<sub>2</sub>',atoms:{O:2},charge:0,maxFC:0,
+      desc:'단일 결합으로는 전자가 맞지 않아요.',
+      hints:['O와 O를 연결해요.','이중 결합 1개 + 각 O에 비공유 전자쌍 2개.'],
+      note:'O=O 이중 결합: 공유 전자쌍 2개, 비공유 전자쌍 4개.'},
+    {id:'n2',name:'질소',f:'N<sub>2</sub>',atoms:{N:2},charge:0,maxFC:0,
+      desc:'공기의 약 78%를 차지하는 분자예요.',
+      hints:['N과 N을 연결해요.','삼중 결합 1개 + 각 N에 비공유 전자쌍 1개.'],
+      note:'N≡N 삼중 결합은 매우 강해서 질소 기체는 반응성이 작아요.'},
+    {id:'co2',name:'이산화 탄소',f:'CO<sub>2</sub>',atoms:{C:1,O:2},charge:0,maxFC:0,
+      desc:'중심 원자 C가 O 두 개와 결합해요.',
+      hints:['C가 중심 원자예요: O–C–O','C=O 이중 결합 2개, 각 O에 비공유 전자쌍 2개.'],
+      note:'중심 원자 C에 비공유 전자쌍이 없어 직선형, 무극성 분자예요.'},
+    {id:'hcn',name:'사이안화 수소',f:'HCN',atoms:{H:1,C:1,N:1},charge:0,maxFC:0,
+      desc:'H, C, N이 한 줄로 이어진 분자예요.',
+      hints:['C가 중심: H–C–N','C≡N 삼중 결합, N에 비공유 전자쌍 1개.'],
+      note:'H–C≡N은 직선형 분자예요. H–N≡C로 그리면 형식 전하가 생겨 덜 안정해요.'},
+    {id:'c2h4',name:'에텐',f:'C<sub>2</sub>H<sub>4</sub>',atoms:{C:2,H:4},charge:0,maxFC:0,
+      desc:'탄소 2개가 연결되고 H가 2개씩 붙어요.',
+      hints:['C–C를 연결하고 각 C에 H를 2개씩 붙여요.','C=C 이중 결합으로 바꿔야 옥텟이 맞아요.'],
+      note:'C=C 이중 결합을 가진 가장 간단한 탄화수소(에틸렌)예요. 평면 구조예요.'},
+    {id:'c2h2',name:'에타인',f:'C<sub>2</sub>H<sub>2</sub>',atoms:{C:2,H:2},charge:0,maxFC:0,
+      desc:'탄소 2개, 수소 2개로 된 분자예요.',
+      hints:['H–C–C–H 순서로 연결해요.','C≡C 삼중 결합이 필요해요.'],
+      note:'H–C≡C–H(아세틸렌)는 직선형 분자예요.'},
+    {id:'ch2o',name:'폼알데하이드',f:'CH<sub>2</sub>O',atoms:{C:1,H:2,O:1},charge:0,maxFC:0,
+      desc:'C가 H 2개, O 1개와 결합해요.',
+      hints:['C가 중심, H 2개와 O를 연결해요.','C=O 이중 결합, O에 비공유 전자쌍 2개.'],
+      note:'C=O(카보닐기)를 가진 평면 삼각형 분자예요.'}
+  ]},
+  {name:'3단계 · 다원자 이온', missions:[
+    {id:'oh',name:'수산화 이온',f:'OH<sup>−</sup>',atoms:{O:1,H:1},charge:-1,maxFC:1,
+      desc:'전자 1개를 더 얻은 음이온이에요.',
+      hints:['O–H 단일 결합으로 연결해요.','O에 비공유 전자쌍 3개. O의 형식 전하는 −1이에요.'],
+      note:'이온은 대괄호 [ ]로 묶고 오른쪽 위에 전하를 써요.'},
+    {id:'nh4',name:'암모늄 이온',f:'NH<sub>4</sub><sup>+</sup>',atoms:{N:1,H:4},charge:1,maxFC:1,
+      desc:'NH₃에 H⁺가 결합한 양이온이에요.',
+      hints:['N이 중심, H 4개를 연결해요.','비공유 전자쌍은 없어요. N의 형식 전하 +1.'],
+      note:'NH₃의 비공유 전자쌍이 H⁺와 배위 결합해 만들어져요. 정사면체형이에요.'},
+    {id:'h3o',name:'하이드로늄 이온',f:'H<sub>3</sub>O<sup>+</sup>',atoms:{H:3,O:1},charge:1,maxFC:1,
+      desc:'물 분자에 H⁺가 결합한 양이온이에요.',
+      hints:['O가 중심, H 3개를 연결해요.','O에 비공유 전자쌍 1개, 형식 전하 +1.'],
+      note:'비공유 전자쌍 1개 → NH₃처럼 삼각뿔형이에요.'},
+    {id:'cn',name:'사이안화 이온',f:'CN<sup>−</sup>',atoms:{C:1,N:1},charge:-1,maxFC:1,
+      desc:'C와 N으로 된 음이온이에요.',
+      hints:['C와 N을 연결해요.','C≡N 삼중 결합, C와 N에 비공유 전자쌍 1개씩. C의 형식 전하 −1.'],
+      note:'CN⁻는 N₂와 전자 수가 같은 등전자 구조예요.'}
+  ]},
+  {name:'4단계 · 형식 전하와 공명', missions:[
+    {id:'co',name:'일산화 탄소',f:'CO',atoms:{C:1,O:1},charge:0,maxFC:2,
+      desc:'옥텟을 지키려면 형식 전하가 생겨요.',
+      hints:['C와 O를 연결해요.','C≡O 삼중 결합 + 각 원자에 비공유 전자쌍 1개. C는 −1, O는 +1.'],
+      note:'분자 전체는 중성이지만 C(−1), O(+1)의 형식 전하가 생겨요.'},
+    {id:'o3',name:'오존',f:'O<sub>3</sub>',atoms:{O:3},charge:0,maxFC:2,
+      desc:'공명 구조를 가진 분자예요.',
+      hints:['O–O–O 사슬로 연결해요. 가운데 O가 중심이에요.','이중 결합 1개 + 단일 결합 1개. 가운데 O는 +1, 단일 결합한 바깥 O는 −1.'],
+      note:'이중 결합 위치만 다른 공명 구조 2개가 있어요. 실제 두 O–O 결합 길이는 같아요.'},
+    {id:'no3',name:'질산 이온',f:'NO<sub>3</sub><sup>−</sup>',atoms:{N:1,O:3},charge:-1,maxFC:3,
+      desc:'N 하나에 O 세 개가 결합한 음이온이에요.',
+      hints:['N이 중심, O 3개를 연결해요.','N=O 이중 결합 1개 + N–O 단일 결합 2개.'],
+      note:'이중 결합 위치에 따라 공명 구조가 3개 있어요.'},
+    {id:'co3',name:'탄산 이온',f:'CO<sub>3</sub><sup>2−</sup>',atoms:{C:1,O:3},charge:-2,maxFC:2,
+      desc:'전하가 −2인 다원자 이온이에요.',
+      hints:['C가 중심, O 3개를 연결해요.','C=O 1개 + C–O 2개. 단일 결합한 O는 각각 −1.'],
+      note:'NO₃⁻와 같은 모양의 공명 구조 3개를 가져요.'}
+  ]},
+  {name:'5단계 · 옥텟의 예외 (도전)', missions:[
+    {id:'becl2',name:'염화 베릴륨',f:'BeCl<sub>2</sub>',atoms:{Be:1,Cl:2},charge:0,maxFC:0,
+      desc:'Be는 옥텟을 채우지 않아요.',
+      hints:['Be가 중심: Cl–Be–Cl','Be는 단일 결합 2개(전자 4개)로 그려요. Cl에는 비공유 전자쌍 3개씩.'],
+      note:'Be는 전자 4개만으로 안정한 옥텟 예외예요. 직선형 분자예요.'},
+    {id:'bf3',name:'삼플루오린화 붕소',f:'BF<sub>3</sub>',atoms:{B:1,F:3},charge:0,maxFC:0,
+      desc:'B 주위의 전자가 8개가 안 돼요.',
+      hints:['B가 중심, F 3개를 연결해요.','단일 결합 3개, 각 F에 비공유 전자쌍 3개. B는 전자 6개로 끝!'],
+      note:'B=F 이중 결합을 그리면 옥텟은 맞지만 형식 전하가 생겨 덜 안정해요.'},
+    {id:'pcl5',name:'오염화 인',f:'PCl<sub>5</sub>',atoms:{P:1,Cl:5},charge:0,maxFC:0,expanded:true,
+      desc:'P 주위에 전자가 8개보다 많아요.',
+      hints:['P가 중심, Cl 5개를 연결해요.','모두 단일 결합. P에는 비공유 전자쌍 없음 → 전자 10개 (확장된 옥텟).'],
+      note:'3주기 원소는 8개보다 많은 전자를 가질 수 있어요(확장된 옥텟). 삼각쌍뿔형.'},
+    {id:'sf6',name:'육플루오린화 황',f:'SF<sub>6</sub>',atoms:{S:1,F:6},charge:0,maxFC:0,expanded:true,
+      desc:'중심 원자에 결합이 6개!',
+      hints:['S가 중심, F 6개를 연결해요.','모두 단일 결합. S 주위 전자 12개.'],
+      note:'S 주위 전자 12개의 확장된 옥텟. 정팔면체형 분자예요.'}
+  ]}
+];
+const ALL = [];
+STAGES.forEach((s,si)=>s.missions.forEach(m=>{m.stage=si;ALL.push(m)}));
+const MAXSTARS = ALL.length*3;
+const EXP_MSG = '고등학교 물질과 에너지 수준이 아닌, 확장된 옥텟 규칙을 사용하고 있습니다';
+// 미션별 정답: [공유 전자쌍 수, 비공유 전자쌍 수]
+const PAIRS = {h2:[1,0],cl2:[1,6],hf:[1,3],h2o:[2,2],nh3:[3,1],ch4:[4,0],
+  o2:[2,4],n2:[3,2],co2:[4,4],hcn:[4,1],c2h4:[6,0],c2h2:[5,0],ch2o:[4,2],
+  oh:[1,3],nh4:[4,0],h3o:[3,1],cn:[3,2],co:[3,2],o3:[3,6],no3:[4,8],co3:[4,8],
+  becl2:[2,6],bf3:[3,9],pcl5:[5,15],sf6:[6,18]};
+ALL.forEach(m=>{ [m.sp,m.lpc]=PAIRS[m.id]; });
+const ADV_TIPS={
+  '형식 전하':'<b>[심화] 형식 전하</b><br>형식 전하 = (원자가 전자 수) − (비공유 전자 수) − (공유 전자쌍 수)<br>공유 전자쌍을 두 원자가 똑같이 나눠 가진다고 가정했을 때 각 원자가 갖는 가상의 전하예요. 실제 전하와는 달라요. 여러 구조를 그릴 수 있을 때 형식 전하가 0에 가까운 구조가 더 안정해요.<br>※ 고등학교 교육과정을 넘어서는 심화 내용이에요.',
+  '공명':'<b>[심화] 공명</b><br>원자의 배치는 같고 전자쌍(다중 결합)의 위치만 다른 루이스 전자점식을 여러 개 그릴 수 있을 때, 이 구조들을 <b>공명 구조</b>라 하고 ↔ 로 연결해 나타내요.<br>실제 분자는 어느 한 구조가 아니라 공명 구조들이 섞인 중간 상태예요. 예를 들어 O₃의 두 O–O 결합 길이는 같고, 단일 결합과 이중 결합의 중간 길이예요.<br>※ 고등학교 교육과정을 넘어서는 심화 내용이에요.'
+};
+function adv(h){ return h.replace(/형식 전하|공명/g,t=>`<span class="adv" tabindex="0" data-term="${t}">${t}</span>`); }
+// 관습적 화학식 표기
+const EN={H:2.20,Be:1.57,B:2.04,C:2.55,N:3.04,O:3.44,F:3.98,P:2.19,S:2.58,Cl:3.16};
+const FORMULA_SPECIAL={'C1H1N1':['H','C','N'],'H1O1':['O','H']};
+const RANKS = [[0,'원자 탐험가'],[12,'전자 견습생'],[30,'결합 설계자'],[50,'옥텟 마스터'],[66,'루이스 박사']];
+
+/* ===================== 상태 ===================== */
+const $ = s=>document.querySelector(s);
+const svg = $('#cv');
+let atoms=[], bonds=[], nid=1;
+let tool='atom', curEl='C', pending=null, temp=null, down=null, flashId=null;
+let mode='mission', curMission=null, freeCharge=0;
+let expDismiss=new Set(), tipSrc=null, keepTipUntil=0;
+let showDip=false, showFC=false, showRing=false, showColor=false, view='dot';
+let hist=[], redoStack=[];
+let W=800, H=600;
+const drafts={}, runs={};
+let progress={}, unlockAll=false, rec={}, chBest={}, stuName='';
+let collapsed=new Set([1,2,3,4]);
+let missionSel=null, modalKind='mission', lpTimer=null, lastTap=null;
+try{ const o=JSON.parse(localStorage.getItem(KEY)||'{}'); progress=o.p||{}; unlockAll=!!o.u; rec=o.r||{}; chBest=o.c||{}; stuName=o.n||''; collapsed=new Set(o.k2||[1,2,3,4]); }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({p:progress,u:unlockAll,r:rec,c:chBest,n:stuName,k2:[...collapsed]})); }catch(e){} }
+
+/* ===================== 모델 ===================== */
+const getAtom = id=>atoms.find(a=>a.id===id);
+const bondBetween = (a,b)=>bonds.find(x=>(x.a===a&&x.b===b)||(x.a===b&&x.b===a));
+function addAtom(el,x,y){ const a={id:nid++,el,x,y,lp:0}; atoms.push(a); return a; }
+function addBond(a,b){ const x={id:nid++,a,b,order:1}; bonds.push(x); return x; }
+/* ---- 안내 멘트 (원소 기호를 읽을 때 받침이 있으면 과/을) ---- */
+const JONG=new Set(['H','N','Cl']);
+const wa=el=>el+(JONG.has(el)?'과':'와'), eul=el=>el+(JONG.has(el)?'을':'를');
+const BN=['','단일','이중','삼중'];
+function sayBond(b){ const A=getAtom(b.a),B=getAtom(b.b); toast(`${wa(A.el)} ${eul(B.el)} ${BN[b.order]} 결합으로 연결했어요`); }
+function linkAtoms(a,b){ if(a===b) return; const ex=bondBetween(a,b); if(ex) addPair(ex); else sayBond(addBond(a,b)); }
+function addPair(b){ if(b.order>=3){ toast('공유 전자쌍은 최대 3쌍(삼중 결합)까지예요'); return false; } b.order++; sayBond(b); return true; }
+function removePair(b){
+  const A=getAtom(b.a),B=getAtom(b.b); b.order--;
+  if(b.order<=0){ bonds=bonds.filter(x=>x!==b); toast(`${wa(A.el)} ${B.el} 사이의 공유 전자쌍을 지웠어요 (결합 끊김)`); }
+  else toast(`${wa(A.el)} ${B.el} 사이의 공유 전자쌍 1쌍을 지웠어요 (${BN[b.order]} 결합)`);
+}
+function addLp(a){ if(a.lp>=4){ toast('비공유 전자쌍은 최대 4개까지예요'); return; } pushHistory(); a.lp++; toast(`${a.el}에 비공유 전자쌍을 추가했어요 (${a.lp}쌍)`); }
+function remLp(a){ if(!a||a.lp<=0) return; pushHistory(); a.lp--; toast(`${a.el}의 비공유 전자쌍 1쌍을 지웠어요 (${a.lp}쌍 남음)`); }
+function eraseAtom(a){ pushHistory(); delAtom(a.id); toast(`${a.el} 원자를 지웠어요`); }
+function delAtom(id){ atoms=atoms.filter(a=>a.id!==id); bonds=bonds.filter(b=>b.a!==id&&b.b!==id); if(pending===id) pending=null; }
+function snapshot(){ return JSON.stringify({atoms,bonds,nid}); }
+function restore(s){ const o=JSON.parse(s); atoms=o.atoms; bonds=o.bonds; nid=o.nid; }
+function pushHistory(){ hist.push(snapshot()); if(hist.length>150) hist.shift(); redoStack=[]; }
+function undo(){ if(!hist.length) return; redoStack.push(snapshot()); restore(hist.pop()); pending=null; render(); }
+function redo(){ if(!redoStack.length) return; hist.push(snapshot()); restore(redoStack.pop()); pending=null; render(); }
+
+function labels(){ const c={}, r={}; for(const a of atoms){ c[a.el]=(c[a.el]||0)+1; r[a.id]=a.el+c[a.el]; } return r; }
+function countAtoms(){ const c={}; for(const a of atoms) c[a.el]=(c[a.el]||0)+1; return c; }
+function hill(c){
+  // 관습적 표기: 탄소 화합물은 C, H, 나머지 / H가 O·S·할로젠과 함께면 H를 앞에(H2O, HF) / 그 외는 전기 음성도 작은 원소부터, H는 뒤(NH3, SF6)
+  const keys=Object.keys(c); if(!keys.length) return '';
+  const key=keys.slice().sort().map(k=>k+c[k]).join('');
+  let order=FORMULA_SPECIAL[key];
+  if(!order){
+    const others=keys.filter(k=>k!=='H'&&k!=='C').sort((a,b)=>EN[a]-EN[b]);
+    if(c.C) order=['C',...(c.H?['H']:[]),...others];
+    else if(c.H&&others.some(k=>['O','S','F','Cl'].includes(k))) order=['H',...others];
+    else order=[...others,...(c.H?['H']:[])];
+  }
+  return order.map(k=>k+(c[k]>1?`<sub>${c[k]}</sub>`:'')).join('');
+}
+function chargeStr(q){ if(!q) return ''; return (Math.abs(q)===1?'':Math.abs(q))+(q>0?'+':'−'); }
+function curCharge(){ return mode==='free' ? freeCharge : (curMission?curMission.charge:0); }
+function missionValence(m){ return Object.entries(m.atoms).reduce((t,[el,n])=>t+EL[el].v*n,0)-m.charge; }
+function valenceCalc(m){
+  let s=Object.entries(m.atoms).map(([el,n])=>`${el}(${EL[el].v})${n>1?'×'+n:''}`).join(' + ');
+  if(m.charge<0) s+=` + ${-m.charge}(음전하만큼 추가)`;
+  if(m.charge>0) s+=` − ${m.charge}(양전하만큼 제거)`;
+  return `총 원자가 전자 = ${s} = ${missionValence(m)}개`;
+}
+function usedElectrons(){ let n=0; for(const a of atoms) n+=a.lp*2; for(const b of bonds) n+=b.order*2; return n; }
+
+function diffTxt(e,t){ return e<t ? `${t-e}개 부족` : `${e-t}개 초과`; }
+function rule(el,e,exp){
+  if(el==='H') return e===2?{k:'ok',t:'듀엣 ✓'}:{k:'bad',t:diffTxt(e,2)};
+  if(el==='Be') return e===4?{k:'exc',t:'예외(4) ✓'}:{k:'bad',t:diffTxt(e,4)};
+  if(el==='B'){ if(e===6) return {k:'exc',t:'예외(6) ✓'}; if(e===8) return {k:'ok',t:'옥텟 ✓'}; return {k:'bad',t:diffTxt(e,6)}; }
+  if(e===8) return {k:'ok',t:'옥텟 ✓'};
+  if(PERIOD3.has(el)&&(e===10||e===12)) return exp?{k:'exc',t:'확장 옥텟 ✓'}:{k:'bad',t:`${e-8}개 초과`,exp:true};
+  return {k:'bad',t:diffTxt(e,8)};
+}
+function analyze(){
+  const exp = mode==='free' || (curMission && curMission.expanded);
+  const res={};
+  for(const a of atoms){
+    let bo=0; for(const b of bonds) if(b.a===a.id||b.b===a.id) bo+=b.order;
+    const e=bo*2+a.lp*2, fc=EL[a.el].v-a.lp*2-bo;
+    res[a.id]={bo,e,fc,st:rule(a.el,e,exp)};
+  }
+  return res;
+}
+// 부분 전하: 결합한 상대 원자들과의 전기 음성도 차이 합이 +이면 δ−, −이면 δ+
+const POLAR_MIN=0.1;
+function dipNormal(ux,uy){ let nx=-uy, ny=ux; if(ny>0||(Math.abs(ny)<1e-9&&nx>0)){ nx=-nx; ny=-ny; } return {x:nx,y:ny}; }  // 결합의 위(또는 왼쪽)
+function partialCharges(){
+  const q={};
+  for(const a of atoms) q[a.id]=0;
+  for(const b of bonds){ const A=getAtom(b.a),B=getAtom(b.b), d=EN[A.el]-EN[B.el]; if(Math.abs(d)<POLAR_MIN) continue; q[A.id]+=d; q[B.id]-=d; }
+  return q;
+}
+function connected(){
+  if(atoms.length<=1) return true;
+  const seen=new Set([atoms[0].id]), q=[atoms[0].id];
+  while(q.length){ const id=q.shift(); for(const b of bonds){ const o=b.a===id?b.b:b.b===id?b.a:null; if(o!=null&&!seen.has(o)){seen.add(o);q.push(o);} } }
+  return seen.size===atoms.length;
+}
+
+/* ===================== 배치 계산 ===================== */
+function angDist(a,b){ let d=Math.abs(a-b)%(2*Math.PI); return d>Math.PI?2*Math.PI-d:d; }
+function layoutAtom(a){
+  const occ=[];
+  for(const b of bonds){ if(b.a===a.id||b.b===a.id){ const o=getAtom(b.a===a.id?b.b:b.a); occ.push(Math.atan2(o.y-a.y,o.x-a.x)); } }
+  const cands=[]; for(let d=0;d<360;d+=15) cands.push(d*Math.PI/180);
+  const bonus=ang=>{ const d=Math.round(ang*180/Math.PI)%360; return d%90===0?0.2:(d%45===0?0.05:0); };
+  const lps=[];
+  for(let k=0;k<a.lp;k++){
+    let best=null,bs=-1;
+    for(const c of cands){
+      const all=occ.concat(lps);
+      let md=all.length?Math.min(...all.map(o=>angDist(c,o))):Math.PI;
+      if(lps.some(o=>angDist(c,o)<0.01)) md=-1;
+      const sc=md+bonus(c);
+      if(sc>bs+1e-9){bs=sc;best=c;}
+    }
+    lps.push(best);
+  }
+  const all=occ.concat(lps);
+  // 쌍극자 화살표가 지나가는 자리도 피함
+  if(showDip) for(const b of bonds){
+    if(b.a!==a.id&&b.b!==a.id) continue;
+    const o=getAtom(b.a===a.id?b.b:b.a); if(Math.abs(EN[o.el]-EN[a.el])<POLAR_MIN) continue;
+    const dx=o.x-a.x, dy=o.y-a.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, n=dipNormal(ux,uy);
+    all.push(Math.atan2(uy*L*0.4+n.y*15, ux*L*0.4+n.x*15));
+  }
+  // 대각선 4자리 중 결합·비공유 전자쌍과 가장 먼 자리부터: 형식 전하 → 부분 전하(δ) 순서
+  const diag=[-Math.PI/4,-3*Math.PI/4,Math.PI/4,3*Math.PI/4].map(c=>({c,md:all.length?Math.min(...all.map(o=>angDist(c,o))):Math.PI}))
+    .sort((x,y)=>y.md-x.md+1e-9*(0));
+  const fcAng=diag[0].c, dAng=showFC?diag[1].c:diag[0].c;
+  return {lps,fcAng,dAng,occAll:all};
+}
+const shrink = el => el.length>1?17:(el==='H'?11:12);
+
+/* ===================== 렌더링 ===================== */
+function render(){
+  const an=analyze(); const q=curCharge();
+  let h='';
+  const ph = atoms.length ? '' : `<text x="${W/2}" y="${H/2}" class="ph" text-anchor="middle">빈 곳을 클릭해 원자를 놓아 보세요</text>`;
+  // 대괄호
+  if(q && atoms.length){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const a of atoms){x0=Math.min(x0,a.x);y0=Math.min(y0,a.y);x1=Math.max(x1,a.x);y1=Math.max(y1,a.y);}
+    x0-=34;y0-=34;x1+=34;y1+=34;
+    h+=`<path class="brk" d="M${x0+9} ${y0}H${x0}V${y1}H${x0+9}M${x1-9} ${y0}H${x1}V${y1}H${x1-9}"/>`;
+    h+=`<text class="chg" x="${x1+5}" y="${y0+6}">${chargeStr(q)}</text>`;
+  }
+  // 결합
+  for(const b of bonds){
+    const A=getAtom(b.a),B=getAtom(b.b); const dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy)||1;
+    const ux=dx/len,uy=dy/len,nx=-uy,ny=ux; const s1=shrink(A.el),s2=shrink(B.el);
+    const x1=A.x+ux*s1,y1=A.y+uy*s1,x2=B.x-ux*s2,y2=B.y-uy*s2;
+    h+=`<g data-kind="bond" data-id="${b.id}"><line class="bhit" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
+    if(view==='line'){
+      const offs=b.order===1?[0]:b.order===2?[-4.5,4.5]:[-7,0,7];
+      if(len>s1+s2+2) for(const o of offs) h+=`<line class="bline" x1="${x1+nx*o}" y1="${y1+ny*o}" x2="${x2+nx*o}" y2="${y2+ny*o}"/>`;
+    } else {
+      // 공유 전자쌍: 두 원자 사이에 점 2개(결합축에 수직)씩, 쌍마다 결합축 방향으로 나란히
+      const mx=(x1+x2)/2,my=(y1+y2)/2, gap=6.5;
+      for(let i=0;i<b.order;i++){
+        const o=(i-(b.order-1)/2)*gap, cx=mx+ux*o, cy=my+uy*o;
+        h+=`<circle class="bdot" cx="${cx+nx*4.2}" cy="${cy+ny*4.2}" r="2.6"/><circle class="bdot" cx="${cx-nx*4.2}" cy="${cy-ny*4.2}" r="2.6"/>`;
+      }
+    }
+    h+=`</g>`;
+  }
+  // 결합의 쌍극자 모멘트: δ+ 원자 → δ− 원자 방향, 꼬리에 + 표시
+  if(showDip) for(const b of bonds){
+    let S=getAtom(b.a), E=getAtom(b.b); const d=EN[E.el]-EN[S.el];
+    if(Math.abs(d)<POLAR_MIN) continue;
+    if(d<0){ const t=S; S=E; E=t; }
+    const dx=E.x-S.x, dy=E.y-S.y, L=Math.hypot(dx,dy); if(L<20) continue;
+    const ux=dx/L, uy=dy/L, nn=dipNormal(ux,uy), nx=nn.x, ny=nn.y;  // 결합의 위(또는 왼쪽)로 띄움
+    const off=15, x1=S.x+ux*L*0.22+nx*off, y1=S.y+uy*L*0.22+ny*off, x2=S.x+ux*L*0.78+nx*off, y2=S.y+uy*L*0.78+ny*off;
+    const tx=x1+ux*4, ty=y1+uy*4;
+    h+=`<line class="dip" x1="${x1}" y1="${y1}" x2="${x2-ux*5}" y2="${y2-uy*5}"/>`+
+       `<line class="dip" x1="${tx+nx*4}" y1="${ty+ny*4}" x2="${tx-nx*4}" y2="${ty-ny*4}"/>`+
+       `<polygon class="diphead" points="${x2},${y2} ${x2-ux*7+nx*4},${y2-uy*7+ny*4} ${x2-ux*7-nx*4},${y2-uy*7-ny*4}"/>`;
+  }
+  const pq=showDip?partialCharges():null;
+  // 원자
+  const callouts=[];
+  for(const a of atoms){
+    const r=an[a.id], lay=layoutAtom(a);
+    const isExp=PERIOD3.has(a.el)&&(r.e===10||r.e===12);
+    const badOct=r.st.k==='bad'&&!['H','B','Be'].includes(a.el)&&!isExp;   // H·B·Be는 표시하지 않음
+    if(isExp&&!expDismiss.has(a.id)) callouts.push({a,occ:lay.occAll});
+    h+=`<g class="atom" data-kind="atom" data-id="${a.id}"${badOct?' data-tip="옥텟 규칙을 확인해보세요"':''}>`;
+    if(badOct) h+=`<circle class="octbad" cx="${a.x}" cy="${a.y}" r="19"/>`;
+    if(flashId===a.id) h+=`<circle class="flash" cx="${a.x}" cy="${a.y}" r="20"/>`;
+    if(showRing) h+=`<circle class="ring ${r.st.k}" cx="${a.x}" cy="${a.y}" r="25"/>`;
+    if(pending===a.id) h+=`<circle class="pend" cx="${a.x}" cy="${a.y}" r="19"/>`;
+    h+=`<circle class="ahit" cx="${a.x}" cy="${a.y}" r="17"/>`;
+    h+=`<text class="sym" x="${a.x}" y="${a.y}" fill="${EL[a.el].c}">${a.el}</text></g>`;
+    if(a.lp){
+      h+=`<g data-kind="lp" data-id="${a.id}">`;
+      // 원소 기호 바로 옆(가로는 글자 폭, 세로는 글자 높이에 맞춘 타원 위)에 배치
+      const RX=a.el.length>1?16:11.5, RY=13;
+      for(const ang of lay.lps){
+        const cx=a.x+RX*Math.cos(ang),cy=a.y+RY*Math.sin(ang),tx=-Math.sin(ang),ty=Math.cos(ang);
+        h+=`<circle class="lphit" cx="${cx}" cy="${cy}" r="5.5"/>`;
+        h+=`<circle class="dot lpdot" cx="${cx+tx*3.9}" cy="${cy+ty*3.9}" r="2.6"/><circle class="dot lpdot" cx="${cx-tx*3.9}" cy="${cy-ty*3.9}" r="2.6"/>`;
+      }
+      h+=`</g>`;
+    }
+    if(pq && Math.abs(pq[a.id])>=POLAR_MIN){
+      const neg=pq[a.id]>0, px=a.x+(a.el.length>1?27:24)*Math.cos(lay.dAng), py=a.y+24*Math.sin(lay.dAng);
+      h+=`<text class="pc" x="${px}" y="${py}" fill="${neg?'#dc2626':'#2563eb'}">δ${neg?'−':'+'}</text>`;
+    }
+    if(showFC){
+      const fx=a.x+24*Math.cos(lay.fcAng),fy=a.y+24*Math.sin(lay.fcAng); const col=r.fc>0?'#2563eb':r.fc<0?'#dc2626':'#94a3b8';
+      const txt=r.fc===0?'0':(r.fc>0?'+':'−')+(Math.abs(r.fc)>1?Math.abs(r.fc):'');
+      h+=`<circle class="fcbg" cx="${fx}" cy="${fy}" r="9.5" stroke="${col}"/><text class="fc" x="${fx}" y="${fy}" fill="${col}">${txt}</text>`;
+    }
+  }
+  // 확장된 옥텟 안내: 원자에서 빈 방향으로 선을 뻗어 말풍선 표시 (✕로 끄기)
+  if(callouts.length){
+    // 말풍선은 분자 전체의 위쪽(공간이 없으면 아래쪽) 빈 곳에 두고, 원자에서 점선을 뻗어 연결
+    let y0=Infinity,y1=-Infinity; for(const t of atoms){ y0=Math.min(y0,t.y); y1=Math.max(y1,t.y); }
+    const vl=-vx/vz+6, vt=-vy/vz+6, vr=(W-vx)/vz-6, vb=(H-vy)/vz-50, bw=232, bh=42;
+    callouts.forEach(({a},i)=>{
+      let above=true, by=y0-40-bh-i*(bh+8);
+      if(by<vt){ above=false; by=y1+40+i*(bh+8); if(by+bh>vb) { above=true; by=Math.max(vt,y0-40-bh-i*(bh+8)); } }
+      let bx=a.x-bw/2; bx=Math.max(vl,Math.min(bx,vr-bw));
+      const ax=Math.max(bx+14,Math.min(a.x,bx+bw-14)), ay=above?by+bh:by;
+      const dl=Math.hypot(ax-a.x,ay-a.y)||1, sx=a.x+(ax-a.x)/dl*15, sy=a.y+(ay-a.y)/dl*15;
+      h+=`<circle class="expdot" cx="${sx}" cy="${sy}" r="2.5"/><line class="expline" x1="${sx}" y1="${sy}" x2="${ax}" y2="${ay}"/>`+
+         `<rect class="expbox" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="8"/>`+
+         `<text class="exptag" x="${bx+10}" y="${by+15}">[심화 개념]</text>`+
+         `<text class="exptxt" x="${bx+10}" y="${by+32}">확장된 옥텟 규칙을 가지고 있습니다</text>`+
+         `<g class="expx" data-kind="xexp" data-id="${a.id}"><title>안내 닫기</title><circle cx="${bx+bw-14}" cy="${by+14}" r="9"/><text x="${bx+bw-14}" y="${by+14.5}">✕</text></g>`;
+    });
+  }
+  if(temp){
+    h+=`<line class="temp" x1="${temp.x1}" y1="${temp.y1}" x2="${temp.x2}" y2="${temp.y2}"/>`;
+    if(temp.ghost) h+=`<circle class="ghost" cx="${temp.x2}" cy="${temp.y2}" r="14"/>`;
+  }
+  if(tipSrc==='svg'){ advTip.hidden=true; tipSrc=null; }
+  svg.innerHTML=ph+`<g transform="translate(${vx} ${vy}) scale(${vz})">${h}</g>`;
+  svg.style.backgroundSize=`${20*vz}px ${20*vz}px`; svg.style.backgroundPosition=`${vx}px ${vy}px`;
+  $('#zReset').textContent=Math.round(vz*100)+'%';
+  svg.classList.toggle('colorize',showColor);
+  $('#viewBtn').textContent = view==='dot' ? '⇄ 결합선으로 바꾸기' : '⇄ 전자점으로 되돌리기';
+  renderTable(an); renderCounter(); updateLive(an);
+  $('#undoBtn').disabled=!hist.length; $('#redoBtn').disabled=!redoStack.length;
+}
+
+function renderTable(an){
+  const t=$('#table');
+  if(!atoms.length){ t.innerHTML='<tr><td class="empty">아직 원자가 없어요</td></tr>'; return; }
+  const L=labels();
+  let h=`<tr><th>원자</th><th>공유 전자쌍</th><th>비공유 전자쌍</th><th>주위 전자</th>${showRing?'<th>상태</th>':''}${showFC?'<th>형식 전하</th>':''}</tr>`;
+  for(const a of atoms){ const r=an[a.id];
+    h+=`<tr class="row" data-id="${a.id}"><td class="l" style="color:${EL[a.el].c}">${L[a.id]}</td><td>${r.bo}</td><td>${a.lp}</td><td><b>${r.e}</b></td>`+
+      (showRing?`<td class="st-${r.st.k}">${r.st.t}</td>`:'')+
+      (showFC?`<td>${r.fc>0?'+'+r.fc:r.fc<0?'−'+(-r.fc):'0'}</td>`:'')+`</tr>`;
+  }
+  t.innerHTML=adv(h);
+}
+function renderCounter(){
+  const c=$('#counter');
+  if(mode!=='free'){ c.style.display='none'; }  // 미션·도전에서는 학생이 직접 세도록 숨김
+  else {
+    let sp=0,lp=0; for(const b of bonds) sp+=b.order; for(const a of atoms) lp+=a.lp;
+    c.style.display=''; c.className='counter';
+    c.innerHTML=`공유 전자쌍 <b>${sp}</b> · 비공유 전자쌍 <b>${lp}</b>`;
+  }
+  const ft=$('#formulaTag'); const f=hill(countAtoms());
+  const now=f?`${f}${curCharge()?`<sup>${chargeStr(curCharge())}</sup>`:''}`:'';
+  if(mode!=='free'&&curMission){ ft.style.display='block'; ft.innerHTML=`목표 <b>${curMission.f}</b>${now?` · 현재 ${now}`:''}`; }
+  else { ft.style.display=f?'block':'none'; ft.innerHTML=`현재 <b>${now}</b>`; }
+}
+
+/* ===================== 미션 ===================== */
+function run(){ const id=curMission.id; return runs[id]||(runs[id]={hints:0,fails:0,fb:[],sp:'',lp:''}); }
+function stageUnlocked(si){
+  if(si===0||unlockAll) return true;
+  const prev=STAGES[si-1].missions; const cleared=prev.filter(m=>progress[m.id]).length;
+  return cleared>=Math.ceil(prev.length*0.6);
+}
+function stars(n){ return '★'.repeat(n)+'☆'.repeat(3-n); }
+function totalStars(){ return Object.values(progress).reduce((a,b)=>a+b,0); }
+function rankName(){ const t=totalStars(); let nm=RANKS[0][1]; for(const [th,n] of RANKS) if(t>=th) nm=n; return nm; }
+function renderHeader(){
+  const t=totalStars();
+  $('#starTotal').textContent=`★ ${t} / ${MAXSTARS}`; $('#rankName').textContent=rankName();
+}
+function renderList(){
+  let h='';
+  STAGES.forEach((s,si)=>{
+    const ok=stageUnlocked(si), cl=s.missions.filter(m=>progress[m.id]).length;
+    const fold=collapsed.has(si);
+    h+=`<div class="stage${ok?'':' locked'}${fold?' folded':''}"><button class="stage-h" data-stage="${si}" aria-expanded="${!fold}"><b><span class="chev">▾</span>${ok?'':'🔒 '}${s.name}</b><span>${cl}/${s.missions.length}</span></button><div class="mgrid">`;
+    for(const m of s.missions){
+      const st=progress[m.id]||0;
+      h+=`<button class="mbtn${missionSel&&missionSel.id===m.id&&mode==='mission'?' cur':''}" data-mid="${m.id}" ${ok?'':'data-locked="1"'}><span class="f">${m.f}</span><span class="s${st?'':' none'}">${stars(st)}</span></button>`;
+    }
+    h+=`</div></div>`;
+  });
+  h+=`<div class="settings"><label><input type="checkbox" id="unlockChk" ${unlockAll?'checked':''}> 선생님 모드: 모든 미션 열기</label><button class="linkbtn" id="foldAllBtn">${collapsed.size===STAGES.length?'모든 단계 펼치기':'모든 단계 접기'}</button><button class="linkbtn" id="resetBtn">진행 기록 초기화</button></div>`;
+  $('#missionList').innerHTML=adv(h);
+}
+function renderMissionCard(){
+  const m=curMission, r=run(), st=STAGES[m.stage], best=progress[m.id]||0;
+  let h=`<div class="mc-stage">${st.name}</div>
+  <div class="mc-title"><span class="formula">${m.f}</span><span class="mc-name">${m.name}</span></div>
+  <p class="mc-desc">${m.desc}</p>
+  ${m.expanded?`<div class="notice"><b>⚠</b><span>${EXP_MSG}</span></div>`:''}
+  <div class="chips" id="chips"></div>
+  <div class="step">
+    <div class="step-h"><span class="num">1</span> 루이스 전자점식 그리기</div>
+    <p class="stepnote">원소 카드의 점(원자가 전자)을 모두 사용해서, 각 원자가 옥텟(H는 전자 2개)을 이루도록 그려요.</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="num">2</span> 전자쌍 수 세기</div>
+    <div class="cnt">
+      <label>공유 전자쌍 수<input id="inSp" type="number" min="0" inputmode="numeric" placeholder="?" value="${r.sp}"></label>
+      <label>비공유 전자쌍 수<input id="inLp" type="number" min="0" inputmode="numeric" placeholder="?" value="${r.lp}"></label>
+    </div>
+  </div>
+  <button class="primary wide" id="checkBtn">검사하기</button>
+  <ul class="fb">${r.fb.map(f=>`<li class="${f.s}"><span class="ic">${f.s==='ok'?'✓':f.s==='bad'?'✗':'·'}</span><span>${f.t}</span></li>`).join('')}</ul>
+  <div class="hints"><button class="ghostbtn" id="hintBtn" ${r.hints>=3?'disabled':''}>💡 힌트 보기 (${r.hints}/3)</button>
+    ${r.hints?`<ol>${hintList(m).slice(0,r.hints).map(x=>`<li>${x}</li>`).join('')}</ol>`:''}</div>
+  <div class="meta"><span>틀린 횟수 ${r.fails}회 · 힌트 ${r.hints}개</span><span>최고 기록 <span class="s">${stars(best)}</span></span></div>
+  <details class="howto"><summary>루이스 전자점식 그리는 순서</summary><ol>
+    <li>원소 카드로 각 원자의 원자가 전자 확인</li><li>골격 정하기 (H는 항상 바깥)</li><li>원자 사이에 공유 전자쌍 1개씩 놓기</li>
+    <li>주변 원자부터 비공유 전자쌍 채우기</li><li>중심 원자 옥텟 부족 → 공유 전자쌍 추가(다중 결합)</li><li>공유·비공유 전자쌍 수 세기</li></ol></details>`;
+  $('#missionCard').innerHTML=adv(h);
+  updateLive(analyze());
+}
+function hint1(m){
+  let s='원자가 전자: '+Object.entries(m.atoms).map(([el,n])=>`${el} ${EL[el].v}개${n>1?' × '+n:''}`).join(', ');
+  if(m.charge<0) s+=` (음이온이므로 전자 ${-m.charge}개를 더 받아요)`;
+  if(m.charge>0) s+=` (양이온이므로 전자 ${m.charge}개를 잃어요)`;
+  const t=missionValence(m);
+  return s+` → 전자 ${t}개, 즉 ${t/2}쌍을 공유 또는 비공유 전자쌍으로 모두 배치해요.`;
+}
+function hintList(m){ return [hint1(m), ...m.hints]; }
+function updateLive(){
+  const el=$(mode==='challenge'?'#chChips':'#chips'); if(!el||mode==='free'||!curMission) return;
+  const c=countAtoms(), m=curMission; let h='';
+  for(const [k,n] of Object.entries(m.atoms)){ const v=c[k]||0; h+=`<span class="chip ${v===n?'ok':v>n?'over':''}">${k} ${v}/${n}</span>`; }
+  for(const k of Object.keys(c)) if(!m.atoms[k]) h+=`<span class="chip over">${k} ${c[k]}/0</span>`;
+  if(m.charge) h+=`<span class="chip charge">전하 ${chargeStr(m.charge)}</span>`;
+  el.innerHTML=h;
+}
+function evaluate(m,spS,lpS){
+  const an=analyze(), L=labels(), c=countAtoms(), fb=[];
+  // 1. 원자 구성
+  const keys=new Set([...Object.keys(c),...Object.keys(m.atoms)]);
+  let comp=true; for(const k of keys) if((c[k]||0)!==(m.atoms[k]||0)) comp=false;
+  fb.push(comp?{s:'ok',t:'원자 구성이 맞아요.'}:{s:'bad',t:`원자 구성이 달라요. 필요: ${Object.entries(m.atoms).map(([k,n])=>k+' '+n).join(', ')} / 현재: ${Object.keys(c).length?Object.entries(c).map(([k,n])=>k+' '+n).join(', '):'없음'}`});
+  // 2. 연결
+  const conn=atoms.length>0&&connected();
+  fb.push(conn?{s:'ok',t:'모든 원자가 공유 전자쌍으로 연결되어 있어요.'}:{s:'bad',t:'떨어져 있는 원자가 있어요. 모든 원자를 공유 전자쌍으로 연결하세요.'});
+  // 3. 전자 수
+  const used=usedElectrons(), req=missionValence(m);
+  fb.push(used===req?{s:'ok',t:'원자가 전자를 빠짐없이 사용했어요.'}:
+    {s:'bad',t:used<req?`전자가 ${req-used}개 부족해요. 각 원자의 원자가 전자(원소 카드의 점)${m.charge?'와 이온의 전하':''}를 모두 반영했는지 확인해 보세요.`
+                     :`전자가 ${used-req}개 많아요. 원자들이 가진 원자가 전자${m.charge?'(이온의 전하 포함)':''}보다 많이 그리지 않았는지 확인해 보세요.`});
+  // 4. 옥텟
+  const badA=atoms.filter(a=>an[a.id].st.k==='bad');
+  if(!atoms.length) fb.push({s:'bad',t:'원자를 먼저 그려 보세요.'});
+  else if(!badA.length) fb.push({s:'ok',t:'모든 원자가 옥텟(H는 듀엣) 규칙을 만족해요.'});
+  else fb.push({s:'bad',t:'옥텟을 만족하지 않는 원자: '+badA.map(a=>`${L[a.id]}(전자 ${an[a.id].e}개, ${an[a.id].st.exp?'확장된 옥텟은 고등학교 수준에서 다루지 않아요':an[a.id].st.t})`).join(', ')});
+  // 5. 형식 전하
+  const pre=comp&&conn&&used===req&&!badA.length;
+  const sumAbs=atoms.reduce((s,a)=>s+Math.abs(an[a.id].fc),0);
+  if(!pre) fb.push({s:'wait',t:'형식 전하 검사는 위 조건을 모두 만족하면 진행돼요.'});
+  else if(sumAbs<=m.maxFC) fb.push({s:'ok',t:sumAbs===0?'모든 원자의 형식 전하가 0이에요.':'형식 전하가 가장 작은 구조예요.'});
+  else fb.push({s:'bad',t:`옥텟은 맞지만 형식 전하가 더 작은 구조가 있어요. (현재 형식 전하 크기의 합 = ${sumAbs}) 골격이나 다중 결합 위치를 바꿔 보세요.`});
+  // 6. 전자쌍 수
+  const sp=parseInt(spS,10), lp=parseInt(lpS,10);
+  if(isNaN(sp)||isNaN(lp)) fb.push({s:'bad',t:'공유 전자쌍 수와 비공유 전자쌍 수를 입력하세요.'});
+  else if(sp===m.sp&&lp===m.lpc) fb.push({s:'ok',t:`공유 전자쌍 ${sp}개, 비공유 전자쌍 ${lp}개 — 정답!`});
+  else {
+    const w=[]; if(sp!==m.sp) w.push('공유 전자쌍 수'); if(lp!==m.lpc) w.push('비공유 전자쌍 수');
+    fb.push({s:'bad',t:`${w.join('와 ')}가 달라요.${sp!==m.sp?' 이중 결합은 공유 전자쌍 2개, 삼중 결합은 3개로 세요.':''}${lp!==m.lpc?' 비공유 전자쌍은 모든 원자의 것을 더해요.':''}`});
+  }
+  return fb;
+}
+function checkMission(){
+  const m=curMission, r=run();
+  const fb=evaluate(m,r.sp,r.lp); r.fb=fb;
+  const filled=!isNaN(parseInt(r.sp,10))&&!isNaN(parseInt(r.lp,10));
+  if(fb.every(f=>f.s==='ok')){
+    const s=(r.hints===0&&r.fails<=1)?3:(r.hints<=1&&r.fails<=3)?2:1;
+    const prevBest=progress[m.id]||0;
+    if(s>prevBest||(s===prevBest&&(!rec[m.id]||r.fails<rec[m.id].f))){ progress[m.id]=s; rec[m.id]={f:r.fails,h:r.hints}; save(); }
+    renderMissionCard(); renderList(); renderHeader();
+    showClear(m,s,prevBest);
+  } else { if(filled) r.fails++; renderMissionCard(); }  // 숫자를 아직 안 쓴 검사는 틀린 횟수에 넣지 않음
+}
+function showClear(m,s,prev){
+  modalKind='mission'; $('#cmNext').textContent='다음 미션 →';
+  $('#cmStars').innerHTML='★'.repeat(s)+`<span class="off">${'★'.repeat(3-s)}</span>`;
+  $('#cmTitle').innerHTML=`${m.f} 미션 클리어!`;
+  $('#cmNote').innerHTML=adv((m.expanded?`<span class="notice" style="display:block;text-align:left">⚠ ${EXP_MSG}</span>`:'')+m.note+(s>prev&&prev?`<br><b>최고 기록 갱신!</b>`:''));
+  const nx=nextMission(); $('#cmNext').style.display=nx?'':'none';
+  $('#clearModal').hidden=false; confetti();
+}
+function nextMission(){
+  const i=ALL.indexOf(curMission);
+  for(let k=i+1;k<ALL.length;k++) if(stageUnlocked(ALL[k].stage)) return ALL[k];
+  return null;
+}
+function loadMission(m){
+  stash();
+  curMission=m; missionSel=m; restoreDraft(m.id);
+  renderMissionCard(); renderList(); render();
+}
+function stash(){ const k=mode==='mission'?(curMission&&curMission.id):mode==='free'?'__free':null; if(k) drafts[k]={s:snapshot(),h:hist,r:redoStack}; }
+function restoreDraft(k){
+  const d=drafts[k];
+  if(d){ restore(d.s); hist=d.h; redoStack=d.r; } else { atoms=[];bonds=[];nid=1;hist=[];redoStack=[]; }
+  pending=null; temp=null;
+}
+
+/* ===================== 자유 모드 ===================== */
+function renderFreeCard(){
+  let opts=''; for(let q=-3;q<=3;q++) opts+=`<option value="${q}" ${q===freeCharge?'selected':''}>${q===0?'0 (중성 분자)':chargeStr(q)}</option>`;
+  $('#freeCard').innerHTML=adv(`<h3>✏️ 자유 그리기</h3>
+  <p class="mc-desc">원하는 분자나 이온을 마음대로 그려 보세요. 옥텟과 형식 전하를 실시간으로 확인할 수 있어요.</p>
+  <div class="frow"><span>전하</span><select id="chgSel">${opts}</select></div>
+  <div class="frow"><span>화학식</span><b id="fFormula">–</b></div>
+  <div class="frow"><span>원자들의 원자가 전자 / 그린 전자</span><b id="fElec">–</b></div>
+  <div id="fExp"></div>
+  <div id="fVerdict"></div>`);
+  $('#chgSel').addEventListener('change',e=>{ freeCharge=+e.target.value; render(); });
+  updateFree();
+}
+function updateFree(){
+  if(mode!=='free') return;
+  const an=analyze(), c=countAtoms();
+  const req=atoms.reduce((s,a)=>s+EL[a.el].v,0)-freeCharge, used=usedElectrons();
+  $('#fFormula').innerHTML=(hill(c)||'–')+(freeCharge&&atoms.length?`<sup>${chargeStr(freeCharge)}</sup>`:'');
+  $('#fElec').textContent=atoms.length?`${req} / ${used}`:'–';
+  const v=$('#fVerdict');
+  const usesExp=atoms.some(a=>PERIOD3.has(a.el)&&(an[a.id].e===10||an[a.id].e===12));
+  $('#fExp').innerHTML=usesExp?`<div class="notice" style="margin-top:10px"><b>⚠</b><span>${EXP_MSG}</span></div>`:'';
+  if(!atoms.length){ v.innerHTML=''; return; }
+  const allOk=atoms.every(a=>an[a.id].st.k!=='bad'), conn=connected();
+  const sumAbs=atoms.reduce((s,a)=>s+Math.abs(an[a.id].fc),0);
+  if(allOk&&conn&&req===used) v.innerHTML=adv(`<div class="verdict ok">✓ 올바른 루이스 구조의 조건을 만족해요 (형식 전하 크기의 합 ${sumAbs})</div>`);
+  else {
+    const why=[]; if(!conn) why.push('떨어진 원자가 있음'); if(req!==used) why.push(`전자 ${used<req?req-used+'개 부족':used-req+'개 초과'}`); if(!allOk) why.push('옥텟 미충족 원자 있음');
+    v.innerHTML=`<div class="verdict bad">아직이에요: ${why.join(' · ')}</div>`;
+  }
+}
+
+/* ===================== 모드 전환 ===================== */
+let askYesFn=null;
+function askConfirm(msg,sub,onYes){ $('#askMsg').textContent=msg; $('#askSub').textContent=sub||''; askYesFn=onYes; $('#askModal').hidden=false; }
+function setMode(md,after){
+  if(md===mode){ if(after) after(); return; }
+  if(mode==='challenge'&&ch.running){
+    askConfirm('진행 중인 도전을 끝낼까요?','이번 점수는 기록되지 않아요.',()=>{ stopChallenge(); setMode(md,after); });
+    return;
+  }
+  stash(); mode=md; setModeUI();
+  if(md==='free'){ curMission=null; restoreDraft('__free'); renderFreeCard(); }
+  else if(md==='mission'){ curMission=missionSel; restoreDraft(curMission.id); renderMissionCard(); }
+  else { curMission=null; atoms=[];bonds=[];nid=1;hist=[];redoStack=[];pending=null;temp=null; renderChallengeCard(); }
+  renderList(); render();
+  if(after) after();
+}
+function setModeUI(){
+  document.querySelectorAll('.modes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+  $('#missionCard').hidden=mode!=='mission'; $('#freeCard').hidden=mode!=='free'; $('#challengeCard').hidden=mode!=='challenge';
+  $('#anaCard').hidden=mode!=='free';   // 원자 분석 표는 자유 그리기에서만
+  showFC=showRing=(mode==='free'); $('#tgFC').checked=showFC; $('#tgRing').checked=showRing;
+}
+
+/* ===================== 도전 모드 ===================== */
+const CH_TIME=180, CH_PTS=[10,15,20,25,25];
+const ch={running:false,diff:'basic',end:0,score:0,solved:0,combo:0,maxCombo:0,pool:[],idx:0,m:null,sp:'',lp:'',fb:[],done:[],iv:null};
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function renderChallengeCard(){
+  const el=$('#challengeCard');
+  if(!ch.running){
+    el.innerHTML=`<h3>⏱ 도전 모드</h3>
+    <p class="mc-desc">제한 시간 3분! 무작위로 나오는 분자의 루이스 전자점식을 그리고, 공유·비공유 전자쌍 수까지 맞히면 정답이에요. 연속으로 맞히면 콤보 보너스가 붙어요.</p>
+    <div class="seg">${[['basic','기본 (1~3단계)'],['all','전체 (1~5단계)']].map(([k,t])=>`<button data-diff="${k}" class="${ch.diff===k?'on':''}">${t}</button>`).join('')}</div>
+    <div class="best">🏆 최고 기록 — 기본 <b>${chBest.basic||0}</b>점 · 전체 <b>${chBest.all||0}</b>점</div>
+    <button class="primary wide" id="chStart">도전 시작!</button>`;
+    return;
+  }
+  const m=ch.m;
+  el.innerHTML=adv(`<div class="chbar"><div class="chtime" id="chTime"></div>
+      <div class="chstat"><span>점수</span><b>${ch.score}</b></div><div class="chstat"><span>정답</span><b>${ch.solved}</b></div><div class="chstat"><span>콤보</span><b>${ch.combo}</b></div></div>
+    <div class="tbar"><i id="chFill"></i></div>
+    <div class="mc-stage">${STAGES[m.stage].name} · ${CH_PTS[m.stage]}점</div>
+    <div class="mc-title"><span class="formula">${m.f}</span><span class="mc-name">${m.name}</span></div>
+    ${m.expanded?`<div class="notice"><b>⚠</b><span>${EXP_MSG}</span></div>`:''}
+    <div class="chips" id="chChips"></div>
+    <div class="cnt">
+      <label>공유 전자쌍 수<input id="chSp" type="number" min="0" inputmode="numeric" placeholder="?" value="${ch.sp}"></label>
+      <label>비공유 전자쌍 수<input id="chLp" type="number" min="0" inputmode="numeric" placeholder="?" value="${ch.lp}"></label>
+    </div>
+    <div class="mrow" style="margin-top:10px"><button class="ghostbtn" id="chSkip">건너뛰기</button><button class="primary" id="chCheck" style="flex:1">검사하기</button></div>
+    <ul class="fb">${ch.fb.map(f=>`<li class="${f.s}"><span class="ic">✗</span><span>${f.t}</span></li>`).join('')}</ul>
+    <div style="text-align:right;margin-top:8px"><button class="linkbtn" id="chQuit">그만하기</button></div>`);
+  tickChallenge(); updateLive();
+}
+function startChallenge(){
+  Object.assign(ch,{running:true,score:0,solved:0,combo:0,maxCombo:0,done:[],idx:0});
+  ch.pool=shuffle(ALL.filter(m=>ch.diff==='all'||m.stage<=2));
+  ch.end=Date.now()+CH_TIME*1000;
+  clearInterval(ch.iv); ch.iv=setInterval(tickChallenge,250);
+  nextProblem();
+}
+function nextProblem(){
+  if(ch.idx>=ch.pool.length){ ch.pool=shuffle(ch.pool); ch.idx=0; }
+  ch.m=ch.pool[ch.idx++]; curMission=ch.m; ch.sp=''; ch.lp=''; ch.fb=[];
+  atoms=[];bonds=[];nid=1;hist=[];redoStack=[];pending=null;temp=null;
+  renderChallengeCard(); render();
+}
+function tickChallenge(){
+  if(!ch.running) return;
+  const left=Math.max(0,ch.end-Date.now()), sec=Math.ceil(left/1000);
+  const t=$('#chTime'); if(t){ t.textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`; t.classList.toggle('low',sec<=20); }
+  const f=$('#chFill'); if(f) f.style.width=(left/(CH_TIME*10))+'%';
+  if(left<=0) endChallenge();
+}
+function stopChallenge(){ ch.running=false; clearInterval(ch.iv); }
+function endChallenge(){
+  stopChallenge();
+  const prev=chBest[ch.diff]||0, isRec=ch.score>prev;
+  if(isRec){ chBest[ch.diff]=ch.score; save(); }
+  modalKind='challenge';
+  $('#cmStars').innerHTML='🏆';
+  $('#cmTitle').innerHTML=`도전 끝! ${ch.score}점`;
+  $('#cmNote').innerHTML=`${ch.diff==='all'?'전체':'기본'} 난이도 · 정답 ${ch.solved}개 · 최대 콤보 ${ch.maxCombo}<br>`+
+    (ch.done.length?`완성한 분자: ${ch.done.join(', ')}`:'다음엔 꼭 하나 완성해 봐요!')+(isRec?'<br><b>🎉 새 최고 기록!</b>':'');
+  $('#cmNext').textContent='다시 도전'; $('#cmNext').style.display='';
+  $('#clearModal').hidden=false; if(ch.solved) confetti();
+  curMission=null; renderChallengeCard(); render();
+}
+function checkChallenge(){
+  const m=ch.m, fb=evaluate(m,ch.sp,ch.lp);
+  if(fb.every(f=>f.s==='ok')){
+    ch.combo++; ch.maxCombo=Math.max(ch.maxCombo,ch.combo);
+    const bonus=5*(Math.min(ch.combo,5)-1), pts=CH_PTS[m.stage]+bonus;
+    ch.score+=pts; ch.solved++; ch.done.push(m.f);
+    toast(bonus?`정답! +${pts}점 (콤보 ×${ch.combo})`:`정답! +${pts}점`);
+    nextProblem();
+  } else {
+    if(!isNaN(parseInt(ch.sp,10))&&!isNaN(parseInt(ch.lp,10))) ch.combo=0;
+    ch.fb=fb.filter(f=>f.s==='bad'); renderChallengeCard();
+  }
+}
+
+/* ===================== 결과창 ===================== */
+function renderResult(){
+  $('#rDate').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  $('#rName').value=stuName;
+  const cl=ALL.filter(m=>progress[m.id]).length;
+  $('#rSum').innerHTML=`<div><span>별점</span><b>★ ${totalStars()} / ${MAXSTARS}</b></div><div><span>칭호</span><b>${rankName()}</b></div>
+    <div><span>클리어한 미션</span><b>${cl} / ${ALL.length}</b></div><div><span>도전 최고 점수</span><b>기본 ${chBest.basic||0} · 전체 ${chBest.all||0}</b></div>`;
+  let h='<tr><th style="text-align:left">미션</th><th>별점</th><th>틀린 횟수</th><th>힌트</th></tr>';
+  STAGES.forEach(st=>{
+    h+=`<tr class="stg"><td colspan="4">${st.name}</td></tr>`;
+    for(const m of st.missions){ const p=progress[m.id]||0, r=rec[m.id];
+      h+=`<tr><td class="mn"><b>${m.f}</b> ${m.name}</td><td>${p?`<span class="s">${stars(p)}</span>`:'–'}</td><td>${p&&r?r.f+'회':'–'}</td><td>${p&&r?r.h+'개':'–'}</td></tr>`; }
+  });
+  $('#rTable').innerHTML=adv(h);
+}
+
+const _render=render;
+render=function(){ _render(); updateFree(); };
+
+/* ===================== 도구 모음 ===================== */
+function renderToolbar(){
+  $('#toolGrp').innerHTML=TOOLS.map(t=>`<button class="tbtn${tool===t.id?' on':''}" data-tool="${t.id}" title="${t.full||t.name} (${t.key})">${ICON[t.id]}<span>${t.name}</span></button>`).join('');
+  $('#elGrp').innerHTML=PAL.map(e=>`<button class="ebtn${curEl===e?' on':''}" data-el="${e}" title="${e} (원자가 전자 ${EL[e].v}개)">${elemCard(e)}</button>`).join('');
+  $('#tip').textContent=TIPS[tool];
+}
+// 원소 카드: 원자가 전자를 루이스 전자점식으로 (오른쪽→왼쪽→위→아래에 하나씩, 그다음 위→오른쪽→아래→왼쪽 순서로 짝지음)
+function elemCard(e){
+  const v=EL[e].v, rx=e.length>1?17:12.5, ry=12.5;
+  const sides=[[1,0],[-1,0],[0,-1],[0,1]], cnt=[0,0,0,0], pairOrder=[2,0,3,1];
+  for(let i=0;i<v;i++){ if(i<4) cnt[i]++; else cnt[pairOrder[i-4]]++; }
+  let d='';
+  sides.forEach(([sx,sy],k)=>{
+    const cx=25+sx*rx, cy=25+sy*ry;
+    if(cnt[k]===1) d+=`<circle cx="${cx}" cy="${cy}" r="1.9"/>`;
+    else if(cnt[k]===2){ const ox=sy?3:0, oy=sx?3:0; d+=`<circle cx="${cx-ox}" cy="${cy-oy}" r="1.9"/><circle cx="${cx+ox}" cy="${cy+oy}" r="1.9"/>`; }
+  });
+  return `<svg viewBox="0 0 50 50"><text class="es" x="25" y="25.5" fill="${EL[e].c}">${e}</text><g fill="#2a3142">${d}</g></svg>`;
+}
+function setTool(t){ tool=t; pending=null; renderToolbar(); render(); }
+function setEl(e){ curEl=e; if(tool!=='atom'&&pending==null){ tool='atom'; render(); } renderToolbar(); }
+
+let toastT=null;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1600); }
+
+/* ===================== 포인터 ===================== */
+/* ---- 보드 확대·이동: 화면 좌표 = 보드 좌표 × vz + (vx, vy) ---- */
+let vz=1, vx=0, vy=0, pinch=null;
+const ptrs=new Map();
+function spt(e){ const r=svg.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+function pt(e){ const s=spt(e); return {x:(s.x-vx)/vz,y:(s.y-vy)/vz}; }
+const ZMIN=0.4, ZMAX=3;
+function zoomAt(nz,sx,sy){ nz=Math.min(ZMAX,Math.max(ZMIN,nz)); const wx=(sx-vx)/vz, wy=(sy-vy)/vz; vz=nz; vx=sx-wx*vz; vy=sy-wy*vz; render(); }
+function zoomFit(){
+  if(!atoms.length){ vz=1; vx=0; vy=0; render(); return; }
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for(const a of atoms){ x0=Math.min(x0,a.x); y0=Math.min(y0,a.y); x1=Math.max(x1,a.x); y1=Math.max(y1,a.y); }
+  const pad=70, bw=x1-x0+pad*2, bh=y1-y0+pad*2;
+  vz=Math.min(2.5,Math.max(ZMIN,Math.min(W/bw,H/bh)));
+  vx=W/2-(x0+x1)/2*vz; vy=H/2-(y0+y1)/2*vz; render();
+}
+svg.addEventListener('wheel',e=>{ e.preventDefault(); const s=spt(e); zoomAt(vz*Math.exp(-e.deltaY*0.0015),s.x,s.y); },{passive:false});
+function nearestAtom(p,excl,rad=24){ let best=null,bd=rad; for(const a of atoms){ if(a.id===excl) continue; const d=Math.hypot(a.x-p.x,a.y-p.y); if(d<bd){bd=d;best=a;} } return best; }
+function snappedEnd(a,p){ const step=Math.PI/6; const ang=Math.round(Math.atan2(p.y-a.y,p.x-a.x)/step)*step; return {x:a.x+BL*Math.cos(ang),y:a.y+BL*Math.sin(ang)}; }
+const BL=48; // 원자 사이 기본 거리
+const snap=v=>Math.round(v/10)*10;
+
+svg.addEventListener('contextmenu',e=>e.preventDefault());
+svg.addEventListener('pointerdown',e=>{
+  if(e.button===1) return;
+  const xb=e.target.closest&&e.target.closest('[data-kind="xexp"]');
+  if(xb){ expDismiss.add(+xb.dataset.id); render(); return; }
+  if(e.button===2&&tool!=='lp'&&tool!=='bond') return;
+  ptrs.set(e.pointerId,spt(e));
+  try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+  if(ptrs.size>=2){   // 두 손가락: 확대·이동 (진행 중이던 동작은 취소)
+    if(down&&down.moved&&tool==='select'&&down.kind==='atom'&&hist.length) restore(hist.pop());
+    down=null; temp=null;
+    const [a,b]=[...ptrs.values()];
+    pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:vz, wx:((a.x+b.x)/2-vx)/vz, wy:((a.y+b.y)/2-vy)/vz};
+    render(); return;
+  }
+  const p=pt(e), t=e.target.closest('[data-kind]');
+  down={start:p,s:spt(e),kind:t?t.dataset.kind:null,id:t?+t.dataset.id:null,moved:false,right:e.button===2,shift:e.shiftKey,pan:{vx,vy},
+        tol:e.pointerType==='mouse'?6:10};   // 손가락은 살짝 흔들려도 '누르기'로 인정
+  // 꾹 누르기(0.45초): 강조 표시가 있는 원자의 안내를 보여 줌 (특히 휴대폰용)
+  clearTimeout(lpTimer);
+  if(down.kind==='atom'&&e.button===0) lpTimer=setTimeout(()=>{
+    const d=down; if(!d||d.moved) return;
+    const g=svg.querySelector(`[data-kind="atom"][data-id="${d.id}"][data-tip]`); if(!g) return;
+    d.long=true; temp=null; keepTipUntil=Date.now()+900;
+    try{ navigator.vibrate&&navigator.vibrate(20); }catch(_){}
+    showTip(g,g.dataset.tip,'svg');
+  },450);
+
+});
+function longPress(){
+  const d=down; if(!d||d.moved) return;
+  let done=false;
+  if(d.kind==='bond'){ const b=bonds.find(x=>x.id===d.id); if(b){ pushHistory(); removePair(b); done='공유 전자쌍 1쌍을 지웠어요'; } }
+  else { const a=getAtom(d.id); if(a&&a.lp>0){ pushHistory(); a.lp--; done='비공유 전자쌍 1쌍을 지웠어요'; } }
+  d.long=true;
+  if(done){ try{ navigator.vibrate&&navigator.vibrate(25); }catch(_){} toast(done); render(); }
+}
+svg.addEventListener('pointermove',e=>{
+  if(ptrs.has(e.pointerId)) ptrs.set(e.pointerId,spt(e));
+  if(pinch&&ptrs.size>=2){
+    const [a,b]=[...ptrs.values()], m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    vz=Math.min(ZMAX,Math.max(ZMIN,pinch.z0*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d0));
+    vx=m.x-pinch.wx*vz; vy=m.y-pinch.wy*vz; render(); return;
+  }
+  if(!down||down.long) return;
+  const p=pt(e), sp=spt(e);
+  if(!down.moved && Math.hypot(sp.x-down.s.x,sp.y-down.s.y)>down.tol){
+    down.moved=true; clearTimeout(lpTimer);
+    if(tool==='select'&&down.kind==='atom') pushHistory();
+  }
+  if(!down.moved) return;
+  if(down.kind==null){ vx=down.pan.vx+sp.x-down.s.x; vy=down.pan.vy+sp.y-down.s.y; render(); return; }  // 빈 곳 끌기: 보드 이동
+  if(tool==='select'&&down.kind==='atom'){ const a=getAtom(down.id); a.x=p.x; a.y=p.y; render(); }
+  else if((tool==='atom'||tool==='bond')&&(down.kind==='atom'||down.kind==='lp')){
+    const a=getAtom(down.id), n=nearestAtom(p,a.id);
+    const end=n?{x:n.x,y:n.y}:snappedEnd(a,p);
+    temp={x1:a.x,y1:a.y,x2:end.x,y2:end.y,ghost:!n}; render();
+  }
+});
+function endPointer(e,cancel){
+  ptrs.delete(e.pointerId);
+  if(pinch){ if(ptrs.size<2) pinch=null; down=null; return; }
+  if(!down) return;
+  clearTimeout(lpTimer);
+  const d=down; down=null; const hadTemp=!!temp; temp=null;
+  if(d.long) return;               // 꾹 누르기는 안내만 보여 주고 다른 동작은 하지 않음
+  if(cancel){ render(); return; }
+  const p=pt(e);
+  if(d.moved&&d.kind==null){ render(); return; }
+  if(d.moved){
+    if((tool==='atom'||tool==='bond')&&(d.kind==='atom'||d.kind==='lp')&&hadTemp){
+      const a=getAtom(d.id), n=nearestAtom(p,a.id);
+      pushHistory();
+      if(n){ const ex=bondBetween(a.id,n.id); if(ex&&ex.order>=3){ hist.pop(); toast('공유 전자쌍은 최대 3쌍(삼중 결합)까지예요'); } else linkAtoms(a.id,n.id); }
+      else { const end=snappedEnd(a,p); const na=addAtom(curEl,end.x,end.y); sayBond(addBond(a.id,na.id)); }
+    }
+    render(); return;
+  }
+  const key=d.kind+':'+d.id, now=Date.now();
+  const dblOk = d.kind==='bond' || d.kind==='lp' || d.kind==='atom';   // 무엇이든 두 번 탭하면 지움
+  if(dblOk && !d.right && lastTap && lastTap.key===key && now-lastTap.t<350){
+    restore(lastTap.snap); hist.length=lastTap.histLen; pending=lastTap.pending;  // 첫 번째 탭 결과 취소
+    if(d.kind==='bond'){ const b=bonds.find(x=>x.id===d.id); if(b){ pushHistory(); removePair(b); } }
+    else if(d.kind==='atom'){ const a=getAtom(d.id); if(a) eraseAtom(a); }
+    else remLp(getAtom(d.id));
+    lastTap=null; render(); return;
+  }
+  lastTap = dblOk ? {key,t:now,snap:snapshot(),histLen:hist.length,pending} : null;
+  click(d,p); render();
+}
+svg.addEventListener('pointerup',e=>endPointer(e,false));
+svg.addEventListener('pointercancel',e=>endPointer(e,true));
+
+function click(d,p){
+  const remove = d.right||d.shift;
+  switch(tool){
+    case 'atom':
+      if(d.kind==='atom'||d.kind==='lp'){ const a=getAtom(d.id); if(a.el!==curEl){ pushHistory(); toast(`${a.el} 원자를 ${curEl}(으)로 바꿨어요`); a.el=curEl; } }
+      else if(d.kind==='bond'){ const b=bonds.find(x=>x.id===d.id); if(b.order<3){ pushHistory(); addPair(b); } else toast('공유 전자쌍은 최대 3쌍(삼중 결합)까지예요'); }
+      else { pushHistory(); addAtom(curEl,snap(p.x),snap(p.y)); }
+      break;
+    case 'bond':
+      if(d.kind==='atom'||d.kind==='lp'){
+        if(pending==null){ pending=d.id; toast(`${eul(getAtom(d.id).el)} 골랐어요. 연결할 원자를 누르세요`); }
+        else if(pending===d.id){ pending=null; toast('선택을 취소했어요'); }
+        else { const ex=bondBetween(pending,d.id); if(!(ex&&ex.order>=3)) pushHistory(); linkAtoms(pending,d.id); pending=null; }
+      } else if(d.kind==='bond'){ const b=bonds.find(x=>x.id===d.id);
+        if(remove){ pushHistory(); removePair(b); }
+        else if(b.order<3){ pushHistory(); addPair(b); } else toast('공유 전자쌍은 최대 3쌍(삼중 결합)까지예요'); }
+      else pending=null;
+      break;
+    case 'lp':
+      if(d.kind==='lp'||(d.kind==='atom'&&remove)) remLp(getAtom(d.id));
+      else if(d.kind==='atom') addLp(getAtom(d.id));
+      break;
+    case 'erase':
+      if(d.kind==='atom') eraseAtom(getAtom(d.id));
+      else if(d.kind==='bond'){ pushHistory(); removePair(bonds.find(b=>b.id===d.id)); }
+      else if(d.kind==='lp') remLp(getAtom(d.id));
+      break;
+  }
+}
+
+/* ===================== 이벤트 ===================== */
+$('#toolGrp').addEventListener('click',e=>{ const b=e.target.closest('[data-tool]'); if(b) setTool(b.dataset.tool); });
+$('#elGrp').addEventListener('click',e=>{ const b=e.target.closest('[data-el]'); if(b) setEl(b.dataset.el); });
+$('#undoBtn').onclick=undo; $('#redoBtn').onclick=redo;
+$('#clearBtn').onclick=()=>{ if(!atoms.length) return; pushHistory(); atoms=[];bonds=[];pending=null; render(); };
+$('#tgFC').onchange=e=>{ showFC=e.target.checked; render(); if(showFC&&!atoms.length) toast('원자를 그리면 각 원자 옆에 형식 전하가 표시돼요'); };
+$('#tgRing').onchange=e=>{ showRing=e.target.checked; render(); };
+$('#tgColor').onchange=e=>{ showColor=e.target.checked; render(); };
+$('#tgDip').onchange=e=>{ showDip=e.target.checked; render(); if(showDip) toast('화살표는 δ+ → δ− 방향(전기 음성도가 큰 원자 쪽)이에요'); };
+$('#zIn').onclick=()=>zoomAt(vz*1.25,W/2,H/2);
+$('#zOut').onclick=()=>zoomAt(vz/1.25,W/2,H/2);
+$('#zReset').onclick=()=>{ vz=1; vx=0; vy=0; render(); };
+$('#zFit').onclick=zoomFit;
+$('#viewBtn').onclick=()=>{ view=view==='dot'?'line':'dot'; render(); toast(view==='line'?'공유 전자쌍 1개 → 결합선 1개로 바꿨어요':'결합선을 공유 전자쌍(점)으로 되돌렸어요'); };
+document.querySelector('.modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'); if(b) setMode(b.dataset.mode); });
+$('#missionList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mid]');
+  if(b){ if(b.dataset.locked){ toast('이전 단계 미션을 더 클리어하면 열려요 🔒'); return; }
+    const m=ALL.find(x=>x.id===b.dataset.mid);
+    if(mode!=='mission'){ setMode('mission',()=>loadMission(m)); return; }
+    loadMission(m); return; }
+  const sh=e.target.closest('.stage-h');
+  if(sh){ const si=+sh.dataset.stage; collapsed.has(si)?collapsed.delete(si):collapsed.add(si); save(); renderList(); return; }
+  if(e.target.id==='foldAllBtn'){ if(collapsed.size===STAGES.length) collapsed.clear(); else STAGES.forEach((_,i)=>collapsed.add(i)); save(); renderList(); return; }
+  if(e.target.id==='resetBtn'){ askConfirm('모든 별점·도전 기록을 지울까요?','지운 기록은 되돌릴 수 없어요.',()=>{ progress={}; rec={}; chBest={}; save(); renderList(); renderHeader(); if(mode==='mission') renderMissionCard(); if(mode==='challenge') renderChallengeCard(); }); }
+});
+$('#missionList').addEventListener('change',e=>{ if(e.target.id==='unlockChk'){ unlockAll=e.target.checked; save(); renderList(); } });
+$('#missionCard').addEventListener('click',e=>{
+  if(e.target.id==='checkBtn') checkMission();
+  else if(e.target.id==='hintBtn'){ const r=run(); if(r.hints<3){ r.hints++; renderMissionCard(); } }
+});
+$('#missionCard').addEventListener('input',e=>{ if(e.target.id==='inSp') run().sp=e.target.value; if(e.target.id==='inLp') run().lp=e.target.value; });
+$('#missionCard').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.id==='inSp'||e.target.id==='inLp')) checkMission(); });
+$('#table').addEventListener('click',e=>{ const tr=e.target.closest('tr.row'); if(!tr) return; flashId=+tr.dataset.id; render(); setTimeout(()=>{flashId=null;render();},700); });
+$('#askNo').onclick=()=>{ $('#askModal').hidden=true; askYesFn=null; };
+$('#askYes').onclick=()=>{ $('#askModal').hidden=true; const f=askYesFn; askYesFn=null; if(f) f(); };
+$('#cmClose').onclick=()=>{$('#clearModal').hidden=true;};
+$('#cmNext').onclick=()=>{ $('#clearModal').hidden=true; if(modalKind==='challenge'){ startChallenge(); return; } const nx=nextMission(); if(nx) loadMission(nx); };
+$('#challengeCard').addEventListener('click',e=>{
+  const d=e.target.closest('[data-diff]'); if(d){ ch.diff=d.dataset.diff; renderChallengeCard(); return; }
+  const id=e.target.id;
+  if(id==='chStart') startChallenge();
+  else if(id==='chCheck') checkChallenge();
+  else if(id==='chSkip'){ ch.combo=0; toast('건너뛰었어요'); nextProblem(); }
+  else if(id==='chQuit'){ askConfirm('도전을 여기서 끝낼까요?','지금까지의 점수로 결과가 나와요.',()=>endChallenge()); }
+});
+$('#challengeCard').addEventListener('input',e=>{ if(e.target.id==='chSp') ch.sp=e.target.value; if(e.target.id==='chLp') ch.lp=e.target.value; });
+$('#challengeCard').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.id==='chSp'||e.target.id==='chLp')) checkChallenge(); });
+$('#resultBtn').onclick=()=>{ renderResult(); $('#resultModal').hidden=false; };
+$('#rClose').onclick=()=>{ $('#resultModal').hidden=true; };
+$('#rName').addEventListener('input',e=>{ stuName=e.target.value; save(); });
+$('#rPrint').onclick=()=>{ document.body.classList.add('print-result'); window.print(); setTimeout(()=>document.body.classList.remove('print-result'),500); };
+// [심화] 형식 전하 말풍선: PC는 마우스를 올리면, 휴대폰은 누르면 보임
+const advTip=$('#advTip');
+function showTip(el,html,src){ tipSrc=src||null; placeTip(el,html); }
+function showAdv(el){ tipSrc=null; placeTip(el,ADV_TIPS[el.dataset.term]||ADV_TIPS['형식 전하']); }
+function placeTip(el,html){
+  advTip.innerHTML=html; advTip.hidden=false;
+  const r=el.getBoundingClientRect(), w=advTip.offsetWidth, h=advTip.offsetHeight;
+  const x=Math.min(window.innerWidth-w-8,Math.max(8,r.left+r.width/2-w/2));
+  let y=r.bottom+8; if(y+h>window.innerHeight-8) y=r.top-h-8;
+  advTip.style.left=x+'px'; advTip.style.top=Math.max(8,y)+'px';
+}
+document.addEventListener('mouseover',e=>{ const a=e.target.closest&&e.target.closest('.adv'); if(a){ showAdv(a); return; }
+  const t=e.target.closest&&e.target.closest('[data-tip]'); if(t&&!down) showTip(t,t.dataset.tip,'svg'); });
+document.addEventListener('mouseout',e=>{ const t=e.target.closest&&e.target.closest('[data-tip]'); if(t&&tipSrc==='svg'&&!(e.relatedTarget&&t.contains(e.relatedTarget))){ advTip.hidden=true; tipSrc=null; } });
+document.addEventListener('mouseout',e=>{ const a=e.target.closest&&e.target.closest('.adv'); if(a&&!(e.relatedTarget&&a.contains(e.relatedTarget))) advTip.hidden=true; });
+document.addEventListener('focusin',e=>{ if(e.target.classList&&e.target.classList.contains('adv')) showAdv(e.target); });
+document.addEventListener('focusout',e=>{ if(e.target.classList&&e.target.classList.contains('adv')&&!e.target.matches(':hover')&&!(e.relatedTarget&&e.target.closest('label')&&e.target.closest('label').contains(e.relatedTarget))) advTip.hidden=true; });
+document.addEventListener('click',e=>{ const a=e.target.closest&&e.target.closest('.adv'); if(a){ if(!a.closest('label')) e.preventDefault(); showAdv(a); } else { const l=e.target.closest&&e.target.closest('label'); if(!(l&&l.querySelector('.adv')&&e.target.tagName==='INPUT')&&Date.now()>keepTipUntil) advTip.hidden=true; } },true);
+window.addEventListener('scroll',()=>{ advTip.hidden=true; },true);
+$('#helpBtn').onclick=()=>{$('#helpModal').hidden=false;};
+$('#helpClose').onclick=()=>{$('#helpModal').hidden=true;};
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.hidden=true; }));
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ document.querySelectorAll('.overlay').forEach(o=>o.hidden=true); pending=null; render(); return; }
+  if(e.target.matches('input,select,textarea')) return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(e.key==='+'||e.key==='='){ zoomAt(vz*1.25,W/2,H/2); return; }
+  if(e.key==='-'||e.key==='_'){ zoomAt(vz/1.25,W/2,H/2); return; }
+  if(e.key==='0'){ vz=1; vx=0; vy=0; render(); return; }
+  const t=TOOLS.find(x=>x.key===e.key); if(t){ setTool(t.id); return; }
+  const el=KEYMAP[e.key.toLowerCase()]; if(el) setEl(el);
+});
+
+function confetti(){
+  const box=$('#confetti'); const cols=['#5b4bdb','#f5a623','#16a34a','#dc2626','#2563eb','#ec4899'];
+  for(let i=0;i<90;i++){ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(1.6+Math.random()*1.6)+'s'; s.style.animationDelay=(Math.random()*.4)+'s'; s.style.transform=`rotate(${Math.random()*360}deg)`; box.appendChild(s); }
+  setTimeout(()=>box.innerHTML='',3600);
+}
+
+function resize(){ const r=svg.getBoundingClientRect(); W=Math.max(200,r.width); H=Math.max(200,r.height); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); render(); }
+new ResizeObserver(resize).observe(svg);
+
+/* ===================== 시작 ===================== */
+curMission = ALL.find(m=>!progress[m.id]&&stageUnlocked(m.stage)) || ALL[0];
+missionSel = curMission;
+renderToolbar(); renderHeader(); renderList(); renderMissionCard(); resize();
+let seen=false; try{ seen=localStorage.getItem(KEY+'-help')==='1'; localStorage.setItem(KEY+'-help','1'); }catch(e){}
+if(!seen) $('#helpModal').hidden=false;
+</script>
+</body>
+</html>

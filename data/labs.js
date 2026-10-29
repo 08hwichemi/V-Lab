@@ -98,5 +98,32 @@ window.VLAB = {
       thumbnail: "assets/img/thumbs/coin-entropy/0.png",
       added: "2026-10-28"
     }
+,
+    {
+      id: "lewis-dot",
+      subject: "chemistry",
+      title: "루이스 전자점식 연습실",
+      summary: "원자를 놓고 공유·비공유 전자쌍을 채워 옥텟을 완성하는 루이스 전자점식 연습. 단계별 미션(단일·다중 결합, 다원자 이온, 형식 전하, 옥텟의 예외)과 자유 그리기, 3분 도전 모드가 있고 형식 전하·쌍극자 모멘트·옥텟 상태를 표시할 수 있습니다.",
+      file: "labs/chemistry/lewis-dot.html",
+      author: "",
+      grade: ["고1", "고2"],
+      unit: "화학Ⅰ · 화학 결합",
+      tags: ["루이스 전자점식", "옥텟 규칙", "공유 결합", "형식 전하", "미션"],
+      thumbnail: "assets/img/thumbs/lewis-dot/0.png",
+      added: "2026-10-29"
+    },
+    {
+      id: "vsepr-lab",
+      subject: "chemistry",
+      title: "VSEPR 분자 모형 공방",
+      summary: "2D 구조식을 그리고 3D로 변환해 전자쌍 반발 이론에 따른 분자 모양과 결합각을 확인합니다. 비공유 전자쌍·결합각·쌍극자 모멘트 표시, 극성 분석, 미션과 퀴즈가 들어 있습니다.",
+      file: "labs/chemistry/vsepr-lab.html",
+      author: "",
+      grade: ["고1", "고2"],
+      unit: "화학Ⅰ · 분자의 구조",
+      tags: ["VSEPR", "전자쌍 반발", "분자 모양", "결합각", "극성", "3D"],
+      thumbnail: "assets/img/thumbs/vsepr-lab/0.png",
+      added: "2026-10-29"
+    }
   ]
 };

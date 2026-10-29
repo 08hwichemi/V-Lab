@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VSEPR 분자 모형 공방 · V-Lab</title>
+<link rel="stylesheet" href="../../assets/css/lab-theme.css">
+<style>
+:root{
+  --bg:#eef2f7; --panel:#ffffff; --ink:#0f172a; --sub:#64748b; --line:#e2e8f0;
+  --accent:#4f46e5; --accent2:#06b6d4; --ok:#16a34a; --warn:#f59e0b; --err:#ef4444; --exc:#8b5cf6; --beyond:#ec4899;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+header{background:linear-gradient(120deg,#1e1b4b,#312e81 55%,#155e75);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:18px;flex-wrap:nowrap;flex-shrink:0}
+header h1{font-size:19px;margin:0;font-weight:900;letter-spacing:-.3px}
+.titlewrap{display:flex;flex-direction:column;gap:3px;min-width:0}
+.subrow{display:flex;align-items:center;gap:8px;min-width:0}
+.vsum{font-size:12px;line-height:1.4;color:#e0e7ff;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vsum b{color:#fde68a;font-weight:700}
+#vseprMore{color:#fff;font-weight:800;text-decoration:underline;text-underline-offset:2px;margin-left:2px;white-space:nowrap}
+#vseprMore:hover{color:#fde68a}
+.titlewrap{flex:1}
+#vseprBtn{border:0;background:#fde68a;color:#78350f;font-weight:800;font-size:12px;padding:3px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+#vseprBtn:hover{background:#fcd34d}
+.vsepr h4{margin:16px 0 7px;font-size:15px;color:#312e81}.vsepr h4:first-child{margin-top:0}
+.vsepr p{margin:0 0 8px;font-size:13.5px;line-height:1.7}
+.vsepr .key{background:#eef2ff;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7}
+.vsepr .rules{margin:0;padding-left:20px;font-size:13.5px;line-height:1.7}.vsepr .rules li{margin-bottom:6px}
+.vsepr .shapes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 4px}
+.vsepr .shapes div{background:#f8fafc;border-radius:10px;padding:6px 4px 8px;text-align:center;font-size:12.5px;line-height:1.45}
+.vsepr .shapes svg{width:100%;height:84px}
+.vsepr table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.vsepr th{background:#f1f5f9;color:#475569;padding:5px;text-align:center;border-bottom:1px solid var(--line)}
+.vsepr td{padding:5px;text-align:center;border-bottom:1px solid var(--line)}
+.vsepr .steps2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.vsepr .steps2 span{background:#fff7ed;color:#9a3412;border-radius:8px;padding:4px 8px;font-weight:700}
+.tabs{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+#helpBtn{flex-shrink:0}
+.tab{border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;padding:7px 16px;border-radius:999px;font-weight:700;font-size:14px}
+.tab.on{background:#fff;color:#312e81}
+main{flex:1;display:grid;grid-template-columns:clamp(230px,21vw,300px) minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px;min-height:0}
+main>section{min-height:0}
+.panel{background:var(--panel);border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.08),0 6px 20px rgba(15,23,42,.05);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ptitle{font-size:13px;font-weight:800;color:var(--sub);padding:10px 14px 6px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+#side{overflow-y:auto;padding-bottom:14px}
+.sec{padding:4px 14px 10px}
+.sec h3{font-size:14px;margin:10px 0 8px}
+.howto{margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:#334155}
+.howto b{color:var(--accent)}
+.exgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.exbtn{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:6px 4px;font-size:13px;font-weight:700}
+.exbtn:hover{border-color:var(--accent);color:var(--accent)}
+.exbtn.hi{border-color:#fbcfe8;background:#fdf2f8;color:#be185d}
+.legend{display:grid;gap:5px;font-size:12.5px;color:#334155}
+.legend span{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2.5px solid}
+/* editor */
+#editor .toolbar{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.row{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tbtn{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:5px 9px;font-size:12.5px;font-weight:700;color:#334155}
+.tbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tbtn:hover:not(.on){border-color:#a5b4fc}
+.sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+.lbl{font-size:11.5px;color:var(--sub);font-weight:700;margin-right:2px}
+.elbtn{width:40px;height:40px;border-radius:9px;border:2px solid transparent;font-weight:900;font-size:15px;position:relative;padding:0;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+.elbtn small{position:absolute;top:1px;left:3px;font-size:8.5px;font-weight:700;opacity:.75}
+.elbtn.on{border-color:#0f172a;transform:translateY(-1px);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
+#cvwrap{flex:1;position:relative;min-height:0}
+#cv2{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.zoomctl{position:absolute;top:8px;right:8px;display:flex;gap:2px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:0 2px 8px rgba(15,23,42,.08);z-index:4}
+.zoomctl button{border:0;background:transparent;border-radius:7px;min-width:30px;height:28px;font-weight:800;font-size:14px;color:#334155;padding:0 6px}
+.zoomctl button:hover{background:#eef2ff;color:#4338ca}
+#zReset{font-size:12px;min-width:48px}
+#tip{position:absolute;pointer-events:none;background:rgba(15,23,42,.92);color:#fff;font-size:12px;padding:6px 9px;border-radius:7px;display:none;white-space:nowrap;z-index:5;line-height:1.5}
+.bottombar{border-top:1px solid var(--line);padding:8px 10px;display:flex;gap:8px;align-items:center}
+#status{flex:1;font-size:12.5px;color:#334155;min-height:18px}
+.go{background:linear-gradient(120deg,#4f46e5,#06b6d4);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:900;font-size:15px;box-shadow:0 4px 14px rgba(79,70,229,.35)}
+.go:hover{filter:brightness(1.08)}
+/* right */
+#right{display:flex;flex-direction:column;gap:12px;min-height:0}
+#view{flex:1.25;position:relative;background:radial-gradient(ellipse at 50% 35%,#1e293b,#0b1120 75%);color:#fff}
+#view .ptitle{color:#cbd5e1;position:absolute;top:0;left:0;z-index:3}
+#cv3wrap{position:absolute;inset:0}
+#cv3wrap canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.al{position:absolute;transform:translate(-50%,-50%);font-weight:900;font-size:13px;color:#fff;text-shadow:0 0 3px #000,0 0 6px #000}
+.ang{position:absolute;transform:translate(-50%,-50%);font-size:11.5px;font-weight:700;background:rgba(250,204,21,.92);color:#422006;padding:1px 6px;border-radius:6px;white-space:nowrap}
+#placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;font-size:14px;text-align:center;gap:8px;pointer-events:none}
+#placeholder .big{font-size:42px}
+.vctl{position:absolute;bottom:8px;left:8px;right:8px;display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:#cbd5e1;z-index:3;align-items:center}
+.vctl label{display:flex;align-items:center;gap:4px;background:rgba(15,23,42,.6);padding:4px 8px;border-radius:7px;cursor:pointer}
+.vctl button{background:rgba(15,23,42,.6);border:1px solid #334155;color:#e2e8f0;border-radius:7px;padding:4px 9px;font-size:12px}
+#stale{position:absolute;top:8px;right:8px;z-index:3;background:#f59e0b;color:#422006;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;display:none;cursor:pointer}
+#analysis{flex:1;overflow-y:auto}
+#anaBody{padding:0 14px 14px;font-size:13px}
+.formula{font-size:24px;font-weight:900;letter-spacing:.5px;line-height:1.5}
+.cname{font-size:13.5px;font-weight:700;color:#4338ca;background:#eef2ff;border-radius:999px;padding:2px 10px;margin:0 4px 0 8px;vertical-align:4px;letter-spacing:0;white-space:nowrap}
+.cname i{font-style:normal;font-weight:500;color:#6366f1;margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.chip{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f1f5f9;color:#334155}
+.chip.p{background:#fee2e2;color:#b91c1c}.chip.np{background:#dbeafe;color:#1d4ed8}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+table.t th{background:#f8fafc;color:var(--sub);font-weight:700;text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+table.t td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.lock{color:#94a3b8;font-size:11.5px}
+.notes{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:5px}
+.notes li{padding:6px 9px;border-radius:8px;font-size:12.5px;line-height:1.5}
+.n-ok{background:#f0fdf4;color:#166534}.n-warn{background:#fffbeb;color:#92400e}.n-err{background:#fef2f2;color:#991b1b}.n-exc{background:#f5f3ff;color:#5b21b6}.n-hp{background:#fdf2f8;color:#9d174d}
+/* mission */
+.prog{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:4px 0 2px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#4f46e5,#06b6d4);transition:width .4s}
+.mlist{display:grid;gap:7px}
+.freecard{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1.5px dashed #a5b4fc;background:#f8faff;border-radius:11px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;line-height:1.45}
+.freecard:hover{background:#eef2ff;border-style:solid}
+.mcard{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff;text-align:left;width:100%}
+.mcard:hover{border-color:#a5b4fc;background:#f8faff}
+.mcard .num{width:30px;height:30px;border-radius:9px;background:#eef2ff;color:#4338ca;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.mcard.done .num{background:#dcfce7;color:#15803d}
+.mcard .tt{font-weight:800;font-size:13.5px}
+.mcard .lv{font-size:11px;color:var(--sub)}
+.lvtag{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:99px;margin-left:4px}
+.lv1{background:#e0f2fe;color:#0369a1}.lv2{background:#ede9fe;color:#6d28d9}.lv3{background:#ffedd5;color:#c2410c}
+.mhead{display:flex;align-items:center;gap:8px;margin:6px 0}
+.back{border:0;background:#f1f5f9;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700}
+.story{font-size:13.5px;line-height:1.7;background:#f8fafc;border-radius:10px;padding:10px 12px;margin:6px 0 10px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45}
+.checks .ck{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;background:#e2e8f0;color:#94a3b8}
+.checks .ok .ck{background:#16a34a;color:#fff}
+.hintbox{font-size:13px;background:#fffbeb;color:#78350f;border-radius:10px;padding:9px 11px;margin-top:8px;line-height:1.6;display:none}
+.quiz{margin-top:12px;border:2px solid #c7d2fe;border-radius:12px;padding:12px;background:#f8faff}
+.quiz .q{font-weight:800;font-size:14px;margin-bottom:9px;line-height:1.5}
+.qopt{display:block;width:100%;text-align:left;border:1px solid #c7d2fe;background:#fff;border-radius:9px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600}
+.qopt:hover{background:#eef2ff}
+.qopt.right{background:#dcfce7;border-color:#16a34a}
+.qopt.wrong{background:#fee2e2;border-color:#ef4444;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.clear{margin-top:12px;background:linear-gradient(120deg,#dcfce7,#cffafe);border-radius:12px;padding:12px;font-size:13.5px;line-height:1.65}
+.clear b.big{font-size:17px;display:block;margin-bottom:4px}
+.mbtns{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.mbtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:700}
+.mbtn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mbtn.danger{background:#fff;color:#dc2626;border-color:#fca5a5}.mbtn.danger:hover{background:#dc2626;color:#fff;border-color:#dc2626}
+/* toast & modal */
+#toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:50;align-items:center}
+.toast{background:#0f172a;color:#fff;padding:9px 16px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:tin .25s;max-width:80vw}
+.toast.err{background:#b91c1c}.toast.exc{background:#6d28d9}.toast.ok{background:#15803d}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+#modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+#modal .box{background:#fff;border-radius:16px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:22px 22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:tin .25s}
+#modal h2{margin:0 0 10px;font-size:18px;line-height:1.4}
+#modal .body{font-size:14px;line-height:1.75;color:#334155}
+#modal .body .tagline{display:inline-block;background:#fdf2f8;color:#be185d;font-weight:800;font-size:12px;padding:2px 9px;border-radius:99px;margin-bottom:8px}
+#modal .body .note{background:#f8fafc;border-left:4px solid #ec4899;padding:9px 12px;border-radius:6px;margin-top:10px;font-size:13px}
+#modal .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.obtn{padding:5px 8px;line-height:0}.obtn svg{width:26px;height:12px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+#helpBtn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;padding:7px 13px;border-radius:999px;font-weight:700;font-size:13px}
+#helpBtn:hover{background:rgba(255,255,255,.22)}
+.guide h4{margin:16px 0 7px;font-size:15px;color:#312e81}
+.guide h4:first-child{margin-top:0}
+.goal{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.goal li{background:#eef2ff;border-radius:9px;padding:8px 11px;font-size:13.5px;line-height:1.55}
+.steps{margin:0;padding-left:20px;font-size:13.5px;line-height:1.7}
+.steps li{margin-bottom:5px}.steps b{color:#4f46e5}
+.gnote{font-size:12.5px;color:#64748b;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6}
+#mnav,#mstrip{display:none}
+#mstrip{align-items:center;gap:8px;background:#eef2ff;color:#312e81;font-size:12.5px;padding:7px 10px;border-radius:10px;margin:8px 8px 0}
+#mstrip .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mstrip button{border:0;background:#4f46e5;color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:800;flex-shrink:0}
+#mstrip button.pulse{background:#16a34a;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(22,163,74,.25)}}
+/* ---------- PC: 작은 화면에서도 한 화면에 모두 보이도록 압축 ---------- */
+@media (min-width:861px) and (max-width:1280px){
+  main{gap:8px;padding:8px}
+  header{gap:10px;padding:8px 14px}
+  .vsum{font-size:11.5px}
+  .elbtn{width:34px;height:34px;font-size:13.5px}
+  .tbtn{padding:4px 7px;font-size:12px}
+  .obtn{padding:4px 6px}
+  .go{padding:9px 13px;font-size:14px}
+  .vctl{gap:5px;font-size:11px}
+  .vctl label{padding:3px 6px}
+  table.t{font-size:11.5px}
+}
+@media (min-width:861px) and (max-height:800px){
+  header{padding:6px 14px}
+  header h1{font-size:16px}
+  .tab,#helpBtn{padding:5px 12px;font-size:13px}
+  main{gap:8px;padding:8px}
+  .elbtn{width:34px;height:34px;font-size:13.5px}
+  #editor .toolbar{padding:6px 8px;gap:5px}
+  .ptitle{padding:8px 12px 4px}
+  .bottombar{padding:6px 8px}
+  .go{padding:8px 13px;font-size:14px}
+  .formula{font-size:20px}
+  .mcard{padding:7px 9px}.mcard .num{width:26px;height:26px}
+  .story{padding:8px 10px;font-size:13px}
+}
+@media (max-width:860px){
+  html,body{height:100%}
+  body{height:100dvh;min-height:0;overflow:hidden}
+  header{padding:8px 10px;gap:6px;flex-wrap:nowrap}
+  header h1{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .vsum{display:none}
+  .tabs{gap:4px}
+  .tabs{flex-shrink:0}
+  .tab{padding:5px 10px;font-size:12.5px;white-space:nowrap}
+  #helpBtn{padding:5px 9px;font-size:14px;flex-shrink:0}
+  main{display:block;padding:8px;height:auto;flex:1;min-height:0;overflow:hidden}
+  main>section{height:100%}
+  #side,#editor,#right{display:none}
+  body[data-view=side] #side{display:flex}
+  body[data-view=edit] #editor{display:flex}
+  body[data-view=view3d] #right{display:flex}
+  #editor{height:100%}
+  #right{height:100%;gap:8px}
+  #view{flex:none;height:55%}
+  #analysis{flex:1;height:auto}
+  #side{display:none;flex-direction:column}
+  #editor .toolbar{padding:6px 8px;gap:5px}
+  #toolRow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  #toolRow>*{flex-shrink:0}
+  .elbtn{width:34px;height:34px;font-size:13.5px}
+  .hidem{display:none!important}
+  .bottombar{padding:6px 8px}
+  #status{font-size:11.5px}
+  .go{padding:9px 13px;font-size:14px}
+  .vctl{gap:5px;font-size:11px}
+  .vctl label{padding:3px 6px}
+  table.t{font-size:11.5px}
+  .mcard{padding:11px 10px}
+  .story{font-size:13px}
+  #mnav{display:flex;flex-shrink:0;height:60px;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  #mnav button{flex:1;border:0;background:none;font-size:12px;font-weight:700;color:var(--sub);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative}
+  #mnav .ic{font-size:20px;line-height:1}
+  #mnav button.on{color:var(--accent)}
+  #mnav button.on::before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+  #mnav .dot{position:absolute;top:8px;left:calc(50% + 10px);width:9px;height:9px;border-radius:50%;background:#16a34a;display:none}
+  #mnav .dot.show{display:block}
+  body.has-mission:not([data-view=side]) #mstrip{display:flex}
+  #toasts{bottom:72px}
+  #modal{padding:10px}
+  #modal .box{padding:18px 16px 14px}
+}
+
+/* ===== V-Lab 공용 테마에 맞춘 덮어쓰기 ===== */
+:root{--bg:#fff;--panel:#fff;--ink:#111;--sub:#6B7280;--line:#E6E8EC;--accent:#3182F6;--accent2:#12A66B;--ok:#12A66B;--warn:#F5A623;--err:#E5484D}
+body{font-family:var(--font);letter-spacing:-0.012em;-webkit-font-smoothing:antialiased}
+header{background:#fff;color:#111;border-bottom:1px solid var(--line);padding:10px 18px}
+header h1{font-weight:600;font-size:18px;letter-spacing:-.02em}
+body.vlab-embed header h1{display:none}
+.vsum{color:#3F4652}.vsum b{color:#111}
+#vseprMore{color:var(--accent)}#vseprMore:hover{color:#1E5EB8}
+#vseprBtn{background:var(--accent-soft,#EAF2FF);color:var(--accent);box-shadow:none}#vseprBtn:hover{background:#DCE9FF}
+.tab{border:1px solid var(--line);color:#3F4652;background:#fff;border-radius:8px;font-weight:600}
+.tab.on{background:#111;color:#fff;border-color:#111}
+#helpBtn{border:1px solid var(--line);background:#fff;color:#111;border-radius:8px;font-weight:600}#helpBtn:hover{background:#F7F8FA}
+.panel{border:1px solid var(--line);border-radius:12px;box-shadow:none}
+.ptitle{font-weight:600}
+.go{background:var(--accent);box-shadow:none;border-radius:8px;font-weight:600}
+.tbtn,.exbtn,.back,.mbtn,.qopt,.freecard,.mcard,.zoomctl{border-radius:8px}
+.tbtn{background:#fff}.tbtn.on{background:var(--accent);border-color:var(--accent)}
+.elbtn.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
+.mcard .num{background:#EAF2FF;color:var(--accent)}.prog i{background:var(--accent)}
+.mbtn.pri{background:#111;border-color:#111}
+.cname{color:var(--accent);background:#EAF2FF}.cname i{color:#1E5EB8}
+.vsepr h4,.guide h4{color:#111}.vsepr .key,.goal li{background:#F7F8FA}
+.howto b,.steps b{color:var(--accent)}
+.toast{background:#111}
+#modal .box{border-radius:12px}
+</style>
+</head>
+<body data-view="edit">
+<script>if(/embed/.test(location.hash))document.body.classList.add("vlab-embed");</script>
+<header>
+  <div class="titlewrap">
+    <h1>🧪 <span class="hidem">VSEPR </span>분자 모형 공방</h1>
+    <div class="subrow"><button id="vseprBtn" title="전자쌍 반발 이론(VSEPR) 설명 보기">💡 VSEPR 이론이란?</button><span class="vsum">중심 원자 주위의 <b>전자쌍들은 모두 (−)전하를 띠어 서로 밀어내기 때문에</b>, 반발력이 가장 작아지도록 <b>서로 최대한 멀리 떨어져 배치</b>된다. 이 배치가 바로 <b>분자의 모양</b>을 결정한다. <a href="#" id="vseprMore" title="전자쌍 반발 이론(VSEPR) 설명 보기">자세히 ›</a></span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-mode="mission">🎯 미션</button>
+    <button class="tab" data-mode="free">🛠 자유 제작</button>
+  </div>
+  <button id="helpBtn" title="학습 목표 · 사용 방법">📖<span class="hidem"> 사용 방법</span></button>
+</header>
+
+<div id="mstrip"><span class="t" id="mstripT"></span><button id="mstripB">미션 보기</button></div>
+<main>
+  <!-- 왼쪽 패널 -->
+  <section class="panel" id="side"></section>
+
+  <!-- 2D 편집기 -->
+  <section class="panel" id="editor">
+    <div class="toolbar">
+      <div class="row" id="toolRow">
+        <span class="lbl">도구</span>
+        <button class="tbtn on" data-tool="add" title="빈 곳 클릭: 원자 놓기 / 원자 클릭: 결합된 원자 붙이기 / 드래그: 결합">✏️ 원자·결합</button>
+        <button class="tbtn" data-tool="swap" title="원자를 클릭하면 선택한 원소로 바뀝니다">🔁 원소 교체</button>
+        <button class="tbtn" data-tool="move">✋ 이동</button>
+        <button class="tbtn" data-tool="erase">🧽 지우기</button>
+        <button class="tbtn" data-tool="plus" title="원자를 클릭하면 +1 전하">⊕ 전하</button>
+        <button class="tbtn" data-tool="minus" title="원자를 클릭하면 −1 전하">⊖ 전하</button>
+        <span class="sep"></span>
+        <span class="lbl">새 결합</span>
+        <button class="tbtn obtn on" data-order="1" title="단일 결합"><svg viewBox="0 0 26 12"><line x1="2" y1="6" x2="24" y2="6"/></svg></button>
+        <button class="tbtn obtn" data-order="2" title="2중 결합"><svg viewBox="0 0 26 12"><line x1="2" y1="3" x2="24" y2="3"/><line x1="2" y1="9" x2="24" y2="9"/></svg></button>
+        <button class="tbtn obtn" data-order="3" title="3중 결합"><svg viewBox="0 0 26 12"><line x1="2" y1="1.5" x2="24" y2="1.5"/><line x1="2" y1="6" x2="24" y2="6"/><line x1="2" y1="10.5" x2="24" y2="10.5"/></svg></button>
+      </div>
+      <div class="row" id="elRow"></div>
+      <div class="row">
+        <button class="tbtn" id="btnAutoH" title="옥텟(수소는 2개)을 맞추도록 H를 자동으로 붙입니다">H 자동 채우기</button>
+        <button class="tbtn" id="btnTidy" title="같은 종류의 결합은 같은 길이로, 다른 결합은 원자 크기와 결합 차수에 맞는 길이로 정리하고, 전자쌍 수에 맞게 결합 방향을 고릅니다">📐 원자 간 거리 조정</button>
+        <label class="tbtn" style="display:flex;align-items:center;gap:4px;cursor:pointer" title="결합의 쌍극자 모멘트를 화살표로 표시"><input type="checkbox" id="optDip2" style="margin:0"> 쌍극자 모멘트</label>
+        <button class="tbtn" id="btnUndo">↶ 되돌리기</button>
+        <button class="tbtn" id="btnClear">🗑 전체 지우기</button>
+        <span class="hidem" style="font-size:11.5px;color:var(--sub);margin-left:4px">결합 클릭 → 단일·2중·3중 전환 · 원자 더블 탭 · 꾹 누르기 → 삭제</span>
+      </div>
+    </div>
+    <div id="cvwrap"><canvas id="cv2"></canvas><div id="tip"></div>
+      <div class="zoomctl"><button id="zOut" title="축소">－</button><button id="zReset" title="원래 크기(100%)로">100%</button><button id="zIn" title="확대">＋</button><button id="zFit" title="분자 전체가 보이게 맞춤">⤢</button></div></div>
+    <div class="bottombar">
+      <div id="status">원소를 고르고 빈 곳을 클릭해 시작하세요.</div>
+      <button class="go" id="btnConvert">▶ 3D로 변환</button>
+    </div>
+  </section>
+
+  <!-- 3D + 분석 -->
+  <section id="right">
+    <div class="panel" id="view">
+      <div class="ptitle">3D 분자 모형<span class="hidem"> · 드래그로 회전, 휠로 확대</span></div>
+      <div id="cv3wrap"></div>
+            <div id="placeholder"><div class="big">🧊</div>왼쪽에서 구조식을 그린 뒤<br><b style="color:#e2e8f0">▶ 3D로 변환</b>을 눌러 보세요.</div>
+      <div id="stale">구조가 바뀌었어요 · 다시 변환 ↻</div>
+      <div class="vctl">
+        <label><input type="checkbox" id="optLP" checked> 비공유 전자쌍</label>
+        <label><input type="checkbox" id="optAng" checked> 결합각</label>
+        <label><input type="checkbox" id="optLbl" checked> 원소 기호</label>
+        <label><input type="checkbox" id="optDip"> 쌍극자 모멘트</label>
+        <label><input type="checkbox" id="optSpin"> 자동 회전</label>
+        <button id="btnFront" title="H 외 원자가 화면 평면에 가장 많이 놓이는 방향에서 정면으로 봅니다">🎯 정면 보기</button>
+        <button id="btnReplay">↺ 변환 다시 보기</button>
+      </div>
+    </div>
+    <div class="panel" id="analysis">
+      <div class="ptitle">🔍 분자 분석</div>
+      <div id="anaBody"></div>
+    </div>
+  </section>
+</main>
+
+<nav id="mnav">
+  <button data-v="side"><span class="ic" id="navSideIc">📋</span><span id="navSideTx">안내·예시</span><i class="dot" id="navDot"></i></button>
+  <button data-v="edit"><span class="ic">✏️</span>구조식 그리기</button>
+  <button data-v="view3d"><span class="ic">🧊</span>3D·분석</button>
+</nav>
+<div id="toasts"></div>
+<div id="modal"><div class="box"><h2 id="mTitle"></h2><div class="body" id="mBody"></div><div class="acts" id="mActs"></div></div></div>
+
+<script>
+/* =========================================================
+   원소 데이터 (전기 음성도: 폴링 값, 교과서 표기 기준)
+   ========================================================= */
+const FF='"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+const EL={
+  H:{z:1,v:1,en:2.1,c:'#f8fafc',r:0.31,n:'수소'},
+  Be:{z:4,v:2,en:1.5,c:'#a3e635',r:0.96,n:'베릴륨'},
+  B:{z:5,v:3,en:2.0,c:'#fda4af',r:0.84,n:'붕소'},
+  C:{z:6,v:4,en:2.5,c:'#475569',r:0.76,n:'탄소'},
+  N:{z:7,v:5,en:3.0,c:'#3b82f6',r:0.71,n:'질소'},
+  O:{z:8,v:6,en:3.5,c:'#ef4444',r:0.66,n:'산소'},
+  F:{z:9,v:7,en:4.0,c:'#84cc16',r:0.57,n:'플루오린'},
+  Si:{z:14,v:4,en:1.8,c:'#d6b48a',r:1.11,n:'규소'},
+  P:{z:15,v:5,en:2.1,c:'#f97316',r:1.07,n:'인'},
+  S:{z:16,v:6,en:2.5,c:'#facc15',r:1.05,n:'황'},
+  Cl:{z:17,v:7,en:3.0,c:'#22c55e',r:1.02,n:'염소'},
+};
+const LOW=['H','Be','B','C','N','O','F','Si','P','S','Cl'];
+const period=z=>z<=2?1:z<=10?2:z<=18?3:z<=36?4:z<=54?5:6;
+const SUB='₀₁₂₃₄₅₆₇₈₉';
+const sub=s=>String(s).replace(/\d/g,d=>SUB[d]);
+
+/* =========================================================
+   상태
+   ========================================================= */
+let atoms=[],bonds=[],nextId=1;
+let tool='add',curEl='C',curOrder=1;
+let undoStack=[];
+let structVersion=0,convertedVersion=-1;
+let info={};             // 원자별 분석 결과
+let R3=null;             // 3D 변환 결과
+let toldExc=new Set();   // 20번 이내 옥텟 예외 안내를 띄운 원자
+let mode='mission',curMission=null,quizState=null;
+let progress={};
+try{progress=JSON.parse(localStorage.getItem('vsepr-missions-v1')||'{}')}catch(e){progress={}}
+const saveProgress=()=>{try{localStorage.setItem('vsepr-missions-v1',JSON.stringify(progress))}catch(e){}};
+
+/* =========================================================
+   UI: 원소 버튼
+   ========================================================= */
+const elRow=document.getElementById('elRow');
+function lum(hex){const n=parseInt(hex.slice(1),16);return (0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))/255}
+function mkEl(sym){const e=EL[sym];const b=document.createElement('button');b.className='elbtn';b.dataset.el=sym;
+  b.style.background=e.c;b.style.color=lum(e.c)>0.6?'#0f172a':'#fff';if(sym==='H')b.style.borderColor='#cbd5e1';
+  b.innerHTML=`<small>${e.z}</small>${sym}`;b.title=`${e.n} (원자 번호 ${e.z}, ${period(e.z)}주기, 원자가 전자 ${e.v}개)`;
+  b.onclick=()=>{curEl=sym;document.querySelectorAll('.elbtn').forEach(x=>x.classList.toggle('on',x.dataset.el===sym));if(tool!=='add'&&tool!=='swap')setTool('add')};return b}
+elRow.insertAdjacentHTML('beforeend','<span class="lbl">원소</span>');
+LOW.forEach(s=>elRow.appendChild(mkEl(s)));
+document.querySelector('.elbtn[data-el="C"]').classList.add('on');
+
+function setTool(t){tool=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));
+  cv.style.cursor={add:'crosshair',swap:'pointer',move:'grab',erase:'not-allowed',plus:'pointer',minus:'pointer'}[t]}
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>{curOrder=+b.dataset.order;document.querySelectorAll('[data-order]').forEach(x=>x.classList.toggle('on',x===b))});
+
+/* =========================================================
+   토스트 / 모달
+   ========================================================= */
+function toast(msg,type=''){const d=document.createElement('div');d.className='toast '+type;d.innerHTML=msg;document.getElementById('toasts').appendChild(d);setTimeout(()=>{d.style.transition='opacity .4s';d.style.opacity=0;setTimeout(()=>d.remove(),400)},3200)}
+function modal(title,body,acts){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;const a=document.getElementById('mActs');a.innerHTML='';
+  acts.forEach(([txt,cls,fn])=>{const b=document.createElement('button');b.className='mbtn '+(cls||'');b.textContent=txt;b.onclick=()=>{closeModal();fn&&fn()};a.appendChild(b)});
+  document.getElementById('modal').style.display='flex';document.querySelector('#modal .box').scrollTop=0}
+function closeModal(){document.getElementById('modal').style.display='none'}
+
+/* =========================================================
+   구조 편집 기본 함수
+   ========================================================= */
+function snapshot(){return JSON.stringify({atoms,bonds,nextId})}
+function pushUndo(){undoStack.push(snapshot());if(undoStack.length>80)undoStack.shift()}
+function undo(){if(!undoStack.length){toast('되돌릴 작업이 없어요.');return}const s=JSON.parse(undoStack.pop());atoms=s.atoms;bonds=s.bonds;nextId=s.nextId;changed()}
+const atomById=id=>atoms.find(a=>a.id===id);
+const findBond=(a,b)=>bonds.find(x=>(x.a===a&&x.b===b)||(x.a===b&&x.b===a));
+function addAtom(el,x,y){const a={id:nextId++,el,x,y,charge:0};atoms.push(a);return a}
+function addBond(a,b,order){if(a===b)return;const ex=findBond(a,b);if(ex){ex.order=ex.order%3+1;return ex}const bd={id:nextId++,a,b,order};bonds.push(bd);return bd}
+function delAtom(a){atoms=atoms.filter(x=>x!==a);bonds=bonds.filter(b=>b.a!==a.id&&b.b!==a.id);toldExc.delete(a.id)}
+function nbrAngles(a){return bonds.filter(b=>b.a===a.id||b.b===a.id).map(b=>{const o=atomById(b.a===a.id?b.b:b.a);return Math.atan2(o.y-a.y,o.x-a.x)})}
+function freeAngles(occ,count){const res=[];const o=[...occ];for(let k=0;k<count;k++){let best=0,bd=-1;for(let d=0;d<360;d+=5){const t=d*Math.PI/180;let m=Math.PI;o.forEach(q=>{let df=Math.abs(((t-q)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI);m=Math.min(m,df)});if(m>bd+1e-6){bd=m;best=t}}res.push(best);o.push(best)}return res}
+function addNeighbor(a,el,order=1){const t=freeAngles(nbrAngles(a),1)[0];const L=el==='H'||a.el==='H'?52:64;const n=addAtom(el,a.x+Math.cos(t)*L,a.y+Math.sin(t)*L);addBond(a.id,n.id,order);return n}
+
+/* =========================================================
+   전자 분석 (루이스 구조)
+   ========================================================= */
+const SHAPE={'2,0':'직선형','3,0':'평면 삼각형','2,1':'굽은 형','4,0':'정사면체형','3,1':'삼각뿔형','2,2':'굽은 형','5,0':'삼각쌍뿔형','4,1':'시소형','3,2':'T자형','2,3':'직선형','6,0':'정팔면체형','5,1':'사각뿔형','4,2':'평면 사각형','3,3':'T자형','2,4':'직선형'};
+const EG={2:'직선형',3:'평면 삼각형',4:'정사면체형',5:'삼각쌍뿔형',6:'정팔면체형'};
+function analyze(){
+  info={};
+  atoms.forEach(a=>info[a.id]={a,nbrs:[],sumBO:0});
+  bonds.forEach(b=>{info[b.a].nbrs.push(b.b);info[b.b].nbrs.push(b.a);info[b.a].sumBO+=b.order;info[b.b].sumBO+=b.order});
+  for(const id in info){
+    const I=info[id],a=I.a,e=EL[a.el],p=period(e.z);
+    const rem=e.v-a.charge-I.sumBO;
+    I.rem=rem;I.lp=rem>=0?Math.floor(rem/2):0;I.single=rem>=0?rem%2:0;
+    I.electrons=2*I.sumBO+Math.max(rem,0);I.nb=I.nbrs.length;I.L=I.lp+I.single;I.n=I.nb+I.L;
+    let st='ok',msg='';
+    if(rem<0){st='error';msg=`${a.el}: 원자가 전자(${e.v}개)보다 결합이 많아요. 결합 수나 전하를 확인하세요.`}
+    else if(I.n>6){st='error';msg=`${a.el}: 전자쌍이 7개 이상인 구조는 이 프로그램에서 다루지 않아요.`}
+    else if(a.el==='H'){if(I.electrons===2){st='ok';msg='H: 전자 2개 (듀엣 규칙 만족)'}else{st='incomplete';msg='H: 전자 2개가 되도록 결합 1개가 필요해요.'}}
+    else if(I.electrons>8){
+      if(p<=2){st='error';msg=`${a.el}: 2주기 원소는 주위에 전자를 8개보다 많이 가질 수 없어요. (현재 ${I.electrons}개)`}
+      else{st='expanded';msg=`${a.el}: 전자 ${I.electrons}개 — 옥텟 규칙의 예외(확장된 옥텟)로 허용돼요.`}
+    }
+    else if(I.electrons===8){st='ok';msg=`${a.el}: 전자 8개 (옥텟 규칙 만족)`}
+    else{
+      if(['Be','B'].includes(a.el)&&rem===0&&I.nb>0){st='deficient';msg=`${a.el}: 전자 ${I.electrons}개 — 옥텟 규칙의 예외(전자 부족)로 허용돼요.`}
+      else{st='incomplete';msg=I.single?`${a.el}: 짝을 이루지 않은 전자(홀전자)가 있어요. 결합이나 전하를 조정해 보세요.`:`${a.el}: 전자 ${I.electrons}개 — 옥텟까지 ${8-I.electrons}개가 부족해요.`}
+    }
+    I.st=st;I.msg=msg;
+    I.shape=I.nb>=2?SHAPE[I.nb+','+I.L]||'-':null;I.eg=I.nb>=2?EG[I.n]||'-':null;
+  }
+  return info;
+}
+function components(){const seen=new Set();const comps=[];atoms.forEach(a=>{if(seen.has(a.id))return;const c=[];const st=[a.id];seen.add(a.id);while(st.length){const x=st.pop();c.push(x);info[x].nbrs.forEach(n=>{if(!seen.has(n)){seen.add(n);st.push(n)}})}comps.push(c)});return comps}
+function formulaCounts(){const c={};atoms.forEach(a=>c[a.el]=(c[a.el]||0)+1);return c}
+function totalCharge(){return atoms.reduce((s,a)=>s+a.charge,0)}
+function chargeStr(q){if(!q)return'';const m=Math.abs(q);return (m>1?m:'')+(q>0?'+':'−')}
+// 화학식: 관습적 표기 (NH₃, H₂O, HCl, HCN, CH₃OH 등)
+const INORG=['Be','B','Si','C','P','N','H','S','Cl','O','F'];   // 무기 화합물에서 앞에 쓰는 원소 → 뒤에 쓰는 원소
+const FORMULA_FIX={'C1H1N1':'HCN','C1H2O1':'HCHO','C1H4O1':'CH3OH','C1H2O2':'HCOOH','C1H5N1':'CH3NH2','C2H4O1':'CH3CHO','H1O1|-1':'OH','C1H3|-1':'CH3'};
+function formulaStr(counts,q,ids){
+  const ks=Object.keys(counts).filter(k=>counts[k]>0);const key=ks.slice().sort().map(k=>k+counts[k]).join('');
+  if(FORMULA_FIX[key+'|'+q])return FORMULA_FIX[key+'|'+q];if(FORMULA_FIX[key])return FORMULA_FIX[key];
+  // 구조에 따라 달라지는 경우 (에탄올/다이메틸 에터, 아세트산/폼산 메틸)
+  if(ids&&(key==='C2H6O1'||key==='C2H4O2')){const oh=ids.some(id=>atomById(id).el==='O'&&info[id].nbrs.some(n=>atomById(n).el==='H'));
+    if(key==='C2H6O1')return oh?'C2H5OH':'CH3OCH3';return oh?'CH3COOH':'HCOOCH3'}
+  const n=k=>k+(counts[k]>1?counts[k]:'');
+  if(counts.C&&counts.H)return['C','H',...ks.filter(k=>k!=='C'&&k!=='H').sort()].map(n).join('');   // 유기 화합물
+  // 산소산 (HNO₃, H₂SO₄, H₃PO₄, HClO 등): H → 중심 원소 → O
+  if(counts.H&&counts.O&&ks.length===3&&!counts.C){const x=ks.find(k=>k!=='H'&&k!=='O');if(x&&x!=='F')return n('H')+n(x)+n('O')}
+  return ks.slice().sort((p,q2)=>INORG.indexOf(p)-INORG.indexOf(q2)).map(n).join('');
+}
+function formulaHTML(counts,q,ids){return formulaStr(counts,q,ids).replace(/(\d+)/g,'<sub>$1</sub>')+(q?`<sup>${chargeStr(q)}</sup>`:'')}
+// 대표 화합물 이름 (관습 화학식 기준)
+const NAMES={'H2':['수소','hydrogen'],'O2':['산소','oxygen'],'N2':['질소','nitrogen'],'F2':['플루오린','fluorine'],'Cl2':['염소','chlorine'],'O3':['오존','ozone'],
+ 'H2O':['물','water'],'H2O2':['과산화 수소','hydrogen peroxide'],'NH3':['암모니아','ammonia'],'CH4':['메테인','methane'],'CO2':['이산화 탄소','carbon dioxide'],'CO':['일산화 탄소','carbon monoxide'],
+ 'HF':['플루오린화 수소','hydrogen fluoride'],'HCl':['염화 수소','hydrogen chloride'],'H2S':['황화 수소','hydrogen sulfide'],'HCN':['사이안화 수소','hydrogen cyanide'],
+ 'BF3':['삼플루오린화 붕소','boron trifluoride'],'BCl3':['삼염화 붕소','boron trichloride'],'BeCl2':['염화 베릴륨','beryllium chloride'],'BeF2':['플루오린화 베릴륨','beryllium fluoride'],
+ 'NF3':['삼플루오린화 질소','nitrogen trifluoride'],'NCl3':['삼염화 질소','nitrogen trichloride'],'OF2':['이플루오린화 산소','oxygen difluoride'],'PCl3':['삼염화 인','phosphorus trichloride'],
+ 'PCl5':['오염화 인','phosphorus pentachloride'],'SF6':['육플루오린화 황','sulfur hexafluoride'],'SO2':['이산화 황','sulfur dioxide'],'SO3':['삼산화 황','sulfur trioxide'],'CS2':['이황화 탄소','carbon disulfide'],
+ 'SiH4':['실레인','silane'],'PH3':['포스핀','phosphine'],'N2H4':['하이드라진','hydrazine'],'HNO3':['질산','nitric acid'],'H2SO4':['황산','sulfuric acid'],'H3PO4':['인산','phosphoric acid'],'HClO':['하이포아염소산','hypochlorous acid'],
+ 'CCl4':['사염화 탄소','carbon tetrachloride'],'CHCl3':['클로로폼','chloroform'],'CH2Cl2':['다이클로로메테인','dichloromethane'],'CH3Cl':['클로로메테인','chloromethane'],'CH3F':['플루오로메테인','fluoromethane'],
+ 'C2H6':['에테인','ethane'],'C2H4':['에텐','ethene'],'C2H2':['에타인','ethyne'],'C3H8':['프로페인','propane'],'C4H10':['뷰테인','butane'],'C6H6':['벤젠','benzene'],
+ 'CH3OH':['메탄올','methanol'],'C2H5OH':['에탄올','ethanol'],'HCHO':['폼알데하이드','formaldehyde'],'CH3CHO':['아세트알데하이드','acetaldehyde'],'HCOOH':['폼산','formic acid'],'CH3COOH':['아세트산','acetic acid'],
+ 'CH3OCH3':['다이메틸 에터','dimethyl ether'],'CH3NH2':['메틸아민','methylamine'],
+ 'NH4+':['암모늄 이온','ammonium ion'],'H3O+':['하이드로늄 이온','hydronium ion'],'OH−':['수산화 이온','hydroxide ion'],'CN−':['사이안화 이온','cyanide ion'],
+ 'CO32−':['탄산 이온','carbonate ion'],'NO3−':['질산 이온','nitrate ion'],'SO42−':['황산 이온','sulfate ion'],'NO2−':['아질산 이온','nitrite ion']};
+function nameOf(fs,q){return NAMES[fs+chargeStr(q)]||null}
+function moleculeHTML(){const comps=components();return comps.map(c=>{const cnt={};let q=0;c.forEach(id=>{const a=atomById(id);cnt[a.el]=(cnt[a.el]||0)+1;q+=a.charge});const fs=formulaStr(cnt,q,c);const ok=c.every(id=>info[id]&&['ok','deficient','expanded'].includes(info[id].st));const nm=ok&&c.length>1?nameOf(fs,q):null;
+    return formulaHTML(cnt,q,c)+(nm?`<span class="cname">${nm[0]}<i>${nm[1]}</i></span>`:'')}).join(' <span style="color:#94a3b8;font-weight:400">+</span> ')}
+
+/* =========================================================
+   2D 캔버스
+   ========================================================= */
+const cv=document.getElementById('cv2'),ctx=cv.getContext('2d'),tip=document.getElementById('tip');
+let W=0,H=0,DPR=1,hover=null,drag=null,mouse={x:0,y:0};
+function resize2D(){const r=cv.getBoundingClientRect();DPR=window.devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;draw()}
+// 보드 확대·축소: 화면 좌표 = 보드 좌표 × s + (ox, oy)
+const view={s:1,ox:0,oy:0};const ZMIN=0.4,ZMAX=3;
+const setScreenT=()=>ctx.setTransform(DPR,0,0,DPR,0,0),setWorldT=()=>ctx.setTransform(DPR*view.s,0,0,DPR*view.s,DPR*view.ox,DPR*view.oy);
+const vis=()=>({x0:-view.ox/view.s,y0:-view.oy/view.s,w:W/view.s,h:H/view.s});
+function zoomLabel(){const b=document.getElementById('zReset');if(b)b.textContent=Math.round(view.s*100)+'%'}
+function setZoom(ns,cx=W/2,cy=H/2){ns=Math.max(ZMIN,Math.min(ZMAX,ns));const wx=(cx-view.ox)/view.s,wy=(cy-view.oy)/view.s;view.s=ns;view.ox=cx-wx*ns;view.oy=cy-wy*ns;zoomLabel();draw()}
+function resetView(){view.s=1;view.ox=0;view.oy=0;zoomLabel();draw()}
+function fitView(){if(!atoms.length){resetView();return}let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;atoms.forEach(a=>{x0=Math.min(x0,a.x);y0=Math.min(y0,a.y);x1=Math.max(x1,a.x);y1=Math.max(y1,a.y)});
+  const m=50,ns=Math.max(ZMIN,Math.min(ZMAX,1.6,W/(x1-x0+2*m),H/(y1-y0+2*m)));view.s=ns;view.ox=W/2-(x0+x1)/2*ns;view.oy=H/2-(y0+y1)/2*ns;zoomLabel();draw()}
+new ResizeObserver(resize2D).observe(document.getElementById('cvwrap'));
+const rad=a=>a.el==='H'?13:['Si','Cl','Be'].includes(a.el)?18:17;
+function atomAt(x,y){for(let i=atoms.length-1;i>=0;i--){const a=atoms[i];if(Math.hypot(a.x-x,a.y-y)<rad(a)+4)return a}return null}
+function bondAt(x,y){let best=null,bd=8;bonds.forEach(b=>{const A=atomById(b.a),B=atomById(b.b);const dx=B.x-A.x,dy=B.y-A.y,l2=dx*dx+dy*dy||1;let t=((x-A.x)*dx+(y-A.y)*dy)/l2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(A.x+t*dx-x,A.y+t*dy-y);if(d<bd){bd=d;best=b}});return best}
+const ST_COLOR={ok:'#22c55e',incomplete:'#f59e0b',error:'#ef4444',deficient:'#8b5cf6',expanded:'#8b5cf6'};
+
+function draw(){
+  setScreenT();ctx.clearRect(0,0,W,H);
+  // 배경 점 격자 (확대·축소에 맞춰 함께 움직임)
+  {const g=24*view.s*(view.s<0.7?2:1);const sx=((view.ox+12*view.s)%g+g)%g,sy=((view.oy+12*view.s)%g+g)%g;ctx.fillStyle='#e2e8f0';for(let x=sx;x<W;x+=g)for(let y=sy;y<H;y+=g){ctx.fillRect(x,y,1.5,1.5)}}
+  if(!atoms.length){ctx.fillStyle='#94a3b8';ctx.font='600 15px '+FF;ctx.textAlign='center';ctx.fillText('원소를 고르고 이곳을 클릭해 원자를 놓아 보세요',W/2,H/2-8);ctx.font='13px '+FF;ctx.fillText('원자를 클릭하면 선택한 원소가 결합된 채로 붙어요',W/2,H/2+16)}
+  setWorldT();
+  // 결합
+  bonds.forEach(b=>{const A=atomById(b.a),B=atomById(b.b);let dx=B.x-A.x,dy=B.y-A.y;const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;const px=-dy,py=dx;
+    const s1=rad(A)*0.75,s2=rad(B)*0.75;const offs=b.order===1?[0]:b.order===2?[-4.5,4.5]:[-6.5,0,6.5];
+    ctx.strokeStyle=hover&&hover.bond===b?'#4f46e5':'#334155';ctx.lineWidth=b.order===1?2.6:2.2;ctx.lineCap='round';
+    offs.forEach(o=>{ctx.beginPath();ctx.moveTo(A.x+dx*s1+px*o,A.y+dy*s1+py*o);ctx.lineTo(B.x-dx*s2+px*o,B.y-dy*s2+py*o);ctx.stroke()})});
+  if(document.getElementById('optDip2').checked)drawDipoles2D();
+  // 드래그 미리보기
+  if(drag&&drag.type==='link'&&drag.moved){ctx.setLineDash([5,5]);ctx.strokeStyle='#4f46e5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(drag.from.x,drag.from.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
+  // 원자
+  atoms.forEach(a=>{const I=info[a.id];const r=rad(a);const e=EL[a.el];
+    // 비공유 전자쌍
+    if(I&&I.L){const angs=freeAngles(nbrAngles(a),I.L);angs.forEach((t,i)=>{const isSingle=i>=I.lp;const R=r+8;const cx=a.x+Math.cos(t)*R,cy=a.y+Math.sin(t)*R;const px=-Math.sin(t)*3.6,py=Math.cos(t)*3.6;ctx.fillStyle=isSingle?'#dc2626':'#1e293b';
+      if(isSingle){ctx.beginPath();ctx.arc(cx,cy,2.6,0,7);ctx.fill()}else{[1,-1].forEach(s=>{ctx.beginPath();ctx.arc(cx+px*s,cy+py*s,2.3,0,7);ctx.fill()})}})}
+    if(hover&&hover.atom===a){ctx.fillStyle='rgba(79,70,229,.15)';ctx.beginPath();ctx.arc(a.x,a.y,r+9,0,7);ctx.fill()}
+    // 상태 고리
+    if(I){ctx.strokeStyle=ST_COLOR[I.st];ctx.lineWidth=2.5;if(['deficient','expanded'].includes(I.st))ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(a.x,a.y,r+3.5,0,7);ctx.stroke();ctx.setLineDash([])}
+    ctx.fillStyle=e.c;ctx.beginPath();ctx.arc(a.x,a.y,r,0,7);ctx.fill();ctx.strokeStyle='rgba(15,23,42,.35)';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=lum(e.c)>0.6?'#0f172a':'#fff';ctx.font=`800 ${a.el.length>1?13:14}px ${FF}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(a.el,a.x,a.y+0.5);
+    if(a.charge){const t=chargeStr(a.charge);const bx=a.x+r*0.85,by=a.y-r*0.85;ctx.fillStyle=a.charge>0?'#dc2626':'#2563eb';ctx.beginPath();ctx.arc(bx,by,8.5,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font='800 10px '+FF;ctx.fillText(t,bx,by+0.5)}
+  });
+  drawCallouts();
+}
+// 부분 전하: 결합한 원자와의 전기 음성도 차를 더해 전자를 끌어당기는 쪽은 δ−, 내주는 쪽은 δ+
+function partialSigns(aList,bList){const el={},m={};aList.forEach(a=>{el[a.id]=a.el;m[a.id]=0});
+  bList.forEach(b=>{const d=EL[el[b.a]].en-EL[el[b.b]].en;m[b.a]+=d;m[b.b]-=d});
+  const out={};for(const id in m)out[id]=m[id]>1e-6?'δ−':m[id]<-1e-6?'δ+':'';return out}
+// 보드의 결합 쌍극자 모멘트: + 꼬리 → 전기 음성도가 큰 원자 쪽
+function drawDipoles2D(){let any=false;
+  const sg=partialSigns(atoms,bonds);atoms.forEach(a=>{const t=sg[a.id];if(!t)return;const I=info[a.id],r=rad(a);
+    const nb=nbrAngles(a);const lp=I&&I.L?freeAngles(nb,I.L):[];const ang=freeAngles([...nb,...lp],1)[0];
+    const dd=r+(nb.length>=3?26:16);const x=a.x+Math.cos(ang)*dd,y=a.y+Math.sin(ang)*dd;ctx.font='800 13px '+FF;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.strokeText(t,x,y);ctx.fillStyle=t==='δ+'?'#dc2626':'#2563eb';ctx.fillText(t,x,y)});
+  bonds.forEach(b=>{let A=atomById(b.a),B=atomById(b.b);const ea=EL[A.el].en,eb=EL[B.el].en;if(Math.abs(ea-eb)<1e-9)return;if(ea>eb)[A,B]=[B,A];any=true;
+    const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy);if(L<30)return;const ux=dx/L,uy=dy/L;const off=b.order===1?12:b.order===2?15:17;const px=-uy*off,py=ux*off;
+    const x1=A.x+ux*L*.25+px,y1=A.y+uy*L*.25+py,x2=A.x+ux*L*.75+px,y2=A.y+uy*L*.75+py;const w=1.4+Math.abs(ea-eb)*1.4,hl=7+w;
+    ctx.strokeStyle=ctx.fillStyle='#0284c7';ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-ux*hl*.8,y2-uy*hl*.8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-ux*hl-uy*hl*.5,y2-uy*hl+ux*hl*.5);ctx.lineTo(x2-ux*hl+uy*hl*.5,y2-uy*hl-ux*hl*.5);ctx.closePath();ctx.fill();
+    const c=5,tx=x1+ux*7,ty=y1+uy*7;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(tx-uy*c,ty+ux*c);ctx.lineTo(tx+uy*c,ty-ux*c);ctx.stroke()});
+  ctx.font='600 12px '+FF;ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillStyle='#0369a1';
+  const t1=any?'⇀ 결합의 쌍극자 모멘트 (+ 쪽 → 전기 음성도가 큰 원자 쪽)':'⇀ 극성 공유 결합이 없어요',t2='분자 전체의 극성은 3D 모양을 보고 판단해요';
+  setScreenT();ctx.font='600 12px '+FF;ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillStyle='#0369a1';
+  if(ctx.measureText(t1+' · '+t2).width<W-20)ctx.fillText(t1+' · '+t2,10,H-8);else{ctx.fillText(t1,10,H-24);ctx.fillText(t2,10,H-8)}setWorldT()}
+// 확장된 옥텟 중심 원자에서 뻗어 나오는 안내 말풍선 (해당 원자가 남아 있는 동안 계속 표시)
+function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+let closeHits=[];const dismissed=new Set();
+function drawCallouts(){
+  const boxes=[];closeHits=[];const V=vis();
+  atoms.forEach(a=>{const I=info[a.id];if(!I)return;const def=I.st==='deficient';if(!(I.st==='expanded'||(def&&!dismissed.has(a.id))))return;
+    const r=rad(a);const l1='옥텟 규칙의 예외 (허용)',l2=def?`전자 부족 · ${a.el} 주위 전자 ${I.electrons}개`:`확장된 옥텟 · ${a.el} 주위 전자 ${I.electrons}개`;
+    ctx.font='800 12px '+FF;const w1=ctx.measureText('◆ '+l1).width;ctx.font='600 11.5px '+FF;const w2=ctx.measureText(l2).width;
+    const bw=Math.max(w1,w2)+22+(def?18:0),bh=42;let best=null,bs=-Infinity;
+    for(let d=0;d<360;d+=15)for(const D of [90,125,160,200,240]){const t=d*Math.PI/180;
+      const x0=Math.min(Math.max(a.x+Math.cos(t)*D-bw/2,V.x0+6),Math.max(V.x0+6,V.x0+V.w-bw-6)),y0=Math.min(Math.max(a.y+Math.sin(t)*D-bh/2,V.y0+6),Math.max(V.y0+6,V.y0+V.h-bh-6));
+      let m=60;atoms.forEach(o=>{const dx=Math.max(x0-o.x,0,o.x-(x0+bw)),dy=Math.max(y0-o.y,0,o.y-(y0+bh));m=Math.min(m,Math.hypot(dx,dy)-rad(o)-14)});
+      let pen=0;bonds.forEach(b=>{const A=atomById(b.a),B=atomById(b.b);for(let k=1;k<8;k++){const px=A.x+(B.x-A.x)*k/8,py=A.y+(B.y-A.y)*k/8;if(px>x0-4&&px<x0+bw+4&&py>y0-4&&py<y0+bh+4)pen+=25}});
+      boxes.forEach(q=>{if(!(x0+bw+6<q.x||q.x+q.w+6<x0||y0+bh+6<q.y||q.y+q.h+6<y0))pen+=300});
+      const lx=Math.min(Math.max(a.x,x0),x0+bw),ly=Math.min(Math.max(a.y,y0),y0+bh);
+      atoms.forEach(o=>{if(o===a)return;for(let k=1;k<10;k++){const px=a.x+(lx-a.x)*k/10,py=a.y+(ly-a.y)*k/10;if(Math.hypot(px-o.x,py-o.y)<rad(o)+6){pen+=60;break}}});
+      const cx=x0+bw/2,cy=y0+bh/2;const dist=Math.hypot(cx-a.x,cy-a.y);
+      const sc=(m<0?m*4:m)-pen-dist*0.08+(cy<a.y?4:0);if(sc>bs){bs=sc;best={x:x0,y:y0}}}
+    const{x,y}=best;boxes.push({x,y,w:bw,h:bh});
+    // 연결선: 원자 가장자리 → 말풍선의 가장 가까운 점
+    const tx=Math.min(Math.max(a.x,x),x+bw),ty=Math.min(Math.max(a.y,y),y+bh);let ux=tx-a.x,uy=ty-a.y;const ul=Math.hypot(ux,uy)||1;ux/=ul;uy/=ul;
+    ctx.strokeStyle='#8b5cf6';ctx.lineWidth=1.8;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(a.x+ux*(r+6),a.y+uy*(r+6));ctx.lineTo(tx,ty);ctx.stroke();
+    ctx.fillStyle='#8b5cf6';ctx.beginPath();ctx.arc(a.x+ux*(r+6),a.y+uy*(r+6),3,0,7);ctx.fill();
+    ctx.shadowColor='rgba(91,33,182,.18)';ctx.shadowBlur=8;rrect(x,y,bw,bh,9);ctx.fillStyle='#f5f3ff';ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#8b5cf6';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='800 12px '+FF;ctx.fillStyle='#5b21b6';ctx.fillText('◆ '+l1,x+11,y+14);
+    ctx.font='600 11.5px '+FF;ctx.fillStyle='#6d28d9';ctx.fillText(l2,x+11,y+30);
+    if(def){const cx=x+bw-13,cy=y+12;ctx.fillStyle='#ede9fe';ctx.beginPath();ctx.arc(cx,cy,8,0,7);ctx.fill();ctx.strokeStyle='#6d28d9';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(cx-3.5,cy-3.5);ctx.lineTo(cx+3.5,cy+3.5);ctx.moveTo(cx+3.5,cy-3.5);ctx.lineTo(cx-3.5,cy+3.5);ctx.stroke();closeHits.push({id:a.id,x:cx,y:cy})}
+  });
+}
+
+function spos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function pos(e){const q=spos(e);return{x:(q.x-view.ox)/view.s,y:(q.y-view.oy)/view.s}}
+// 두 손가락: 확대·축소 + 이동
+const cvPtrs=new Map();let pinch2=null,ignoreUp=false;
+const pdist2=()=>{const p=[...cvPtrs.values()];return[Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2}]};
+let lastPtrType='mouse',press=null;
+function cancelPress(){if(press){clearTimeout(press.timer);cancelAnimationFrame(press.raf);press=null;draw()}}
+function drawPress(){if(!press)return;const k=Math.min(1,(performance.now()-press.t0)/LONGPRESS);const{x,y}=press;draw();setWorldT();
+  ctx.strokeStyle='#ef4444';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.arc(x,y,26,-Math.PI/2,-Math.PI/2+k*2*Math.PI);ctx.stroke();press.raf=requestAnimationFrame(drawPress)}
+const LONGPRESS=650;
+cv.addEventListener('contextmenu',e=>{e.preventDefault();if(lastPtrType!=='mouse')return;const p=pos(e);const a=atomAt(p.x,p.y);if(a){pushUndo();delAtom(a);changed()}else{const b=bondAt(p.x,p.y);if(b){pushUndo();bonds=bonds.filter(x=>x!==b);changed()}}});
+cv.addEventListener('pointerdown',e=>{lastPtrType=e.pointerType;if(e.button!==0)return;const p=pos(e),sp=spos(e);mouse=p;cv.setPointerCapture(e.pointerId);
+  cvPtrs.set(e.pointerId,sp);
+  if(cvPtrs.size===2){cancelPress();drag=null;ignoreUp=true;tip.style.display='none';const[d,m]=pdist2();pinch2={d,m,s:view.s,ox:view.ox,oy:view.oy};draw();return}
+  if(cvPtrs.size>2)return;ignoreUp=false;
+  const ch=closeHits.find(c=>Math.hypot(c.x-p.x,c.y-p.y)<12);if(ch){dismissed.add(ch.id);draw();return}
+  const a=atomAt(p.x,p.y),b=a?null:bondAt(p.x,p.y);
+  // 꾹 누르면 지우기 (원자·결합)
+  if((a||b)&&tool!=='erase'){const tgt=a||b;const cx=a?a.x:(atomById(b.a).x+atomById(b.b).x)/2,cy=a?a.y:(atomById(b.a).y+atomById(b.b).y)/2;
+    press={x:cx,y:cy,sx:p.x,sy:p.y,t0:performance.now(),timer:setTimeout(()=>{const pr=press;press=null;cancelAnimationFrame(pr.raf);drag=null;pushUndo();
+      if(a)delAtom(a);else bonds=bonds.filter(x=>x!==b);if(navigator.vibrate)navigator.vibrate(30);changed();toast(a?`${a.el} 원자를 지웠어요. (↶ 되돌리기 가능)`:'결합을 지웠어요. (↶ 되돌리기 가능)');pressFired=true},LONGPRESS)};
+    press.raf=requestAnimationFrame(()=>setTimeout(()=>press&&drawPress(),180))}
+  if(tool==='add'){if(a)drag={type:'link',from:a,sx:p.x,sy:p.y,moved:false};else if(b)drag={type:'tap',b,sx:p.x,sy:p.y};else drag={type:'empty',sx:p.x,sy:p.y}}
+  else if(tool==='swap'){if(a||b)drag={type:'tap',a,b,sx:p.x,sy:p.y};else drag={type:'empty',sx:p.x,sy:p.y}}
+  else if(tool==='move'){if(a){drag={type:'move',atom:a,ox:p.x-a.x,oy:p.y-a.y,pushed:false};cv.style.cursor='grabbing'}}
+  else if(tool==='erase'){if(a){pushUndo();delAtom(a);changed()}else if(b){pushUndo();bonds=bonds.filter(x=>x!==b);changed()}}
+  else if(tool==='plus'||tool==='minus'){if(a)drag={type:'tap',a,sx:p.x,sy:p.y}}
+  // 빈 곳을 끌면 보드 이동
+  if(!a&&!b&&(!drag||drag.type==='empty'))drag={type:'empty',sx:p.x,sy:p.y,ssx:sp.x,ssy:sp.y,ox:view.ox,oy:view.oy};
+});
+let pressFired=false;
+cv.addEventListener('pointermove',e=>{const p=pos(e),sp=spos(e);mouse=p;
+  if(cvPtrs.has(e.pointerId))cvPtrs.set(e.pointerId,sp);
+  if(pinch2&&cvPtrs.size===2){const[d,m]=pdist2();const ns=Math.max(ZMIN,Math.min(ZMAX,pinch2.s*d/Math.max(pinch2.d,1)));const wx=(pinch2.m.x-pinch2.ox)/pinch2.s,wy=(pinch2.m.y-pinch2.oy)/pinch2.s;
+    view.s=ns;view.ox=m.x-wx*ns;view.oy=m.y-wy*ns;zoomLabel();draw();return}
+  if(press&&Math.hypot(p.x-press.sx,p.y-press.sy)>8/view.s)cancelPress();
+  if(drag&&(drag.type==='empty'||drag.type==='pan')&&drag.ssx!==undefined){if(drag.type==='empty'&&Math.hypot(sp.x-drag.ssx,sp.y-drag.ssy)>8){drag.type='pan';cv.style.cursor='grabbing'}
+    if(drag.type==='pan'){view.ox=drag.ox+sp.x-drag.ssx;view.oy=drag.oy+sp.y-drag.ssy;draw();return}}
+  if(drag){if(drag.type==='link'){if(Math.hypot(p.x-drag.sx,p.y-drag.sy)>8)drag.moved=true;draw()}
+    else if(drag.type==='move'){if(!drag.pushed){pushUndo();drag.pushed=true}drag.atom.x=p.x-drag.ox;drag.atom.y=p.y-drag.oy;draw()}}
+  const a=atomAt(p.x,p.y),b=a?null:bondAt(p.x,p.y);const nh=a?{atom:a}:b?{bond:b}:null;
+  if((nh&&nh.atom)!==(hover&&hover.atom)||(nh&&nh.bond)!==(hover&&hover.bond)){hover=nh;draw()}
+  if(a&&info[a.id]&&!drag){const I=info[a.id];tip.style.display='block';tip.innerHTML=`<b>${EL[a.el].n} ${a.el}</b> · 공유 전자쌍 ${I.sumBO}개 · 비공유 전자쌍 ${I.lp}개${a.charge?` · 전하 ${chargeStr(a.charge)}`:''}<br>${I.msg}`;
+    tip.style.left=Math.min(sp.x+14,W-tip.offsetWidth-6)+'px';tip.style.top=(sp.y+16)+'px'}else tip.style.display='none'});
+cv.addEventListener('pointercancel',e=>{cvPtrs.delete(e.pointerId);if(cvPtrs.size<2)pinch2=null;cancelPress();drag=null});
+cv.addEventListener('pointerleave',()=>{tip.style.display='none';if(hover){hover=null;draw()}});
+let lastTap=null;
+cv.addEventListener('pointerup',e=>{cvPtrs.delete(e.pointerId);if(cvPtrs.size<2)pinch2=null;if(ignoreUp){if(!cvPtrs.size)ignoreUp=false;drag=null;return}
+  const p=pos(e);if(press)cancelPress();if(pressFired){pressFired=false;drag=null;return}if(!drag)return;const d=drag;drag=null;
+  // 같은 원자를 빠르게 두 번 탭(더블 클릭)하면 첫 탭의 동작을 취소하고 원자를 지움
+  const still=Math.hypot(p.x-(d.sx??p.x),p.y-(d.sy??p.y))<8;
+  const tapAtom=(d.type==='link'&&!d.moved)?d.from:(d.type==='tap'&&d.a&&still)?d.a:(d.type==='move'&&!d.pushed)?d.atom:null;
+  if(tapAtom){const now=performance.now();
+    if(lastTap&&lastTap.id===tapAtom.id&&now-lastTap.t<350){
+      let snap=null;while(undoStack.length>lastTap.u)snap=undoStack.pop();if(snap){const st=JSON.parse(snap);atoms=st.atoms;bonds=st.bonds;nextId=st.nextId}
+      const a=atomById(lastTap.id);lastTap=null;if(a){pushUndo();delAtom(a);changed();toast(`${a.el} 원자를 지웠어요. (↶ 되돌리기 가능)`)}else changed();
+      if(d.type==='move')cv.style.cursor='grab';return}
+    lastTap={id:tapAtom.id,t:now,u:undoStack.length}}else lastTap=null;
+  if(d.type==='link'){pushUndo();
+    if(!d.moved){addNeighbor(d.from,curEl,curOrder)}
+    else{const t=atomAt(p.x,p.y);if(t&&t!==d.from)addBond(d.from.id,t.id,curOrder);
+      else{let x=p.x,y=p.y;const L=Math.hypot(x-d.from.x,y-d.from.y);if(L<45){const k=64/L;x=d.from.x+(x-d.from.x)*k;y=d.from.y+(y-d.from.y)*k}const n=addAtom(curEl,x,y);addBond(d.from.id,n.id,curOrder)}}
+    changed()}
+  else if(d.type==='tap'){if(Math.hypot(p.x-d.sx,p.y-d.sy)>8)return;
+    if(tool==='plus'||tool==='minus'){const k=tool==='plus'?1:-1;if(Math.abs(d.a.charge+k)>3){toast('전하는 −3 ~ +3까지 설정할 수 있어요.');return}pushUndo();d.a.charge+=k;changed()}
+    else if(d.a){if(d.a.el!==curEl){pushUndo();d.a.el=curEl;d.a.charge=0;changed()}}
+    else if(d.b){pushUndo();d.b.order=d.b.order%3+1;changed()}}
+  else if(d.type==='pan'){cv.style.cursor={add:'crosshair',swap:'pointer',move:'grab',erase:'not-allowed',plus:'pointer',minus:'pointer'}[tool]}
+  else if(d.type==='empty'){if((tool==='add'||tool==='swap')&&Math.hypot(p.x-d.sx,p.y-d.sy)<8/view.s){pushUndo();addAtom(curEl,p.x,p.y);changed()}}
+  else if(d.type==='move'){cv.style.cursor='grab';draw()}
+});
+window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
+
+document.getElementById('btnUndo').onclick=undo;
+cv.addEventListener('wheel',e=>{e.preventDefault();const sp=spos(e);setZoom(view.s*Math.exp(-e.deltaY*0.0015),sp.x,sp.y)},{passive:false});
+document.getElementById('zIn').onclick=()=>setZoom(view.s*1.25);document.getElementById('zOut').onclick=()=>setZoom(view.s/1.25);
+document.getElementById('zReset').onclick=resetView;document.getElementById('zFit').onclick=fitView;
+document.getElementById('optDip2').onchange=draw;
+/* ---------- 원자 간 거리 조정 ----------
+   · 결합 길이: 같은 종류의 결합은 같은 길이, 다른 결합은 원자 크기와 결합 차수(단일 > 2중 > 3중)에 맞게
+   · 결합 방향: 중심 원자의 전자쌍 수(결합 + 비공유 전자쌍)에 맞춰 고르게 배치 (비공유 전자쌍 자리는 비워 둠)
+   · 떨어진 분자끼리는 겹치지 않게 나란히 배치 */
+const len2D=(a,b,o)=>30+16*(EL[a].r+EL[b].r)*1.9*(o===2?0.88:o===3?0.8:1);
+const nang=t=>Math.atan2(Math.sin(t),Math.cos(t));
+// 고리 찾기: 스패닝 트리에 들어가지 않은 결합마다, 그 결합을 빼고 두 원자를 잇는 가장 짧은 경로 = 고리
+function findRings(comp){
+  const set=new Set(comp),key=(a,b)=>a<b?a+'_'+b:b+'_'+a,seen=new Set([comp[0]]),order=[comp[0]],tree=new Set();
+  for(let i=0;i<order.length;i++){const x=order[i];info[x].nbrs.forEach(n=>{if(!seen.has(n)){seen.add(n);order.push(n);tree.add(key(x,n))}})}
+  const rings=[],keys=new Set();
+  bonds.forEach(b=>{if(!set.has(b.a)||tree.has(key(b.a,b.b)))return;const prev=new Map([[b.a,null]]),q=[b.a];
+    while(q.length){const x=q.shift();if(x===b.b)break;info[x].nbrs.forEach(n=>{if(prev.has(n)||(x===b.a&&n===b.b))return;prev.set(n,x);q.push(n)})}
+    if(!prev.has(b.b))return;const path=[];for(let x=b.b;x!==null;x=prev.get(x))path.push(x);
+    const k=path.slice().sort((u,v)=>u-v).join(',');if(!keys.has(k)){keys.add(k);rings.push(path)}});
+  return rings}
+function tidyLayout(){
+  if(!atoms.length){toast('먼저 분자를 그려 주세요.');return}
+  resetView();
+  const P={};let ringCount=0;const comps=components();
+  comps.forEach(comp=>{
+    const rings=findRings(comp);ringCount+=rings.length;const ringDone=new Set();
+    const ringL=r=>r.reduce((s,x,i)=>{const y=r[(i+1)%r.length];return s+len2D(atomById(x).el,atomById(y).el,bondOrder(x,y))},0)/r.length;
+    const placedC=()=>{let x=0,y=0,c=0;for(const id in P){if(comp.includes(+id)){x+=P[id].x;y+=P[id].y;c++}}return c?{x:x/c,y:y/c}:{x:0,y:0}};
+    // 고리를 정다각형으로 배치 (이미 놓인 원자 0개: 원점 / 1개: 그 원자에서 바깥쪽으로 / 이웃한 2개: 공유한 변의 반대편으로)
+    const placeRing=ri=>{const r=rings[ri],n=r.length,st=2*Math.PI/n;let L=ringL(r);
+      const sh=r.findIndex((x,i)=>P[x]&&P[r[(i+1)%n]]);if(sh>=0){const a=P[r[sh]],b=P[r[(sh+1)%n]];L=Math.hypot(a.x-b.x,a.y-b.y)}   // 변을 공유하는 고리는 그 변 길이에 맞춤
+      const R=L/(2*Math.sin(Math.PI/n));
+      let area=0;r.forEach((x,i)=>{const p=atomById(x),q=atomById(r[(i+1)%n]);area+=p.x*q.y-q.x*p.y});let sg=area>=0?1:-1;
+      const pl=r.map((x,i)=>i).filter(i=>P[r[i]]);let C,th0,i0=0;
+      if(!pl.length){const o={x:0,y:0};r.forEach(x=>{o.x+=atomById(x).x/n;o.y+=atomById(x).y/n});const a=atomById(r[0]);th0=Math.atan2(a.y-o.y,a.x-o.x);C={x:0,y:0}}
+      else if(pl.length===1){i0=pl[0];const a=r[i0];let dx=0,dy=0;info[a].nbrs.forEach(m=>{if(P[m]&&!r.includes(m)){const l=Math.hypot(P[a].x-P[m].x,P[a].y-P[m].y)||1;dx+=(P[a].x-P[m].x)/l;dy+=(P[a].y-P[m].y)/l}});
+        if(Math.hypot(dx,dy)<1e-6){dx=1;dy=0}const l=Math.hypot(dx,dy);C={x:P[a].x+dx/l*R,y:P[a].y+dy/l*R};th0=Math.atan2(P[a].y-C.y,P[a].x-C.x)}
+      else{let i=pl.find(j=>P[r[(j+1)%n]]);if(i===undefined)return false;i0=i;const a=P[r[i]],b=P[r[(i+1)%n]];const M={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+        let nx=-(b.y-a.y),ny=b.x-a.x;const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;const ap=R*Math.cos(Math.PI/n),g=placedC();
+        const c1={x:M.x+nx*ap,y:M.y+ny*ap},c2={x:M.x-nx*ap,y:M.y-ny*ap};C=Math.hypot(c1.x-g.x,c1.y-g.y)>=Math.hypot(c2.x-g.x,c2.y-g.y)?c1:c2;
+        th0=Math.atan2(a.y-C.y,a.x-C.x);sg=nang(Math.atan2(b.y-C.y,b.x-C.x)-th0)>=0?1:-1}
+      r.forEach((x,i)=>{if(P[x])return;const k=((i-i0)%n+n)%n,t=th0+sg*k*st;P[x]={x:C.x+Math.cos(t)*R,y:C.y+Math.sin(t)*R}});ringDone.add(ri);return true};
+    const done=new Set(),q=[];const push=id=>{if(!done.has(id)){done.add(id);q.push(id)}};
+    if(rings.length){placeRing(0);rings[0].forEach(push)}
+    else{const root=comp.reduce((m,x)=>info[x].nb>info[m].nb?x:m,comp[0]);P[root]={x:0,y:0};push(root)}
+    while(q.length){const id=q.shift();const I=info[id],A=atomById(id);
+      rings.forEach((r,ri)=>{if(!ringDone.has(ri)&&r.includes(id)&&placeRing(ri))r.forEach(push)});
+      const kids=I.nbrs.filter(x=>!P[x]);if(!kids.length)continue;const placedN=I.nbrs.filter(x=>P[x]);let slots=[];
+      if(placedN.length>=2){
+        // 고리 원자 등: 이미 놓인 결합들 사이의 가장 넓은 빈 각도에 나머지 원자를 고르게 배치
+        const angs=placedN.map(m=>Math.atan2(P[m].y-P[id].y,P[m].x-P[id].x)).sort((u,v)=>u-v);let gs=0,gz=-1;
+        angs.forEach((t,i)=>{const nx=i+1<angs.length?angs[i+1]:angs[0]+2*Math.PI;if(nx-t>gz){gz=nx-t;gs=t}});
+        kids.sort((u,v)=>(atomById(u).el==='H')-(atomById(v).el==='H'));
+        const order=kids.map((k,i)=>i);const mid=(kids.length-1)/2;order.sort((u,v)=>Math.abs(u-mid)-Math.abs(v-mid));
+        const posIdx=[...Array(kids.length).keys()];posIdx.sort((u,v)=>Math.abs(u-mid)-Math.abs(v-mid));
+        kids.forEach((k,i)=>slots.push([k,gs+gz*(posIdx[i]+1)/(kids.length+1)]))}
+      else{const n=Math.max(I.n,1),step=2*Math.PI/n;
+        if(!placedN.length){const ang=k=>Math.atan2(atomById(k).y-A.y,atomById(k).x-A.x);kids.sort((u,v)=>nang(ang(u))-nang(ang(v)));
+          const base=Math.round(ang(kids[0])/(Math.PI/12))*(Math.PI/12);slots=kids.map((k,i)=>[k,base+i*step])}
+        else{const par=placedN[0];const tp=Math.atan2(P[par].y-P[id].y,P[par].x-P[id].x);const free=[];for(let j=1;j<n;j++)free.push(tp+j*step);
+          // 사슬이 곧게 뻗도록: H가 아닌 원자를 부모의 반대쪽 자리에 먼저 배치
+          free.sort((u,v)=>Math.abs(Math.abs(nang(u-tp))-Math.PI)-Math.abs(Math.abs(nang(v-tp))-Math.PI));
+          const heavy=kids.filter(k=>atomById(k).el!=='H'),hs=kids.filter(k=>atomById(k).el==='H');
+          heavy.forEach(k=>slots.push([k,free.shift()]));
+          // 남은 자리 중 수소는 서로 이웃한 자리부터 (비공유 전자쌍은 나머지 자리)
+          free.sort((u,v)=>nang(u-tp)-nang(v-tp));const cw=free.filter(t=>nang(t-tp)>0),ccw=free.filter(t=>nang(t-tp)<0).reverse();const order=[];
+          while(cw.length||ccw.length){if(cw.length)order.push(cw.shift());if(ccw.length)order.push(ccw.shift())}
+          hs.forEach(k=>slots.push([k,order.shift()]))}}
+      slots.forEach(([k,t])=>{if(t===undefined||P[k])return;const L=len2D(A.el,atomById(k).el,bondOrder(id,k));P[k]={x:P[id].x+Math.cos(t)*L,y:P[id].y+Math.sin(t)*L};push(k)})}
+    comp.forEach(id=>{if(!P[id]){const a=atomById(id);P[id]={x:a.x,y:a.y}}})});
+  // 분자들을 겹치지 않게 나란히
+  // 보드 크기에 맞게 줄을 나눠 배치하고, 넘치면 전체를 조금씩 줄임
+  const base={};comps.forEach(c=>c.forEach(id=>base[id]={x:P[id].x,y:P[id].y}));const pad=34,BH=H-30;
+  for(let sc=1;sc>=0.55;sc-=0.05){comps.forEach(c=>c.forEach(id=>{P[id].x=base[id].x*sc;P[id].y=base[id].y*sc}));
+    const boxes=comps.map(c=>{let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;c.forEach(id=>{x0=Math.min(x0,P[id].x);y0=Math.min(y0,P[id].y);x1=Math.max(x1,P[id].x);y1=Math.max(y1,P[id].y)});return{c,x0:x0-pad,y0:y0-pad,x1:x1+pad,y1:y1+pad}});
+    const rows=[[]];let rw=0;boxes.forEach(b=>{const w=b.x1-b.x0;if(rw+w>W-10&&rows[rows.length-1].length){rows.push([]);rw=0}rows[rows.length-1].push(b);rw+=w});
+    const totalH=rows.reduce((s,r)=>s+Math.max(...r.map(b=>b.y1-b.y0)),0);
+    if(totalH>BH&&sc>0.6)continue;
+    let y=Math.max(4,(BH-totalH)/2);
+    rows.forEach(r=>{const rowW=r.reduce((s,b)=>s+b.x1-b.x0,0),rh=Math.max(...r.map(b=>b.y1-b.y0));let x=Math.max(4,(W-rowW)/2);
+      r.forEach(b=>{const dx=x-b.x0,dy=y+(rh-(b.y1-b.y0))/2-b.y0;b.c.forEach(id=>{P[id].x+=dx;P[id].y+=dy});x+=b.x1-b.x0});y+=rh});
+    break}
+  pushUndo();const from={};atoms.forEach(a=>from[a.id]={x:a.x,y:a.y});const t0=performance.now();
+  (function step(now){const k=Math.min(1,(now-t0)/450),e=1-Math.pow(1-k,3);atoms.forEach(a=>{a.x=from[a.id].x+(P[a.id].x-from[a.id].x)*e;a.y=from[a.id].y+(P[a.id].y-from[a.id].y)*e});draw();if(k<1)requestAnimationFrame(step)})(t0);
+  toast(ringCount?'원자 간 거리를 조정했어요. 고리는 정다각형으로 맞췄어요.':'원자 간 거리를 조정했어요. 같은 결합은 같은 길이로 맞췄어요.');
+}
+document.getElementById('btnTidy').onclick=tidyLayout;
+document.getElementById('btnClear').onclick=()=>{if(!atoms.length)return;pushUndo();atoms=[];bonds=[];changed();toast('전체를 지웠어요. ↶ 되돌리기로 복구할 수 있어요.')};
+document.getElementById('btnAutoH').onclick=()=>{let added=0;pushUndo();
+  atoms.filter(a=>a.el!=='H').forEach(a=>{const I=info[a.id];if(!I)return;const e=EL[a.el];
+    let target=['Be'].includes(a.el)?2:['B'].includes(a.el)?3:8-e.v+a.charge;const need=target-I.sumBO;
+    for(let k=0;k<need;k++){addNeighbor(a,'H',1);added++}});
+  if(!added){undoStack.pop();toast('더 붙일 수소가 없어요.')}else{changed();toast(`H ${added}개를 붙였어요.`)}};
+
+/* =========================================================
+   변경 처리
+   ========================================================= */
+function changed(){
+  structVersion++;analyze();draw();updateStatus();renderAnalysis();updateStale();
+  checkWarnings();
+  if(mode==='mission'&&curMission)renderMission();
+  updateMobileUI();
+}
+function updateStatus(){const s=document.getElementById('status');if(!atoms.length){s.textContent='원소를 고르고 빈 곳을 클릭해 시작하세요.';return}
+  const list=atoms.map(a=>info[a.id]);const err=list.filter(I=>I.st==='error').length,inc=list.filter(I=>I.st==='incomplete').length,exc=list.filter(I=>['deficient','expanded'].includes(I.st)).length;
+  const parts=[`원자 ${atoms.length} · 결합 ${bonds.length}`];
+  if(err)parts.push(`<b style="color:#dc2626">오류 ${err}</b>`);if(inc)parts.push(`<b style="color:#d97706">미완성 ${inc}</b>`);if(exc)parts.push(`<b style="color:#7c3aed">옥텟 예외 ${exc}</b>`);
+  if(!err&&!inc)parts.push('<b style="color:#16a34a">루이스 구조 완성!</b>');
+  s.innerHTML=parts.join(' · ')}
+function checkWarnings(){
+  const ids=new Set(atoms.map(a=>a.id));[...toldExc].forEach(i=>{if(!ids.has(i))toldExc.delete(i)});
+  // 원자 번호 20 이내 원소의 옥텟 예외 → 허용, 짧은 안내
+  [...dismissed].forEach(i=>{if(!info[i]||info[i].st!=='deficient')dismissed.delete(i)});
+}
+
+/* =========================================================
+   3D: 내장 벡터·회전 수학 (외부 라이브러리 없음)
+   ========================================================= */
+class V3{constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z}
+  set(x,y,z){this.x=x;this.y=y;this.z=z;return this}clone(){return new V3(this.x,this.y,this.z)}copy(v){this.x=v.x;this.y=v.y;this.z=v.z;return this}
+  add(v){this.x+=v.x;this.y+=v.y;this.z+=v.z;return this}sub(v){this.x-=v.x;this.y-=v.y;this.z-=v.z;return this}
+  multiplyScalar(s){this.x*=s;this.y*=s;this.z*=s;return this}divideScalar(s){return this.multiplyScalar(1/s)}
+  dot(v){return this.x*v.x+this.y*v.y+this.z*v.z}lengthSq(){return this.dot(this)}length(){return Math.sqrt(this.lengthSq())}
+  normalize(){return this.divideScalar(this.length()||1)}negate(){return this.multiplyScalar(-1)}
+  cross(v){const{x,y,z}=this;this.x=y*v.z-z*v.y;this.y=z*v.x-x*v.z;this.z=x*v.y-y*v.x;return this}
+  distanceTo(v){return this.clone().sub(v).length()}lerp(v,t){this.x+=(v.x-this.x)*t;this.y+=(v.y-this.y)*t;this.z+=(v.z-this.z)*t;return this}
+  applyQuaternion(q){const{x,y,z}=this,qx=q.x,qy=q.y,qz=q.z,qw=q.w;const ix=qw*x+qy*z-qz*y,iy=qw*y+qz*x-qx*z,iz=qw*z+qx*y-qy*x,iw=-qx*x-qy*y-qz*z;
+    this.x=ix*qw+iw*-qx+iy*-qz-iz*-qy;this.y=iy*qw+iw*-qy+iz*-qx-ix*-qz;this.z=iz*qw+iw*-qz+ix*-qy-iy*-qx;return this}}
+class Q{constructor(x=0,y=0,z=0,w=1){this.x=x;this.y=y;this.z=z;this.w=w}
+  clone(){return new Q(this.x,this.y,this.z,this.w)}copy(q){this.x=q.x;this.y=q.y;this.z=q.z;this.w=q.w;return this}identity(){return this.copy(new Q())}
+  setFromAxisAngle(a,t){const s=Math.sin(t/2);this.x=a.x*s;this.y=a.y*s;this.z=a.z*s;this.w=Math.cos(t/2);return this}
+  setFromUnitVectors(f,t){let r=f.dot(t)+1;if(r<1e-6){r=0;if(Math.abs(f.x)>Math.abs(f.z)){this.x=-f.y;this.y=f.x;this.z=0;this.w=r}else{this.x=0;this.y=-f.z;this.z=f.y;this.w=r}}
+    else{this.x=f.y*t.z-f.z*t.y;this.y=f.z*t.x-f.x*t.z;this.z=f.x*t.y-f.y*t.x;this.w=r}const l=Math.hypot(this.x,this.y,this.z,this.w);this.x/=l;this.y/=l;this.z/=l;this.w/=l;return this}
+  multiply(b){const a=this;const x=a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y,y=a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z,z=a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x,w=a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z;this.x=x;this.y=y;this.z=z;this.w=w;return this}
+  premultiply(q){return this.copy(q.clone().multiply(this))}}
+const AX=new V3(1,0,0),AY=new V3(0,1,0);
+const qEuler=(x,y)=>new Q().setFromAxisAngle(AY,y).multiply(new Q().setFromAxisAngle(AX,x));
+
+/* ---------- 3D 캔버스 ---------- */
+const wrap3=document.getElementById('cv3wrap');
+const cv3=document.createElement('canvas');wrap3.appendChild(cv3);const g3=cv3.getContext('2d');
+let W3=0,H3=0,dirty=true,qView=new Q(),camZ=12;const FOV=42*Math.PI/180;
+function resize3D(){const r=wrap3.getBoundingClientRect();if(!r.width)return;const d=window.devicePixelRatio||1;W3=r.width;H3=r.height;cv3.width=W3*d;cv3.height=H3*d;g3.setTransform(d,0,0,d,0,0);dirty=true}
+new ResizeObserver(resize3D).observe(wrap3);
+function proj(p){const v=p.clone().applyQuaternion(qView);const f=(H3/2)/Math.tan(FOV/2);const s=f/Math.max(camZ-v.z,0.3);return{x:W3/2+v.x*s,y:H3/2-v.y*s,z:v.z,s}}
+
+// 템플릿 (전자쌍 배치)
+const TEMPL={1:[[1,0,0]],2:[[1,0,0],[-1,0,0]],3:[[1,0,0],[-.5,.8660254,0],[-.5,-.8660254,0]],4:[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]],
+  5:[[0,0,1],[0,0,-1],[1,0,0],[-.5,.8660254,0],[-.5,-.8660254,0]],6:[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]};
+// 비공유 전자쌍이 우선 차지하는 자리 (삼각쌍뿔: 적도 위치, 팔면체: 서로 반대 위치)
+const LPORDER={1:[0],2:[1,0],3:[0,1,2],4:[0,1,2,3],5:[2,3,4,0,1],6:[4,5,0,1,2,3]};
+function domainInfo(I){
+  const n=Math.max(I.n,1);const vecs=TEMPL[n].map(v=>new V3(...v).normalize());
+  const Ls=LPORDER[n].slice(0,I.L);const bs=[...Array(n).keys()].filter(i=>!Ls.includes(i));
+  // 비공유 전자쌍 반발로 결합각이 줄어드는 효과 (교과서 값)
+  let th=null;if(n===4&&I.L===1&&I.nb===3)th=107;if(n===4&&I.L===2&&I.nb===2)th=104.5;if(n===3&&I.L===1&&I.nb===2)th=117;
+  if(th){const ax=new V3();bs.forEach(s=>ax.add(vecs[s]));ax.normalize();const t=th*Math.PI/180;
+    const al=I.nb===3?Math.acos(Math.sqrt((2*Math.cos(t)+1)/3)):t/2;
+    bs.forEach(s=>{const v=vecs[s];const c=v.dot(ax);const p=v.clone().sub(ax.clone().multiplyScalar(c)).normalize();vecs[s]=ax.clone().multiplyScalar(Math.cos(al)).add(p.multiplyScalar(Math.sin(al)))});
+    if(I.L===1)vecs[Ls[0]]=ax.clone().negate()}
+  return{vecs,bondSlots:bs,Lslots:Ls,n};
+}
+function orient(dom,targets,anchorIdx){
+  if(!targets.length)return{q:new Q(),assign:{}};
+  const aDir=targets[anchorIdx].dir;let best={score:-Infinity,q:new Q(),assign:{}};
+  const steps=(targets.length>1||dom.Lslots.length)?72:1;
+  for(const s of dom.bondSlots){const q0=new Q().setFromUnitVectors(dom.vecs[s],aDir);
+    for(let k=0;k<steps;k++){const q=new Q().setFromAxisAngle(aDir,k*2*Math.PI/steps).multiply(q0);
+      const rv={};dom.bondSlots.forEach(sl=>rv[sl]=dom.vecs[sl].clone().applyQuaternion(q));
+      const free=new Set(dom.bondSlots);free.delete(s);const assign={[targets[anchorIdx].id]:s};let score=0;
+      targets.forEach((t,i)=>{if(i===anchorIdx)return;let bsl=null,bd=-Infinity;free.forEach(sl=>{const d=rv[sl].dot(t.dir);if(d>bd){bd=d;bsl=sl}});assign[t.id]=bsl;free.delete(bsl);score+=bd*(t.w||1)});
+      if(score>best.score+1e-9)best={score,q,assign}}}
+  return best;
+}
+function bondOrder(a,b){const x=findBond(a,b);return x?x.order:1}
+
+function compute3D(){
+  const byId=Object.fromEntries(atoms.map(a=>[a.id,a]));const doms={};atoms.forEach(a=>doms[a.id]=domainInfo(info[a.id]));
+  const BL=(a,b)=>{const o=bondOrder(a,b);return (EL[byId[a].el].r+EL[byId[b].el].r)*1.9*(o===2?0.88:o===3?0.8:1)};
+  const P={};const placed=new Set();let hasCycle=false;const comps=components();
+  comps.forEach((comp,ci)=>{const set=new Set(comp);if(bonds.filter(b=>set.has(b.a)).length>comp.length-1)hasCycle=true;
+    const root=comp.reduce((m,x)=>info[x].nb>info[m].nb?x:m,comp[0]);P[root]=new V3(ci*8,0,0);placed.add(root);
+    const queue=[{id:root,parent:null}];
+    while(queue.length){const{id,parent}=queue.shift();const I=info[id],A=byId[id];const targets=[];let ai=0;
+      I.nbrs.forEach(nid=>{let dir,w=1;if(placed.has(nid)){dir=P[nid].clone().sub(P[id]);w=3}else{const B=byId[nid];dir=new V3(B.x-A.x,-(B.y-A.y),0)}
+        if(dir.lengthSq()<1e-8)dir=new V3(Math.random()-.5,Math.random()-.5,Math.random()-.5);dir.normalize();if(nid===parent)ai=targets.length;targets.push({id:nid,dir,w})});
+      if(!targets.length)continue;const{q,assign}=orient(doms[id],targets,ai);
+      I.nbrs.forEach(nid=>{if(placed.has(nid))return;const d=doms[id].vecs[assign[nid]].clone().applyQuaternion(q);P[nid]=P[id].clone().add(d.multiplyScalar(BL(id,nid)));placed.add(nid);queue.push({id:nid,parent:id})})}});
+  // 고리 구조: 결합 길이·결합각 제약으로 이완
+  if(hasCycle){const cons=[];const key=(i,j)=>i<j?i+'_'+j:j+'_'+i;const ks=new Set();
+    bonds.forEach(b=>{cons.push([b.a,b.b,BL(b.a,b.b),1]);ks.add(key(b.a,b.b))});
+    atoms.forEach(a=>{const I=info[a.id];if(I.nb<2)return;const t=I.nbrs.map(n=>({id:n,dir:P[n].clone().sub(P[a.id]).normalize(),w:1}));const{assign}=orient(doms[a.id],t,0);const v=doms[a.id].vecs;
+      for(let i=0;i<I.nb;i++)for(let j=i+1;j<I.nb;j++){const ni=I.nbrs[i],nj=I.nbrs[j];const c=v[assign[ni]].dot(v[assign[nj]]);const li=BL(a.id,ni),lj=BL(a.id,nj);cons.push([ni,nj,Math.sqrt(li*li+lj*lj-2*li*lj*c),0.7]);ks.add(key(ni,nj))}});
+    const ids=atoms.map(a=>a.id);
+    for(let it=0;it<600;it++){cons.forEach(([i,j,d,k])=>{const D=P[j].clone().sub(P[i]);const l=D.length()||1e-6;const c=D.multiplyScalar((l-d)/l*0.5*k);P[i].add(c);P[j].sub(c)});
+      for(let x=0;x<ids.length;x++)for(let y=x+1;y<ids.length;y++){if(ks.has(key(ids[x],ids[y])))continue;const D=P[ids[y]].clone().sub(P[ids[x]]);const l=D.length();if(l<2.6&&l>1e-6){const c=D.multiplyScalar((2.6-l)/l*0.05);P[ids[x]].sub(c);P[ids[y]].add(c)}}}}
+  // 중심 이동
+  const cen=new V3();atoms.forEach(a=>cen.add(P[a.id]));cen.divideScalar(atoms.length);atoms.forEach(a=>P[a.id].sub(cen));
+  // 비공유 전자쌍 방향
+  const LP={};atoms.forEach(a=>{const I=info[a.id];if(!I.L)return;const dom=doms[a.id];let q=new Q();
+    if(I.nb){q=orient(dom,I.nbrs.map(n=>({id:n,dir:P[n].clone().sub(P[a.id]).normalize(),w:1})),0).q}
+    LP[a.id]=dom.Lslots.map((s,i)=>({dir:dom.vecs[s].clone().applyQuaternion(q),single:i>=I.lp}))});
+  // 결합각
+  const centers=[];atoms.forEach(a=>{const I=info[a.id];if(I.nb<2)return;const angs=[];const pairs=[];
+    for(let i=0;i<I.nb;i++)for(let j=i+1;j<I.nb;j++){const u=P[I.nbrs[i]].clone().sub(P[a.id]).normalize(),v=P[I.nbrs[j]].clone().sub(P[a.id]).normalize();const g=Math.round(Math.acos(Math.max(-1,Math.min(1,u.dot(v))))*180/Math.PI*10)/10;pairs.push({i:I.nbrs[i],j:I.nbrs[j],g})}
+    const uniq=[];pairs.forEach(p=>{if(!uniq.some(u=>Math.abs(u.g-p.g)<1.5))uniq.push(p)});uniq.sort((x,y)=>y.g-x.g);
+    centers.push({id:a.id,el:a.el,nb:I.nb,lp:I.lp,L:I.L,shape:I.shape,eg:I.eg,angles:uniq})});
+  // 극성: 결합 쌍극자(전기 음성도 차) + 비공유 전자쌍 기여의 벡터 합
+  const dip=new V3();let polarBond=false;
+  bonds.forEach(b=>{const ea=EL[byId[b.a].el].en,eb=EL[byId[b.b].el].en;if(Math.abs(eb-ea)>1e-9)polarBond=true;dip.add(P[b.b].clone().sub(P[b.a]).normalize().multiplyScalar(eb-ea))});
+  Object.values(LP).forEach(arr=>arr.forEach(l=>dip.add(l.dir.clone().multiplyScalar(l.single?0.2:0.35))));
+  const polar=atoms.length>=2&&bonds.length>0?dip.length()>0.15:null;
+  return{P,LP,centers,polar,polarBond,comps:comps.length,byId,dip};
+}
+
+// ---------- 3D 렌더 (캔버스 원근 투영 + 깊이 정렬) ----------
+let anim=null,startP={},curP={};
+const dispR=el=>0.24+EL[el].r*0.36;
+function mix(hex,t){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const T=t>0?255:0,k=Math.abs(t);r=Math.round(r+(T-r)*k);g=Math.round(g+(T-g)*k);b=Math.round(b+(T-b)*k);return`rgb(${r},${g},${b})`}
+const colOf=el=>el==='H'?'#e8edf3':EL[el].c;
+function clearGroup(){dirty=true}
+function perpFor(b,C){const A=C[b.a],B=C[b.b];const d=B.clone().sub(A).normalize();const NB=R3.nbrs;
+  const cand=[...NB[b.a].filter(n=>n!==b.b).map(n=>[A,C[n]]),...NB[b.b].filter(n=>n!==b.a).map(n=>[B,C[n]])];
+  for(const [o,c] of cand){if(!c)continue;const n=d.clone().cross(c.clone().sub(o));if(n.length()>1e-3)return n.cross(d).normalize()}
+  let n=d.clone().cross(new V3(0,0,1));if(n.length()<1e-3)n=d.clone().cross(new V3(0,1,0));return n.normalize()}
+let labelQ=[];
+function ball(p,r,hex,label){
+  const gr=g3.createRadialGradient(p.x-r*.35,p.y-r*.4,r*.08,p.x,p.y,r);gr.addColorStop(0,mix(hex,.65));gr.addColorStop(.45,hex);gr.addColorStop(1,mix(hex,-.45));
+  g3.fillStyle=gr;g3.beginPath();g3.arc(p.x,p.y,r,0,7);g3.fill();g3.strokeStyle='rgba(0,0,0,.35)';g3.lineWidth=1;g3.stroke();
+  if(label)labelQ.push([p,r,label])}
+function ballLabel(p,r,label){g3.font=`900 ${Math.max(11,Math.min(22,r*.8))}px ${FF}`;g3.textAlign='center';g3.textBaseline='middle';
+  if(label[0]==='H'&&!/[a-z]/.test(label[1]||'')){g3.fillStyle='#1e293b';g3.fillText(label,p.x,p.y+.5)}else{g3.lineWidth=3;g3.strokeStyle='rgba(0,0,0,.6)';g3.strokeText(label,p.x,p.y);g3.fillStyle='#fff';g3.fillText(label,p.x,p.y)}}
+function stick(a,b,w,hex){g3.lineCap='butt';g3.strokeStyle=mix(hex,-.25);g3.lineWidth=w;g3.beginPath();g3.moveTo(a.x,a.y);g3.lineTo(b.x,b.y);g3.stroke();
+  g3.strokeStyle=mix(hex,.35);g3.lineWidth=w*.4;g3.beginPath();g3.moveTo(a.x,a.y);g3.lineTo(b.x,b.y);g3.stroke()}
+function arrow2(a,b,w,col,tail){const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);if(L<4)return;const ux=dx/L,uy=dy/L,hl=Math.min(L*.45,w*3.2+6);
+  g3.strokeStyle=col;g3.fillStyle=col;g3.lineWidth=w;g3.lineCap='round';g3.beginPath();g3.moveTo(a.x,a.y);g3.lineTo(b.x-ux*hl*.8,b.y-uy*hl*.8);g3.stroke();
+  g3.beginPath();g3.moveTo(b.x,b.y);g3.lineTo(b.x-ux*hl-uy*hl*.55,b.y-uy*hl+ux*hl*.55);g3.lineTo(b.x-ux*hl+uy*hl*.55,b.y-uy*hl-ux*hl*.55);g3.closePath();g3.fill();
+  if(tail){const c=w*1.8+3;const tx=a.x+ux*c*1.2,ty=a.y+uy*c*1.2;g3.beginPath();g3.moveTo(tx-uy*c,ty+ux*c);g3.lineTo(tx+uy*c,ty-ux*c);g3.stroke()}}
+function tag(x,y,text,bg,fg){g3.font=`700 12px ${FF}`;const w=g3.measureText(text).width+12;g3.fillStyle=bg;rr3(x-w/2,y-10,w,20,6);g3.fill();g3.fillStyle=fg;g3.textAlign='center';g3.textBaseline='middle';g3.fillText(text,x,y+.5)}
+function rr3(x,y,w,h,r){g3.beginPath();g3.moveTo(x+r,y);g3.arcTo(x+w,y,x+w,y+h,r);g3.arcTo(x+w,y+h,x,y+h,r);g3.arcTo(x,y+h,x,y,r);g3.arcTo(x,y,x+w,y,r);g3.closePath()}
+const opt=id=>document.getElementById(id).checked;
+
+function draw3D(t){
+  g3.clearRect(0,0,W3,H3);labelQ=[];if(!R3||!W3)return;const C=curP;if(R3.atoms.some(a=>!C[a.id]))return;
+  const done=!anim,items=[];
+  R3.atoms.forEach(a=>{const p=proj(C[a.id]);items.push({z:p.z,f:()=>ball(p,dispR(a.el)*p.s,colOf(a.el),opt('optLbl')?a.el+(a.charge?chargeStr(a.charge):''):'')})});
+  R3.bonds.forEach(b=>{const A=C[b.a],B=C[b.b];const pp=b.order>1?perpFor(b,C):new V3();const offs=b.order===1?[0]:b.order===2?[-.14,.14]:[-.18,0,.18];const r=b.order===1?.11:b.order===2?.07:.06;
+    offs.forEach(o=>{const off=pp.clone().multiplyScalar(o);const dir=B.clone().sub(A).normalize(),ra=dispR(R3.byId[b.a].el)*.85,rb=dispR(R3.byId[b.b].el)*.85;
+      const p1=A.clone().add(off).add(dir.clone().multiplyScalar(ra)),p2=B.clone().add(off).sub(dir.clone().multiplyScalar(rb)),m=A.clone().add(B).multiplyScalar(.5).add(off);
+      [[p1,m,b.a],[m,p2,b.b]].forEach(([s,e,id])=>{const ps=proj(s),pe=proj(e);items.push({z:(ps.z+pe.z)/2,f:()=>stick(ps,pe,Math.max(2,2*r*(ps.s+pe.s)/2),colOf(R3.byId[id].el))})})})});
+  if(opt('optLP')&&(done||t>0.8)){Object.entries(R3.LP).forEach(([id,arr])=>{const el=R3.byId[id].el;arr.forEach(l=>{
+    const c=C[id].clone().add(l.dir.clone().multiplyScalar(dispR(el)+.36));const pc=proj(c),tip=proj(c.clone().add(l.dir.clone().multiplyScalar(l.single?.32:.44)));
+    items.push({z:pc.z,f:()=>{const dx=tip.x-pc.x,dy=tip.y-pc.y,L=Math.hypot(dx,dy);const mn=.27*pc.s,mj=Math.max(L,mn);
+      g3.fillStyle=l.single?'rgba(252,165,165,.38)':'rgba(253,230,138,.38)';g3.strokeStyle=l.single?'rgba(248,113,113,.7)':'rgba(250,204,21,.7)';g3.lineWidth=1;
+      g3.beginPath();g3.ellipse(pc.x,pc.y,mj,mn,Math.atan2(dy,dx),0,7);g3.fill();g3.stroke();
+      const px=L>1?-dy/L:1,py=L>1?dx/L:0;const dr=Math.max(1.6,.065*pc.s);g3.fillStyle=l.single?'#b91c1c':'#0f172a';
+      (l.single?[0]:[-1,1]).forEach(sg=>{g3.beginPath();g3.arc(pc.x+px*sg*.11*pc.s,pc.y+py*sg*.11*pc.s,dr,0,7);g3.fill()})}})})})}
+  items.sort((a,b)=>a.z-b.z).forEach(i=>i.f());labelQ.forEach(l=>ballLabel(...l));
+  if(done&&opt('optDip')){const sg=partialSigns(R3.atoms,R3.bonds);R3.atoms.forEach(a=>{const t=sg[a.id];if(!t)return;const p=proj(C[a.id]),r=dispR(a.el)*p.s;
+    const x=p.x+r*.95,y=p.y-r*.95;g3.font=`900 ${Math.max(12,Math.min(18,r*.6))}px ${FF}`;g3.textAlign='left';g3.textBaseline='middle';
+    g3.lineWidth=3.5;g3.strokeStyle='rgba(0,0,0,.75)';g3.strokeText(t,x,y);g3.fillStyle=t==='δ+'?'#fca5a5':'#93c5fd';g3.fillText(t,x,y)})}
+  if(!done)return;
+  // 결합각
+  if(opt('optAng')){R3.centers.forEach(c=>{const O=C[c.id];c.angles.slice(0,3).forEach((p,idx)=>{const u=C[p.i].clone().sub(O).normalize(),v=C[p.j].clone().sub(O).normalize();const th=Math.acos(Math.max(-1,Math.min(1,u.dot(v))));
+    let w=v.clone().sub(u.clone().multiplyScalar(u.dot(v)));if(w.length()<1e-3){const lp=R3.LP[c.id];w=lp&&lp.length?lp[0].dir.clone().sub(u.clone().multiplyScalar(lp[0].dir.dot(u))):u.clone().cross(new V3(0,0,1));if(w.length()<1e-3)w=u.clone().cross(new V3(0,1,0))}w.normalize();
+    const rr=.62+idx*.18;g3.strokeStyle='#facc15';g3.lineWidth=2;g3.beginPath();for(let k=0;k<=28;k++){const tt=th*k/28;const q=proj(O.clone().add(u.clone().multiplyScalar(Math.cos(tt)*rr)).add(w.clone().multiplyScalar(Math.sin(tt)*rr)));k?g3.lineTo(q.x,q.y):g3.moveTo(q.x,q.y)}g3.stroke();
+    const lq=proj(O.clone().add(u.clone().multiplyScalar(Math.cos(th/2)*(rr+.45))).add(w.clone().multiplyScalar(Math.sin(th/2)*(rr+.45))));
+    tag(lq.x,lq.y,(p.g%1?p.g.toFixed(1):p.g.toFixed(0))+'°','rgba(250,204,21,.95)','#422006')})})}
+  // 쌍극자 모멘트: 결합의 쌍극자(+ 꼬리 → 전기 음성도 큰 쪽) + 분자 전체의 쌍극자 모멘트 합
+  if(opt('optDip')&&R3.bonds.length){
+    R3.bonds.forEach(b=>{let a=b.a,z=b.b;const ea=EL[R3.byId[a].el].en,ez=EL[R3.byId[z].el].en;if(Math.abs(ea-ez)<1e-9)return;if(ea>ez){[a,z]=[z,a]}
+      const A=C[a],Z=C[z];const side=perpFor(b,C).multiplyScalar(.42);const p1=proj(A.clone().lerp(Z,.18).add(side)),p2=proj(A.clone().lerp(Z,.82).add(side));
+      arrow2(p1,p2,1.6+Math.abs(ea-ez)*1.6,'#38bdf8',true)});
+    const d=R3.dip.clone();const m=d.length();const o=proj(new V3());
+    if(R3.polar){d.normalize();const L=1.4+Math.min(m,2)*.7;const a=proj(d.clone().multiplyScalar(-L*.5)),b=proj(d.clone().multiplyScalar(L*.5));
+      arrow2(a,b,5,'#f472b6',true);tag(W3/2,44,'쌍극자 모멘트의 합 ≠ 0 → 극성 분자','rgba(244,114,182,.95)','#500724')}
+    else if(R3.polar===false){g3.fillStyle='#f472b6';g3.beginPath();g3.arc(o.x,o.y,5,0,7);g3.fill();tag(W3/2,44,'쌍극자 모멘트가 상쇄 → 합 = 0 (무극성 분자)','rgba(244,114,182,.95)','#500724')}
+  }
+}
+function show3D(R){
+  document.getElementById('placeholder').style.display='none';
+  const c2={x:0,y:0};atoms.forEach(a=>{c2.x+=a.x;c2.y+=a.y});c2.x/=atoms.length;c2.y/=atoms.length;
+  let s2=0,s3=0;bonds.forEach(b=>{const A=atomById(b.a),B=atomById(b.b);s2+=Math.hypot(A.x-B.x,A.y-B.y);s3+=R.P[b.a].distanceTo(R.P[b.b])});const sc=bonds.length?s3/s2:1/30;
+  startP={};curP={};atoms.forEach(a=>{startP[a.id]=new V3((a.x-c2.x)*sc,-(a.y-c2.y)*sc,0);curP[a.id]=startP[a.id].clone()});
+  let rad=1;atoms.forEach(a=>{rad=Math.max(rad,R.P[a.id].length()+dispR(a.el),startP[a.id].length())});camZ=rad*2.9+2.5;
+  qView.identity();anim={t0:performance.now(),dur:1500};dirty=true;
+}
+function convert(){
+  if(!atoms.length){toast('먼저 분자를 그려 주세요.','err');return}
+  if(atoms.some(a=>info[a.id].st==='error')){toast('빨간 고리로 표시된 원자의 오류를 먼저 해결해 주세요.','err');return}
+  R3=compute3D();R3.version=structVersion;R3.atoms=atoms.map(a=>({...a}));R3.bonds=bonds.map(b=>({...b}));R3.nbrs=Object.fromEntries(atoms.map(a=>[a.id,[...info[a.id].nbrs]]));convertedVersion=structVersion;show3D(R3);updateStale();renderAnalysis();
+  if(atoms.some(a=>info[a.id].st==='incomplete'))toast('옥텟 규칙을 아직 만족하지 않는 원자가 있어요. 현재 구조 그대로 3D로 나타냈어요.');
+  if(mode==='mission'&&curMission)renderMission();
+  updateMobileUI();
+  if(isMobile())setView('view3d');
+}
+document.getElementById('btnConvert').onclick=convert;
+document.getElementById('stale').onclick=convert;
+document.getElementById('btnReplay').onclick=()=>{if(R3&&convertedVersion===structVersion)show3D(R3);else convert()};
+function updateStale(){document.getElementById('stale').style.display=(R3&&convertedVersion!==structVersion)?'block':'none'}
+['optLP','optAng','optLbl','optDip','optSpin'].forEach(id=>document.getElementById(id).addEventListener('change',()=>dirty=true));
+
+// 회전·확대 (마우스 끌기, 휠, 두 손가락 확대)
+let rot=null,pinch=null;const ptrs=new Map();
+const pdist=()=>{const p=[...ptrs.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};
+cv3.addEventListener('pointerdown',e=>{viewAnim=null;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});cv3.setPointerCapture(e.pointerId);if(anim){anim=null;R3&&R3.atoms.forEach(a=>curP[a.id]&&R3.P[a.id]&&curP[a.id].copy(R3.P[a.id]))}
+  if(ptrs.size===2){rot=null;pinch={d:pdist(),z:camZ}}else{rot={x:e.clientX,y:e.clientY};cv3.style.cursor='grabbing'}});
+cv3.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){camZ=Math.max(3,Math.min(60,pinch.z*pinch.d/Math.max(pdist(),1)));dirty=true;return}
+  if(!rot)return;const dx=e.clientX-rot.x,dy=e.clientY-rot.y;rot={x:e.clientX,y:e.clientY};qView.premultiply(qEuler(dy*0.009,dx*0.009));dirty=true});
+const endPtr=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size){rot=null;cv3.style.cursor='grab'}};
+cv3.addEventListener('pointerup',endPtr);cv3.addEventListener('pointercancel',endPtr);
+cv3.addEventListener('wheel',e=>{e.preventDefault();camZ=Math.max(3,Math.min(60,camZ*(1+e.deltaY*0.0012)));dirty=true},{passive:false});
+
+/* ---------- 정면 보기 ----------
+   평면 분자: 분자 평면이 화면을 마주 보도록 / 입체 분자: 비공유 전자쌍(없으면 축 방향 결합)을 위로,
+   원자·비공유 전자쌍이 서로 가장 덜 겹치는 방향에서 살짝 위에서 내려다보도록 */
+function eig3(A){const a=A.map(r=>r.slice()),v=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let it=0;it<50;it++){let p=0,q=1;if(Math.abs(a[0][2])>Math.abs(a[p][q])){p=0;q=2}if(Math.abs(a[1][2])>Math.abs(a[p][q])){p=1;q=2}if(Math.abs(a[p][q])<1e-10)break;
+    const th=.5*Math.atan2(2*a[p][q],a[q][q]-a[p][p]),c=Math.cos(th),s=Math.sin(th);
+    for(let k=0;k<3;k++){const x=a[k][p],y=a[k][q];a[k][p]=c*x-s*y;a[k][q]=s*x+c*y}
+    for(let k=0;k<3;k++){const x=a[p][k],y=a[q][k];a[p][k]=c*x-s*y;a[q][k]=s*x+c*y}
+    for(let k=0;k<3;k++){const x=v[k][p],y=v[k][q];v[k][p]=c*x-s*y;v[k][q]=s*x+c*y}}
+  return[0,1,2].map(i=>({val:a[i][i],vec:new V3(v[0][i],v[1][i],v[2][i]).normalize()})).sort((x,y)=>y.val-x.val)}
+function anyPerp(u){const t=Math.abs(u.x)<.9?new V3(1,0,0):new V3(0,1,0);return t.sub(u.clone().multiplyScalar(t.dot(u))).normalize()}
+function qFromBasis(R,U,F){const m=[[R.x,R.y,R.z],[U.x,U.y,U.z],[F.x,F.y,F.z]],tr=m[0][0]+m[1][1]+m[2][2];let x,y,z,w;
+  if(tr>0){const S=Math.sqrt(tr+1)*2;w=S/4;x=(m[2][1]-m[1][2])/S;y=(m[0][2]-m[2][0])/S;z=(m[1][0]-m[0][1])/S}
+  else if(m[0][0]>m[1][1]&&m[0][0]>m[2][2]){const S=Math.sqrt(1+m[0][0]-m[1][1]-m[2][2])*2;w=(m[2][1]-m[1][2])/S;x=S/4;y=(m[0][1]+m[1][0])/S;z=(m[0][2]+m[2][0])/S}
+  else if(m[1][1]>m[2][2]){const S=Math.sqrt(1+m[1][1]-m[0][0]-m[2][2])*2;w=(m[0][2]-m[2][0])/S;x=(m[0][1]+m[1][0])/S;y=S/4;z=(m[1][2]+m[2][1])/S}
+  else{const S=Math.sqrt(1+m[2][2]-m[0][0]-m[1][1])*2;w=(m[1][0]-m[0][1])/S;x=(m[0][2]+m[2][0])/S;y=(m[1][2]+m[2][1])/S;z=S/4}
+  return new Q(x,y,z,w)}
+function slerpQ(a,b,t){let c=a.x*b.x+a.y*b.y+a.z*b.z+a.w*b.w;const bb=c<0?new Q(-b.x,-b.y,-b.z,-b.w):b.clone();c=Math.abs(c);
+  if(c>.9995){const r=new Q(a.x+(bb.x-a.x)*t,a.y+(bb.y-a.y)*t,a.z+(bb.z-a.z)*t,a.w+(bb.w-a.w)*t);const l=Math.hypot(r.x,r.y,r.z,r.w);r.x/=l;r.y/=l;r.z/=l;r.w/=l;return r}
+  const th=Math.acos(c),s0=Math.sin((1-t)*th)/Math.sin(th),s1=Math.sin(t*th)/Math.sin(th);return new Q(a.x*s0+bb.x*s1,a.y*s0+bb.y*s1,a.z*s0+bb.z*s1,a.w*s0+bb.w*s1)}
+function frontQuat(){
+  const P=R3.P,ids=R3.atoms.map(a=>a.id),pts=ids.map(i=>P[i]);
+  const pts2=[...pts];Object.entries(R3.LP).forEach(([id,arr])=>arr.forEach(l=>pts2.push(P[id].clone().add(l.dir.clone().multiplyScalar(.8)))));
+  const cen=new V3();pts.forEach(p=>cen.add(p));cen.divideScalar(pts.length);
+  const C=[[0,0,0],[0,0,0],[0,0,0]];pts.forEach(p=>{const d=[p.x-cen.x,p.y-cen.y,p.z-cen.z];for(let i=0;i<3;i++)for(let j=0;j<3;j++)C[i][j]+=d[i]*d[j]});
+  const E=eig3(C);const linear=pts.length>=2&&E[1].val<0.02,planar=pts.length>=3&&!linear&&E[2].val<0.02;
+  if(pts.length<2)return new Q();
+  const heavy=new Set(ids.filter(i=>R3.byId[i].el!=='H'));let U,F;
+  const centers=R3.atoms.filter(a=>R3.nbrs[a.id].length>=2);
+  const c=centers.length?centers.reduce((m,a)=>R3.nbrs[a.id].length+(R3.LP[a.id]||[]).length>R3.nbrs[m.id].length+(R3.LP[m.id]||[]).length?a:m,centers[0]):R3.atoms[0];
+  if(linear){const ax=E[0].vec;U=anyPerp(ax);F=ax.clone().cross(U).normalize()}
+  else{
+    // 원자 3개로 정해지는 모든 평면 중: (H 외 원자 수) → (전체 원자 수) → (원자끼리 덜 겹침) 순으로 가장 좋은 평면
+    // 평면 후보: 원자·비공유 전자쌍 중 3개로 정해지는 평면 / 점수: H 외 원자 수 → 거울 대칭면 여부 → 전체 원자 수 → 겹침 정도
+    const pts3=ids.map(id=>({el:R3.byId[id].el,p:P[id],atom:true}));Object.entries(R3.LP).forEach(([id,arr])=>arr.forEach(l=>pts3.push({el:'LP',p:P[id].clone().add(l.dir),atom:false})));
+    let best=null,bs=-1;const n=pts3.length;
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=j+1;k<n;k++){const pi=pts3[i].p;const nv=pts3[j].p.clone().sub(pi).cross(pts3[k].p.clone().sub(pi));if(nv.length()<1e-3)continue;nv.normalize();
+      const d0=nv.dot(pi);const inP=ids.filter(id=>Math.abs(nv.dot(P[id])-d0)<0.15);if(!inP.length)continue;
+      const mirror=pts3.every(q=>{const dd=nv.dot(q.p)-d0;if(Math.abs(dd)<0.15)return true;const r=q.p.clone().sub(nv.clone().multiplyScalar(2*dd));return pts3.some(o=>o.el===q.el&&o.p.distanceTo(r)<0.25)});
+      let sc=inP.filter(id=>heavy.has(id)).length*1000+(mirror?500:0)+inP.length*10;
+      if(sc+10<=bs)continue;
+      // 화면에서 겹치는 원자 쌍이 적을수록(특히 H 외 원자끼리) 좋음
+      let ov=0;for(let x=0;x<ids.length;x++)for(let y=x+1;y<ids.length;y++){const d=P[ids[x]].clone().sub(P[ids[y]]);d.sub(nv.clone().multiplyScalar(d.dot(nv)));if(d.length()<0.6)ov+=(heavy.has(ids[x])&&heavy.has(ids[y]))?3:1}
+      let m=1e9;for(let x=0;x<pts2.length;x++)for(let y=x+1;y<pts2.length;y++){const d=pts2[x].clone().sub(pts2[y]);d.sub(nv.clone().multiplyScalar(d.dot(nv)));m=Math.min(m,d.length())}
+      sc+=-Math.min(8,ov)+Math.min(m,2)*0.4;if(sc>bs){bs=sc;best=nv}}
+    F=best||E[2].vec.clone();
+    // 평면 밖 원자가 앞쪽으로 오도록 방향 결정
+    let side=0;ids.forEach(id=>side+=F.dot(P[id].clone().sub(P[c.id])));if(side<-1e-6)F.negate();
+    // 위쪽: 비공유 전자쌍 방향 → (없으면) 축 방향 결합 → 분자의 긴 축에 수직
+    const lp=R3.LP[c.id]||[];const ls=new V3();lp.forEach(l=>ls.add(l.dir));const dirs=R3.nbrs[c.id].map(m=>P[m].clone().sub(P[c.id]).normalize());const inPlane=v=>v.clone().sub(F.clone().multiplyScalar(v.dot(F)));
+    let cand=[];if(ls.length()>0.3)cand.push(ls.normalize());
+    if(dirs.length){let bi=0,bc=-1;dirs.forEach((d,i)=>{const cnt=dirs.filter(e=>Math.abs(d.dot(e))<0.1).length;const pl=inPlane(d).length();if(cnt+pl*0.5>bc){bc=cnt+pl*0.5;bi=i}});cand.push(dirs[bi])}
+    if(centers.length>1)cand.unshift(E[1].vec.clone());
+    cand.push(E[1].vec.clone());U=null;for(const v of cand){const w=inPlane(v);if(w.length()>0.3){U=w.normalize();break}}if(!U)U=anyPerp(F)}
+  const Rr=U.clone().cross(F).normalize();let q=qFromBasis(Rr,U,F);
+  // 정면에서 앞뒤 원자가 완전히 겹치면, 가로축이나 세로축으로 살짝(20°) 돌려 앞뒤 원자가 보이게 함
+  if(!linear){let ov=false;for(let x=0;x<ids.length&&!ov;x++)for(let y=x+1;y<ids.length;y++){const d=P[ids[x]].clone().sub(P[ids[y]]);d.sub(F.clone().multiplyScalar(d.dot(F)));if(d.length()<0.6){ov=true;break}}
+    if(ov){const minSep=qq=>{let m=1e9;for(let x=0;x<ids.length;x++)for(let y=x+1;y<ids.length;y++){const u=P[ids[x]].clone().applyQuaternion(qq),v=P[ids[y]].clone().applyQuaternion(qq);m=Math.min(m,Math.hypot(u.x-v.x,u.y-v.y))}return m};
+      let bq=q,bm=-1;[[AY,1],[AY,-1],[AX,1],[AX,-1]].forEach(([ax,sg])=>{const qq=new Q().setFromAxisAngle(ax,sg*20*Math.PI/180).multiply(q.clone());const m=minSep(qq);if(m>bm+1e-6){bm=m;bq=qq}});q=bq}}
+  return q}
+let viewAnim=null;
+document.getElementById('btnFront').onclick=()=>{if(!R3){toast('먼저 ▶ 3D로 변환을 눌러 주세요.');return}
+  if(anim){anim=null;R3.atoms.forEach(a=>curP[a.id]&&R3.P[a.id]&&curP[a.id].copy(R3.P[a.id]))}
+  document.getElementById('optSpin').checked=false;viewAnim={from:qView.clone(),to:frontQuat(),t0:performance.now()};dirty=true};
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function loop(now){requestAnimationFrame(loop);let t=1;
+  if(R3&&anim){t=Math.min(1,(now-anim.t0)/anim.dur);const e=ease(t);R3.atoms.forEach(a=>{if(startP[a.id]&&R3.P[a.id])curP[a.id]=startP[a.id].clone().lerp(R3.P[a.id],e)});qView=qEuler(0.32*e,0.62*e);if(t>=1)anim=null;dirty=true}
+  if(viewAnim){const k=Math.min(1,(now-viewAnim.t0)/650);qView=slerpQ(viewAnim.from,viewAnim.to,ease(k));if(k>=1)viewAnim=null;dirty=true}
+  if(R3&&!anim&&opt('optSpin')&&!rot){qView.premultiply(new Q().setFromAxisAngle(AY,0.005));dirty=true}
+  if(dirty){dirty=false;draw3D(t)}
+}
+requestAnimationFrame(loop);
+
+/* =========================================================
+   분석 패널
+   ========================================================= */
+function renderAnalysis(){
+  const el=document.getElementById('anaBody');
+  if(!atoms.length){el.innerHTML='<p style="color:#94a3b8">구조를 그리면 이곳에 분자식, 중심 원자의 전자쌍 수, 분자 모양, 결합각, 극성이 표시돼요.</p>';return}
+  const fresh=R3&&convertedVersion===structVersion;const locked=mode==='mission'&&curMission&&!progress[curMission.id];
+  const comps=components();let h=`<div class="formula">${moleculeHTML()}</div><div class="chips"><span class="chip">원자 ${atoms.length}개</span><span class="chip">전체 전하 ${totalCharge()?chargeStr(totalCharge()):'0'}</span>`;
+  if(comps.length>1)h+=`<span class="chip" style="background:#fef3c7;color:#92400e">분리된 조각 ${comps.length}개</span>`;
+  if(fresh&&R3.polar!==null)h+=locked?`<span class="chip">극성: 🔒 미션 클리어 후 공개</span>`:`<span class="chip ${R3.polar?'p':'np'}">${R3.polar?'극성 분자':'무극성 분자'}</span>`;
+  h+='</div>';
+  const centers=atoms.filter(a=>info[a.id].nb>=2);
+  if(centers.length){h+=`<table class="t"><tr><th>중심 원자</th><th>공유/비공유<br>전자쌍 수</th><th>전자쌍 배치</th><th>분자 모양</th><th>결합각</th></tr>`;
+    centers.forEach(a=>{const I=info[a.id];const c=fresh?R3.centers.find(x=>x.id===a.id):null;
+      const domains=I.nb+I.L;
+      h+=`<tr><td><b>${a.el}</b>${a.charge?`<sup>${chargeStr(a.charge)}</sup>`:''}</td><td>결합 원자 ${I.nb} · 비공유 ${I.lp}${I.single?' · 홀전자 1':''}<br><span style="color:#94a3b8;font-size:11.5px">전자쌍 영역 ${domains}개</span></td>
+      <td>${locked?'<span class="lock">🔒</span>':I.eg}</td><td>${locked?'<span class="lock">🔒 클리어 후 공개</span>':`<b>${I.shape}</b>`}</td><td>${c?c.angles.map(x=>(x.g%1?x.g.toFixed(1):x.g)+'°').join(', '):'<span class="lock">3D 변환 후</span>'}</td></tr>`});
+    h+='</table><div style="font-size:11.5px;color:#94a3b8;margin-top:5px">※ 다중 결합(2중·3중 결합)은 전자쌍 반발 이론에서 하나의 전자쌍 영역으로 취급해요.</div>'}
+  else if(atoms.length===2&&bonds.length===1)h+=`<p style="font-size:13px">원자 2개로 이루어진 분자는 항상 <b>직선형</b>이에요.</p>`;
+  // 원자 상태
+  const groups={error:[],incomplete:[],exc:[]};atoms.forEach(a=>{const I=info[a.id];if(I.st==='error')groups.error.push(I.msg);else if(I.st==='incomplete')groups.incomplete.push(I.msg);else if(I.st==='deficient'||I.st==='expanded')groups.exc.push(I.msg)});
+  const uniq=a=>[...new Set(a)];h+='<ul class="notes">';
+  uniq(groups.error).forEach(m=>h+=`<li class="n-err">⛔ ${m}</li>`);uniq(groups.incomplete).forEach(m=>h+=`<li class="n-warn">⚠️ ${m}</li>`);
+  uniq(groups.exc).forEach(m=>h+=`<li class="n-exc">✔ ${m}</li>`);
+  if(!groups.error.length&&!groups.incomplete.length)h+=`<li class="n-ok">✅ 모든 원자가 옥텟 규칙(H는 2개) 또는 허용된 예외를 만족해요.</li>`;
+  if(!fresh)h+=`<li class="n-warn" style="background:#eef2ff;color:#3730a3">▶ <b>3D로 변환</b>을 누르면 결합각과 극성을 확인할 수 있어요.</li>`;
+  h+='</ul>';el.innerHTML=h;
+}
+
+/* =========================================================
+   예시 분자
+   ========================================================= */
+function star(c,lig,charge=0){const cx=W/2,cy=H/2;const a=addAtom(c,cx,cy);a.charge=charge;const n=lig.length;
+  lig.forEach(([el,o],i)=>{const t=-Math.PI/2+i*2*Math.PI/n+(n===2?Math.PI/2:0);const L=el==='H'?56:72;const b=addAtom(el,cx+Math.cos(t)*L,cy+Math.sin(t)*L);addBond(a.id,b.id,o)})}
+const EXAMPLES={
+  'H₂O':()=>star('O',[['H',1],['H',1]]),'NH₃':()=>star('N',[['H',1],['H',1],['H',1]]),'CH₄':()=>star('C',[['H',1],['H',1],['H',1],['H',1]]),
+  'CO₂':()=>star('C',[['O',2],['O',2]]),'BF₃':()=>star('B',[['F',1],['F',1],['F',1]]),'BeCl₂':()=>star('Be',[['Cl',1],['Cl',1]]),
+  'C₂H₄':()=>{const cx=W/2,cy=H/2;const a=addAtom('C',cx-34,cy),b=addAtom('C',cx+34,cy);addBond(a.id,b.id,2);[[-1,-1],[-1,1]].forEach(([sx,sy])=>{const h=addAtom('H',cx-34-30,cy+sy*48);addBond(a.id,h.id,1)});[[1,-1],[1,1]].forEach(([sx,sy])=>{const h=addAtom('H',cx+34+30,cy+sy*48);addBond(b.id,h.id,1)})},
+  'C₂H₂':()=>{const cx=W/2,cy=H/2;const a=addAtom('C',cx-34,cy),b=addAtom('C',cx+34,cy);addBond(a.id,b.id,3);const h1=addAtom('H',cx-90,cy),h2=addAtom('H',cx+90,cy);addBond(a.id,h1.id,1);addBond(b.id,h2.id,1)},
+  'C₆H₆':()=>{const cx=W/2,cy=H/2;const cs=[];for(let i=0;i<6;i++){const t=i*Math.PI/3-Math.PI/2;cs.push(addAtom('C',cx+Math.cos(t)*58,cy+Math.sin(t)*58));const h=addAtom('H',cx+Math.cos(t)*108,cy+Math.sin(t)*108);addBond(cs[i].id,h.id,1)}for(let i=0;i<6;i++)addBond(cs[i].id,cs[(i+1)%6].id,i%2?1:2)},
+  'PCl₅':()=>star('P',[['Cl',1],['Cl',1],['Cl',1],['Cl',1],['Cl',1]]),'SF₆':()=>star('S',[['F',1],['F',1],['F',1],['F',1],['F',1],['F',1]]),
+};
+function loadExample(k){pushUndo();atoms=[];bonds=[];if(isMobile())setView('edit');resize2D();resetView();EXAMPLES[k]();changed();toast(`${k} 구조식을 불러왔어요. ▶ 3D로 변환을 눌러 보세요!`)}
+
+/* =========================================================
+   미션
+   ========================================================= */
+const MISSIONS=[
+ {id:'n2',lv:1,title:'질소 N₂',formula:{N:2},charge:0,
+  story:'공기의 약 78%를 차지하는 질소 분자를 만들어 보세요. 두 질소 원자가 모두 옥텟 규칙을 만족해야 해요.',
+  hint:'N 두 개를 결합한 뒤, 결합을 클릭해 결합 차수를 바꿔 보세요. 각 N에 비공유 전자쌍이 1개씩 남으면 성공이에요.',
+  quiz:{q:'N₂에서 두 질소 원자 사이의 공유 전자쌍은 몇 개인가요?',c:['1개','2개','3개','4개'],a:2,e:'N≡N 3중 결합으로 공유 전자쌍 3개를 공유하고, 각 N에는 비공유 전자쌍이 1개씩 있어 옥텟을 만족해요.'}},
+ {id:'h2o',lv:1,title:'물 H₂O',formula:{H:2,O:1},charge:0,
+  story:'생명체에 꼭 필요한 물 분자를 만들어 보세요. 평면에 그린 구조식이 3D에서는 어떤 모양이 되는지 관찰해요.',
+  hint:'O를 놓고, H를 선택한 상태에서 O를 두 번 클릭하면 H가 붙어요.',
+  quiz:{q:'3D 모형을 관찰해 보세요. 물 분자의 결합각에 가장 가까운 것은?',c:['180°','120°','109.5°','104.5°'],a:3,e:'중심 원자 O 주위의 전자쌍 4개(공유 2, 비공유 2)는 정사면체형으로 배치되지만, 비공유 전자쌍 사이의 반발력이 더 커서 결합각이 104.5°로 작아지고 굽은 형이 돼요.'}},
+ {id:'nh3',lv:1,title:'암모니아 NH₃',formula:{H:3,N:1},charge:0,
+  story:'비료의 원료인 암모니아를 만들어 보세요.',hint:'N에 H 3개를 붙이면 N에 비공유 전자쌍 1개가 자동으로 남아요.',
+  quiz:{q:'암모니아의 분자 모양은?',c:['평면 삼각형','삼각뿔형','정사면체형','굽은 형'],a:1,e:'N 주위 전자쌍 4개 중 1개가 비공유 전자쌍이에요. 원자만 보면 삼각뿔형이고, 결합각은 약 107°예요.'}},
+ {id:'ch4',lv:1,title:'메테인 CH₄',formula:{C:1,H:4},charge:0,
+  story:'천연가스의 주성분인 메테인을 만들어 보세요. 평면 십자 모양으로 그린 구조가 3D에서 어떻게 바뀌나요?',hint:'C를 놓고 [H 자동 채우기]를 써도 돼요.',
+  quiz:{q:'메테인의 H–C–H 결합각은?',c:['90°','104.5°','109.5°','120°'],a:2,e:'C 주위의 공유 전자쌍 4개가 서로 가장 멀리 떨어지는 정사면체형으로 배치되어 결합각이 109.5°예요.'}},
+ {id:'co2',lv:1,title:'이산화 탄소 CO₂',formula:{C:1,O:2},charge:0,
+  story:'C와 O 2개로 모든 원자가 옥텟을 만족하는 이산화 탄소를 만들어 보세요.',hint:'C=O 2중 결합이 2개 필요해요. 결합 도구에서 ═를 고르거나 결합을 클릭해 바꿔 보세요.',
+  quiz:{q:'이산화 탄소 분자의 극성은?',c:['극성 분자','무극성 분자'],a:1,e:'C=O 결합은 극성 공유 결합이지만, 분자가 직선형(180°)으로 대칭이어서 결합의 쌍극자 모멘트가 상쇄돼 무극성 분자예요.'}},
+ {id:'bf3',lv:2,title:'삼플루오린화 붕소 BF₃',formula:{B:1,F:3},charge:0,
+  story:'B는 옥텟 규칙의 예외예요! B에 F 3개를 결합해 BF₃를 만들어 보세요. 보라색 점선 고리는 "허용된 예외"라는 뜻이에요.',hint:'B에 F를 단일 결합으로 3개 붙여요.',
+  quiz:{q:'BF₃에서 중심 원자 B 주위의 전자 수는?',c:['4개','6개','8개','10개'],a:1,e:'B 주위에는 공유 전자쌍 3개, 즉 전자 6개만 있어 옥텟 규칙을 만족하지 않아요. 전자쌍 3개가 120°로 배치되어 평면 삼각형이에요.'}},
+ {id:'becl2',lv:2,title:'염화 베릴륨 BeCl₂',formula:{Be:1,Cl:2},charge:0,
+  story:'Be도 옥텟 규칙의 예외예요. 기체 상태의 BeCl₂ 분자를 만들어 보세요.',hint:'Be에 Cl을 단일 결합으로 2개 붙여요.',
+  quiz:{q:'BeCl₂의 Cl–Be–Cl 결합각은?',c:['90°','109.5°','120°','180°'],a:3,e:'Be 주위에는 공유 전자쌍 2개만 있어 서로 반대 방향으로 배치되므로 직선형, 결합각 180°예요.'}},
+ {id:'hcn',lv:2,title:'사이안화 수소 HCN',formula:{C:1,H:1,N:1},charge:0,
+  story:'H, C, N 원자 1개씩으로 모든 원자가 옥텟(H는 2개)을 만족하는 분자를 만들어 보세요.',hint:'H–C≡N 순서로 연결해요. C와 N 사이는 3중 결합이에요.',
+  quiz:{q:'HCN의 분자 모양은?',c:['직선형','굽은 형','평면 삼각형','삼각뿔형'],a:0,e:'중심 원자 C에는 비공유 전자쌍이 없고, 단일 결합과 3중 결합이 각각 하나의 전자쌍 영역이 되어 직선형(180°)이에요.'}},
+ {id:'ch2o',lv:2,title:'폼알데하이드 HCHO',formula:{C:1,H:2,O:1},charge:0,
+  story:'C 1개, H 2개, O 1개로 이루어진 폼알데하이드를 만들어 보세요.',hint:'C를 중심으로 H 2개는 단일 결합, O는 2중 결합으로 연결해요.',
+  quiz:{q:'폼알데하이드의 분자 모양은?',c:['평면 삼각형','삼각뿔형','정사면체형','굽은 형'],a:0,e:'C에 결합한 원자는 3개, 비공유 전자쌍은 0개예요. 2중 결합도 하나의 전자쌍 영역으로 보기 때문에 평면 삼각형이에요.'}},
+ {id:'nh4',lv:2,title:'암모늄 이온 NH₄⁺',formula:{H:4,N:1},charge:1,
+  story:'이온도 전자쌍 반발 이론으로 모양을 설명할 수 있어요. 전하가 +1인 암모늄 이온을 만들어 보세요.',hint:'⊕ 전하 도구로 N을 한 번 클릭해 +1로 만든 뒤 H 4개를 붙여요.',
+  quiz:{q:'NH₄⁺의 H–N–H 결합각은?',c:['104.5°','107°','109.5°','120°'],a:2,e:'N 주위의 전자쌍 4개가 모두 공유 전자쌍이라 정사면체형, 결합각 109.5°예요. NH₃(107°)보다 결합각이 커져요.'}},
+ {id:'h3o',lv:2,title:'하이드로늄 이온 H₃O⁺',formula:{H:3,O:1},charge:1,
+  story:'산의 수용액 속에 있는 하이드로늄 이온을 만들어 보세요.',hint:'⊕ 전하 도구로 O를 +1로 만든 뒤 H 3개를 붙여요.',
+  quiz:{q:'H₃O⁺의 모양은?',c:['평면 삼각형','삼각뿔형','정사면체형','굽은 형'],a:1,e:'O 주위의 전자쌍 4개 중 비공유 전자쌍이 1개라서 NH₃와 같은 삼각뿔형이에요.'}},
+ {id:'c2h4',lv:2,title:'에텐 C₂H₄',formula:{C:2,H:4},charge:0,
+  story:'과일을 익히는 데 쓰이는 에텐을 만들어 보세요. 중심 원자가 2개인 분자예요!',hint:'C=C 2중 결합을 만든 뒤 각 C에 H를 2개씩 붙여요.',
+  quiz:{q:'에텐을 구성하는 원자 6개는 모두 같은 평면에 있을까요?',c:['예, 모두 같은 평면에 있다','아니요, 입체 구조이다'],a:0,e:'두 C 원자는 각각 평면 삼각형 구조(약 120°)이고, 2중 결합 때문에 회전하지 않아 원자 6개가 모두 같은 평면에 있어요.'}},
+ {id:'c2h2',lv:2,title:'에타인 C₂H₂',formula:{C:2,H:2},charge:0,
+  story:'용접에 쓰이는 에타인(아세틸렌)을 만들어 보세요.',hint:'C≡C 3중 결합 양쪽에 H를 하나씩 붙여요.',
+  quiz:{q:'에타인의 H–C–C 결합각은?',c:['109.5°','120°','180°','104.5°'],a:2,e:'각 C에는 전자쌍 영역이 2개(단일 결합, 3중 결합)뿐이라 직선형이에요. 분자 전체가 일직선이에요.'}},
+ {id:'ch2cl2',lv:2,title:'다이클로로메테인 CH₂Cl₂',formula:{C:1,H:2,Cl:2},charge:0,
+  story:'메테인의 H 2개를 Cl로 바꾼 분자를 만들어 보세요. 모양과 극성이 어떻게 달라질까요?',hint:'C에 H 2개, Cl 2개를 단일 결합으로 붙여요.',
+  quiz:{q:'CH₂Cl₂의 극성은?',c:['극성 분자','무극성 분자'],a:0,e:'사면체 구조이지만 C–H와 C–Cl 결합의 극성이 서로 달라 결합의 쌍극자 모멘트가 상쇄되지 않아요. 따라서 극성 분자예요.'}},
+ {id:'ch-np',lv:3,title:'도전! 극성 결합 + 무극성 분자',
+  story:'극성 공유 결합만으로 이루어져 있지만 <b>분자 전체는 무극성</b>인 분자를 직접 설계해 보세요. (예시로 나온 CO₂, CH₄도 좋지만 다른 분자에 도전해 봐요!)',hint:'중심 원자에 비공유 전자쌍이 없고, 같은 원자가 대칭으로 결합하면 결합의 극성이 상쇄돼요. CCl₄, BF₃, SiH₄ 등을 떠올려 보세요.',
+  cond:()=>{const c=[];const fresh=R3&&convertedVersion===structVersion;c.push({label:'전기 음성도가 다른 원자 사이의 극성 공유 결합이 있음',ok:fresh?R3.polarBond:bondsHavePolar()});
+    c.push({label:'3D 변환 결과 무극성 분자',ok:fresh&&R3.polar===false});return c},
+  quiz:{q:'극성 결합이 있는데도 무극성 분자가 되는 이유는?',c:['분자 구조가 대칭이어서 결합의 쌍극자 모멘트 합이 0이기 때문','모든 결합의 전기 음성도 차이가 0이기 때문','분자에 수소 원자가 없기 때문'],a:0,e:'결합 하나하나는 극성이지만, 대칭적인 분자 모양 때문에 쌍극자 모멘트가 서로 상쇄되어 합이 0이 돼요.'}},
+ {id:'bent2',lv:3,title:'도전! 물이 아닌 굽은 형 분자',
+  story:'중심 원자에 <b>비공유 전자쌍이 2개</b> 있는 굽은 형 분자를 만들어 보세요. 단, H₂O는 안 돼요!',hint:'O와 같은 16족 원소(S)나, O에 다른 원자(F, Cl)를 붙여 보세요.',
+  cond:()=>{const ok=atoms.some(a=>info[a.id].nb===2&&info[a.id].lp===2&&info[a.id].L===2);const f=formulaCounts();const isWater=atoms.length===3&&f.H===2&&f.O===1;
+    return[{label:'결합 원자 2개 + 비공유 전자쌍 2개인 중심 원자',ok},{label:'H₂O가 아닌 분자',ok:atoms.length>0&&!isWater}]},
+  quiz:{q:'이 분자 중심 원자의 전자쌍 배치는?',c:['직선형','평면 삼각형','정사면체형'],a:2,e:'전자쌍 4개(공유 2, 비공유 2)는 정사면체형으로 배치돼요. 원자만 보면 굽은 형이고, 비공유 전자쌍의 반발 때문에 결합각이 109.5°보다 작아요.'}},
+ {id:'pyr',lv:3,title:'도전! 암모니아가 아닌 삼각뿔형 분자',
+  story:'중심 원자에 비공유 전자쌍 1개와 결합한 원자 3개가 있는 <b>삼각뿔형</b> 분자를 만들어 보세요. 단, NH₃는 안 돼요!',hint:'N과 같은 15족 원소(P)를 쓰거나, N에 다른 할로젠 원자를 붙여 보세요.',
+  cond:()=>{const ok=atoms.some(a=>info[a.id].nb===3&&info[a.id].lp===1&&info[a.id].L===1);const f=formulaCounts();const isNH3=atoms.length===4&&f.H===3&&f.N===1;
+    return[{label:'결합 원자 3개 + 비공유 전자쌍 1개인 중심 원자',ok},{label:'NH₃가 아닌 분자',ok:atoms.length>0&&!isNH3}]},
+  quiz:{q:'삼각뿔형 분자의 결합각이 109.5°보다 작은 이유는?',c:['비공유 전자쌍의 반발력이 공유 전자쌍보다 크기 때문','중심 원자의 원자 반지름이 작기 때문','결합한 원자 수가 4개보다 적어 서로 끌어당기기 때문'],a:0,e:'비공유 전자쌍은 중심 원자 가까이에 더 넓게 퍼져 있어 공유 전자쌍을 더 세게 밀어내므로 결합각이 작아져요.'}},
+];
+function bondsHavePolar(){return bonds.some(b=>EL[atomById(b.a).el].en!==EL[atomById(b.b).el].en)}
+const LVNAME={1:'기본',2:'심화',3:'도전'};
+function missionChecks(m){
+  const checks=[];const comps=atoms.length?components().length:0;
+  const valid=atoms.length>0&&atoms.every(a=>['ok','deficient'].includes(info[a.id].st));
+  if(m.formula){const f=formulaCounts();const same=Object.keys(m.formula).length===Object.keys(f).length&&Object.entries(m.formula).every(([k,v])=>f[k]===v);
+    checks.push({label:`원소 구성 ${formulaHTML(m.formula,0)}`,ok:same});checks.push({label:`전체 전하 ${m.charge?chargeStr(m.charge):'0'}`,ok:atoms.length>0&&totalCharge()===m.charge})}
+  checks.push({label:'하나로 연결된 분자',ok:comps===1});
+  checks.push({label:'모든 원자가 옥텟 규칙(H는 2개) 또는 허용된 예외 만족',ok:valid});
+  if(m.cond)checks.push(...m.cond());
+  const fresh=R3&&convertedVersion===structVersion;
+  checks.push({label:'▶ 3D로 변환해 분자 모양 관찰',ok:fresh&&checks.every(c=>c.ok)});
+  return checks;
+}
+function renderSide(){
+  const s=document.getElementById('side');
+  if(mode==='free'){
+    s.innerHTML=`<div class="ptitle">🛠 자유 제작 모드</div>
+    <div class="sec"><div class="story" style="margin-top:2px">원하는 분자의 구조식을 자유롭게 그리고 <b>▶ 3D로 변환</b>해 모양을 확인해 보세요.
+      BF<sub>3</sub>, PCl<sub>5</sub>처럼 원자 번호 20 이하 원소의 옥텟 예외 구조도 만들 수 있어요.</div>
+      <button class="mbtn pri" id="openGuide">📖 학습 목표 · 사용 방법 보기</button></div>
+    <div class="sec"><h3>예시 분자 불러오기</h3><div class="exgrid">${Object.keys(EXAMPLES).map(k=>`<button class="exbtn" data-ex="${k}">${k}</button>`).join('')}</div></div>
+    <div class="sec"><h3>원자 고리 색의 의미</h3>${LEGEND}</div>`;
+    document.getElementById('openGuide').onclick=()=>showGuide(false);
+    s.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>loadExample(b.dataset.ex));
+  } else if(!curMission){
+    const done=MISSIONS.filter(m=>progress[m.id]).length;
+    s.innerHTML=`<div class="ptitle">🎯 미션 · 고등학교 물질과 에너지</div><div class="sec">
+      <button class="freecard" id="goFree"><span style="font-size:22px">🛠</span><span><b>자유 제작으로 가기</b><br><span style="font-size:12px;color:var(--sub)">미션 없이 원하는 분자를 마음껏 만들어 보세요</span></span><span style="margin-left:auto;font-size:18px">→</span></button>
+      <div style="font-size:13px;display:flex;justify-content:space-between"><b>진행도</b><span>${done} / ${MISSIONS.length}</span></div><div class="prog"><i style="width:${done/MISSIONS.length*100}%"></i></div>
+      <div style="font-size:12px;color:var(--sub);margin:4px 0 10px">구조식을 완성하고 3D로 변환한 뒤, 확인 문제를 맞히면 클리어!</div>
+      <div class="mlist">${MISSIONS.map((m,i)=>`<button class="mcard${progress[m.id]?' done':''}" data-m="${i}"><div class="num">${progress[m.id]?'★':i+1}</div><div><div class="tt">${m.title}</div><div class="lv"><span class="lvtag lv${m.lv}">${LVNAME[m.lv]}</span></div></div></button>`).join('')}</div>
+      ${done?'<button class="mbtn" id="resetProg" style="margin-top:10px">진행도 초기화</button>':''}</div>`;
+    document.getElementById('goFree').onclick=()=>switchMode('free');
+    s.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>startMission(MISSIONS[+b.dataset.m]));
+    const rp=document.getElementById('resetProg');if(rp)rp.onclick=()=>{
+      const cleared=MISSIONS.filter(m=>progress[m.id]);
+      modal('⚠️ 진행도를 초기화할까요?',
+        `지금까지 클리어한 미션 <b>${cleared.length}개</b>의 기록이 <b>모두 삭제</b>돼요.
+         <div class="note" style="border-left-color:#ef4444">${cleared.map(m=>'★ '+m.title).join('<br>')}</div>
+         <div style="margin-top:10px;color:#b91c1c;font-weight:700">삭제한 기록은 되돌릴 수 없어요. 정말 삭제할까요?</div>`,
+        [['취소','pri'],['기록 삭제','danger',()=>{progress={};saveProgress();renderSide();renderAnalysis();updateMobileUI();toast('미션 진행도를 초기화했어요.')}]])};
+  } else renderMission();
+  updateMobileUI();
+}
+function startMission(m){
+  curMission=m;quizState=null;
+  if(atoms.length){pushUndo()}atoms=[];bonds=[];R3=null;resetView();convertedVersion=-1;clearGroup();document.getElementById('placeholder').style.display='flex';
+  changed();renderSide();
+  if(isMobile()){setView('edit');toast(`🎯 ${m.title}: 구조식을 그려 보세요!`)}
+}
+function renderMission(){
+  const m=curMission,s=document.getElementById('side');const idx=MISSIONS.indexOf(m);
+  const checks=missionChecks(m);const allOk=checks.every(c=>c.ok);const cleared=!!progress[m.id];
+  let h=`<div class="ptitle">🎯 미션 ${idx+1} / ${MISSIONS.length}</div><div class="sec">
+    <div class="mhead"><button class="back" id="mBack">← 목록</button><span class="lvtag lv${m.lv}">${LVNAME[m.lv]}</span>${cleared?'<span class="lvtag" style="background:#dcfce7;color:#15803d">★ 클리어</span>':''}</div>
+    <h3 style="font-size:17px;margin:6px 0">${m.title}</h3><div class="story">${m.story}</div>
+    <ul class="checks">${checks.map(c=>`<li class="${c.ok?'ok':''}"><span class="ck">${c.ok?'✓':''}</span><span>${c.label}</span></li>`).join('')}</ul>
+    <button class="mbtn" id="hintBtn" style="margin-top:10px">💡 힌트 보기</button><div class="hintbox" id="hintBox">${m.hint}</div>`;
+  if(allOk||cleared){
+    if(cleared&&(!quizState||quizState.done)){h+=`<div class="clear"><b class="big">🎉 미션 클리어!</b>${m.quiz.e}</div>`}
+    else{h+=`<div class="quiz"><div class="q">✏️ 확인 문제<br>${m.quiz.q}</div>${m.quiz.c.map((c,i)=>`<button class="qopt" data-q="${i}">${String.fromCharCode(9312+i)} ${c}</button>`).join('')}<div id="qmsg" style="font-size:12.5px;color:#b91c1c;min-height:16px"></div></div>`}
+  } else h+=`<div style="font-size:12.5px;color:var(--sub);margin-top:10px">모든 조건을 만족하면 확인 문제가 나타나요.</div>`;
+  h+=`<div class="mbtns"><button class="mbtn" id="mReset">처음부터 다시</button>${idx<MISSIONS.length-1?`<button class="mbtn ${cleared?'pri':''}" id="mNext">다음 미션 →</button>`:''}</div></div>`;
+  s.innerHTML=h;
+  document.getElementById('mBack').onclick=()=>{curMission=null;renderSide();renderAnalysis();updateMobileUI()};
+  document.getElementById('hintBtn').onclick=()=>{const b=document.getElementById('hintBox');b.style.display=b.style.display==='block'?'none':'block'};
+  document.getElementById('mReset').onclick=()=>startMission(m);
+  const nx=document.getElementById('mNext');if(nx)nx.onclick=()=>startMission(MISSIONS[idx+1]);
+  s.querySelectorAll('.qopt').forEach(b=>b.onclick=()=>{const i=+b.dataset.q;
+    if(i===m.quiz.a){b.classList.add('right');progress[m.id]=true;saveProgress();quizState={done:true};toast(`🎉 ${m.title} 미션 클리어!`,'ok');setTimeout(()=>{renderMission();renderAnalysis();updateMobileUI()},500)}
+    else{b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');document.getElementById('qmsg').textContent='다시 생각해 보세요. 3D 모형을 돌려 보며 관찰하면 도움이 돼요!'}});
+}
+
+/* =========================================================
+   안내창 (학습 목표 · 사용 방법)
+   ========================================================= */
+const LEGEND=`<div class="legend">
+  <div><span style="border-color:#22c55e"></span>옥텟 규칙 만족 (H는 전자 2개)</div>
+  <div><span style="border-color:#f59e0b"></span>미완성 — 전자가 부족해요</div>
+  <div><span style="border-color:#8b5cf6;border-style:dashed"></span>옥텟 규칙의 예외 (원자 번호 20 이하, 허용)</div>
+  <div><span style="border-color:#ef4444"></span>오류 — 불가능한 결합</div></div>`;
+function showGuide(first){
+  const m=isMobile();const tap=m?'탭':'클릭';
+  modal('🧪 VSEPR 분자 모형 공방에 오신 것을 환영해요!',`<div class="guide">
+  <h4>🎯 학습 목표</h4>
+  <ul class="goal">
+    <li>① 전자쌍 반발 이론을 이용하여 분자의 구조를 설명할 수 있다.</li>
+    <li>② 중심 원자 주위의 공유 전자쌍과 비공유 전자쌍 수로 분자의 모양과 결합각을 예측할 수 있다.</li>
+    <li>③ 분자의 구조를 바탕으로 분자의 극성을 판단할 수 있다.</li>
+  </ul>
+  <h4>🛠 사용 방법</h4>
+  <ol class="steps">
+    <li><b>구조식 그리기</b> — 원소를 고르고 빈 곳을 ${tap}하면 원자가 놓여요. 원자를 ${tap}하면 고른 원소가 결합된 채로 붙고, 원자에서 원자로 끌면 결합이 생겨요.</li>
+    <li><b>결합 바꾸기</b> — 결합을 ${tap}하면 단일 → 2중 → 3중 결합으로 바뀌어요. 이온은 ⊕/⊖ 전하 도구로 전하를 정해요. 잘못 놓은 원자는 <b>두 번 빠르게 탭</b>하거나, 원자·결합을 <b>꾹 누르면</b> 지워져요${m?'':' (우클릭이나 🧽 지우기 도구로도 삭제)'}.</li>
+    <li><b>전자 확인</b> — 비공유 전자쌍은 원자가 전자 수로 자동 계산돼요. 원자 둘레의 고리 색으로 옥텟 규칙을 확인해요. 보드 오른쪽 위 <b>－ / ＋</b>로 확대·축소하고, <b>100%</b>를 누르면 원래 크기, <b>⤢</b>를 누르면 분자 전체가 보이게 맞춰요${m?' (두 손가락으로도 확대·축소)':' (마우스 휠로도 확대·축소)'}. 빈 곳을 끌면 보드가 움직여요. <b>📐 원자 간 거리 조정</b>을 누르면 같은 결합은 같은 길이로, 다른 결합은 원자 크기와 결합 차수에 맞는 길이로 정리돼요.</li>
+    <li><b>▶ 3D로 변환</b> — 평면 구조식이 전자쌍 반발 이론에 따라 입체 모형으로 바뀌어요. ${m?'손가락으로 끌어 회전하고, 두 손가락으로 확대·축소해요.':'끌어서 회전하고, 마우스 휠로 확대·축소해요.'} <b>🎯 정면 보기</b>를 누르면 H 외 원자가 화면 평면에 가장 많이 놓이는 방향에서 정면으로 보여 줘요.</li>
+    <li><b>분자 분석</b> — 전자쌍 배치, 분자 모양, 결합각, 극성을 확인해요. <b>쌍극자 모멘트</b> 체크박스를 켜면 결합의 극성과 분자 전체의 쌍극자 모멘트를 화살표로, 부분 전하를 δ+ · δ−로 볼 수 있어요.</li>
+    <li><b>🎯 미션</b> — 교과서 속 분자를 하나씩 만들고, 확인 문제를 맞혀 클리어해 보세요. 위쪽 <b>[자유 제작]</b> 탭이나 미션 목록의 <b>자유 제작으로 가기</b>를 누르면 원하는 분자를 자유롭게 만들 수 있어요.</li>
+  </ol>
+  ${m?'<div class="gnote">📱 휴대폰에서는 화면 아래 탭(안내·미션 / 구조식 그리기 / 3D·분석)으로 화면을 오가요.</div>':''}
+  <h4>🎨 원자 고리 색</h4>${LEGEND}
+  <div class="gnote">이 안내는 오른쪽 위 <b>📖 사용 방법</b> 버튼으로 언제든 다시 볼 수 있어요. 전자쌍 반발 이론이 처음이라면 제목 아래 <b>💡 VSEPR 이론이란?</b>을 먼저 읽어 보세요.</div>
+  </div>`,first===true?[['🛠 자유 제작으로 시작','',()=>switchMode('free')],['🎯 미션 시작하기 →','pri',()=>switchMode('mission')]]:[['닫기','pri']]);
+}
+document.getElementById('helpBtn').onclick=()=>showGuide(false);
+// VSEPR 이론 설명 (고등학교 「물질과 에너지」 수준)
+const SH=(lines,lps)=>`<svg viewBox="0 0 120 84">${lines}${lps||''}<circle cx="60" cy="44" r="10" fill="#475569"/></svg>`;
+const B=(x,y,dash)=>`<line x1="60" y1="44" x2="${x}" y2="${y}" stroke="#334155" stroke-width="3" ${dash?'stroke-dasharray="3 3"':''}/><circle cx="${x}" cy="${y}" r="7" fill="#e2e8f0" stroke="#64748b"/>`;
+function showVSEPR(){
+  modal('💡 전자쌍 반발 이론(VSEPR 이론)이란?',`<div class="vsepr">
+  <h4>한 문장으로 정리하면</h4>
+  <div class="key">중심 원자 주위의 <b>전자쌍들은 모두 (−)전하를 띠어 서로 밀어내기 때문에</b>, 반발력이 가장 작아지도록 <b>서로 최대한 멀리 떨어져 배치</b>된다. 이 배치가 바로 <b>분자의 모양</b>을 결정한다.</div>
+  <p style="margin-top:8px;color:#64748b;font-size:12.5px">VSEPR = <b>V</b>alence <b>S</b>hell <b>E</b>lectron <b>P</b>air <b>R</b>epulsion (원자가 전자쌍 반발)의 머리글자예요.</p>
+  <h4>🎈 풍선으로 생각해 보기</h4>
+  <p>풍선 여러 개를 한 점에 묶으면, 풍선들은 서로 밀어내며 가장 멀리 떨어진 방향으로 자리 잡아요. 중심 원자 주위의 전자쌍도 이와 같아요.</p>
+  <div class="shapes">
+    <div>${SH(B(14,44)+B(106,44))}<b>전자쌍 2개</b><br>직선형 · 180°</div>
+    <div>${SH(B(60,8)+B(22,66)+B(98,66))}<b>전자쌍 3개</b><br>평면 삼각형 · 120°</div>
+    <div>${SH(B(60,6)+B(22,64)+B(100,60,true)+B(82,78))}<b>전자쌍 4개</b><br>정사면체형 · 109.5°</div>
+  </div>
+  <h4>📏 꼭 알아야 할 규칙</h4>
+  <ol class="rules">
+    <li><b>공유 전자쌍과 비공유 전자쌍을 모두 센다.</b> 비공유 전자쌍도 공간을 차지하고 다른 전자쌍을 밀어내요.</li>
+    <li><b>2중 결합, 3중 결합은 전자쌍 1개처럼 취급한다.</b> 예) CO<sub>2</sub>: O=C=O → C 주위 전자쌍 2개 → 직선형</li>
+    <li><b>반발력의 크기: 비공유–비공유 &gt; 비공유–공유 &gt; 공유–공유</b><br>비공유 전자쌍이 많을수록 결합각이 작아져요. CH<sub>4</sub> 109.5° &gt; NH<sub>3</sub> 107° &gt; H<sub>2</sub>O 104.5°</li>
+    <li><b>분자 모양은 '원자'의 위치만 보고 이름 붙인다.</b> NH<sub>3</sub>는 전자쌍 배치는 정사면체형이지만, 원자만 보면 <b>삼각뿔형</b>이에요.</li>
+  </ol>
+  <h4>🧭 분자 모양 예측 순서</h4>
+  <div class="steps2"><span>① 루이스 구조 그리기</span>→<span>② 중심 원자 주위 전자쌍 수 세기</span>→<span>③ 전자쌍 배치 정하기</span>→<span>④ 원자 위치로 분자 모양 결정</span></div>
+  <h4>📋 한눈에 보기</h4>
+  <table><tr><th>공유 전자쌍</th><th>비공유 전자쌍</th><th>전자쌍 배치</th><th>분자 모양</th><th>결합각</th><th>예</th></tr>
+    <tr><td>2</td><td>0</td><td>직선형</td><td><b>직선형</b></td><td>180°</td><td>BeCl<sub>2</sub>, CO<sub>2</sub></td></tr>
+    <tr><td>3</td><td>0</td><td>평면 삼각형</td><td><b>평면 삼각형</b></td><td>120°</td><td>BF<sub>3</sub>, HCHO</td></tr>
+    <tr><td>4</td><td>0</td><td>정사면체형</td><td><b>정사면체형</b></td><td>109.5°</td><td>CH<sub>4</sub>, NH<sub>4</sub><sup>+</sup></td></tr>
+    <tr><td>3</td><td>1</td><td>정사면체형</td><td><b>삼각뿔형</b></td><td>약 107°</td><td>NH<sub>3</sub>, H<sub>3</sub>O<sup>+</sup></td></tr>
+    <tr><td>2</td><td>2</td><td>정사면체형</td><td><b>굽은 형</b></td><td>약 104.5°</td><td>H<sub>2</sub>O</td></tr></table>
+  <p style="margin-top:6px;color:#64748b;font-size:12px">※ 공유 전자쌍 수는 다중 결합을 1개로 센 수(중심 원자에 결합한 원자 수)예요.</p>
+  <div class="gnote">🔬 이 프로그램에서 확인해 보세요: 구조식을 그리고 <b>▶ 3D로 변환</b>을 누른 뒤, <b>비공유 전자쌍</b>과 <b>결합각</b> 체크박스를 켜고 모형을 돌려 보세요!</div>
+  </div>`,[['닫기','pri']]);
+}
+document.getElementById('vseprBtn').onclick=showVSEPR;
+document.getElementById('vseprMore').onclick=e=>{e.preventDefault();showVSEPR()};
+
+/* =========================================================
+   휴대폰 화면 전환
+   ========================================================= */
+const mq=window.matchMedia('(max-width:860px)');
+const isMobile=()=>mq.matches;
+function setView(v){document.body.dataset.view=v;if(v==='edit')requestAnimationFrame(resize2D);document.querySelectorAll('#mnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='view3d')setTimeout(resize3D,30)}
+document.querySelectorAll('#mnav button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+document.getElementById('mstripB').onclick=()=>setView('side');
+function updateMobileUI(){
+  document.getElementById('navSideIc').textContent=mode==='mission'?'🎯':'📋';
+  document.getElementById('navSideTx').textContent=mode==='mission'?'미션':'안내·예시';
+  document.body.classList.toggle('has-mission',!!(mode==='mission'&&curMission));
+  const dot=document.getElementById('navDot');dot.classList.remove('show');
+  if(mode==='mission'&&curMission){const ch=missionChecks(curMission);const ok=ch.filter(c=>c.ok).length;const cleared=!!progress[curMission.id];const quiz=!cleared&&ok===ch.length;
+    document.getElementById('mstripT').innerHTML=`🎯 <b>${curMission.title}</b> · ${cleared?'★ 클리어':`조건 ${ok}/${ch.length}`}`;
+    const b=document.getElementById('mstripB');b.textContent=quiz?'✏️ 확인 문제 풀기':'미션 보기';b.classList.toggle('pulse',quiz);dot.classList.toggle('show',quiz)}
+}
+
+/* =========================================================
+   모드 전환
+   ========================================================= */
+function switchMode(m){if(mode===m)return;mode=m;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.mode===m));curMission=null;renderSide();renderAnalysis();if(isMobile())setView(m==='mission'?'side':'edit')}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchMode(t.dataset.mode));
+
+analyze();renderSide();renderAnalysis();setView(isMobile()?'side':'edit');showGuide(true);
+</script>
+</body>
+</html>
